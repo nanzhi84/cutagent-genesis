@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from decimal import Decimal
 from time import perf_counter
 from typing import Protocol
 from uuid import uuid4
@@ -15,6 +16,7 @@ from packages.core.contracts import (
     ProviderInvocation,
     ProviderStatus,
     UsageMeterRecord,
+    zero_money,
     utcnow,
 )
 from packages.core.storage import Repository, get_repository
@@ -36,8 +38,13 @@ class ProviderResult(BaseModel):
     output: dict[str, JsonValue] = Field(default_factory=dict)
     input_tokens: int = 0
     output_tokens: int = 0
-    media_seconds: float = 0
-    estimated_cost: Money = Field(default_factory=Money)
+    cached_input_tokens: int = 0
+    audio_seconds: float = 0
+    video_seconds: float = 0
+    image_count: int = 0
+    provider_credits: Decimal | None = None
+    raw_usage: dict[str, JsonValue] = Field(default_factory=dict)
+    estimated_cost: Money = Field(default_factory=zero_money)
 
 
 class ProviderPlugin(Protocol):
@@ -64,7 +71,7 @@ class SandboxProvider:
             return ProviderResult(
                 output={"audio_uri": f"sandbox://audio/{uuid4().hex}.wav", "duration_sec": duration},
                 input_tokens=len(text),
-                media_seconds=duration,
+                audio_seconds=duration,
             )
         if call.capability_id == "llm":
             script = str(call.input.get("script", ""))
@@ -83,7 +90,7 @@ class SandboxProvider:
         if call.capability_id == "lipsync":
             return ProviderResult(
                 output={"video_uri": f"sandbox://video/lipsync/{uuid4().hex}.mp4", "report": "pass"},
-                media_seconds=float(call.input.get("duration_sec", 0) or 0),
+                video_seconds=float(call.input.get("duration_sec", 0) or 0),
             )
         if call.capability_id == "annotation":
             return ProviderResult(output={"labels": ["sandbox"], "quality": "usable"})
@@ -113,6 +120,7 @@ class ProviderGateway:
 
     def invoke(self, call: ProviderCall) -> tuple[ProviderInvocation, ProviderResult | None]:
         profile = self.repository.provider_profiles[call.provider_profile_id]
+        started_at = utcnow()
         started = perf_counter()
         invocation = ProviderInvocation(
             id=new_id("pinv"),
@@ -125,6 +133,7 @@ class ProviderGateway:
             capability_id=call.capability_id,
             prompt_version_id=call.prompt_version_id,
             status=ProviderStatus.running,
+            started_at=started_at,
         )
         self.repository.provider_invocations[invocation.id] = invocation
         validation_error = self._validate_profile(profile, call)
@@ -134,6 +143,7 @@ class ProviderGateway:
                     "status": ProviderStatus.failed,
                     "error": validation_error,
                     "duration_ms": int((perf_counter() - started) * 1000),
+                    "finished_at": utcnow(),
                     "updated_at": utcnow(),
                 }
             )
@@ -143,26 +153,14 @@ class ProviderGateway:
         try:
             result = plugin.invoke(call)
             duration_ms = int((perf_counter() - started) * 1000)
-            cost_unpriced = not self._has_price(
+            price_item_id = self._find_price_item_id(
                 provider_id=profile.provider_id,
                 model_id=profile.model_id,
                 capability_id=call.capability_id,
             )
+            cost_unpriced = price_item_id is None
             if cost_unpriced:
                 self._record_unpriced_alert(invocation)
-            invocation = invocation.model_copy(
-                update={
-                    "status": ProviderStatus.cost_unpriced
-                    if cost_unpriced
-                    else ProviderStatus.succeeded,
-                    "duration_ms": duration_ms,
-                    "input_tokens": result.input_tokens,
-                    "output_tokens": result.output_tokens,
-                    "media_seconds": result.media_seconds,
-                    "estimated_cost": result.estimated_cost,
-                    "updated_at": utcnow(),
-                }
-            )
             usage = UsageMeterRecord(
                 id=new_id("usage"),
                 provider_invocation_id=invocation.id,
@@ -171,9 +169,26 @@ class ProviderGateway:
                 capability_id=invocation.capability_id,
                 input_tokens=result.input_tokens,
                 output_tokens=result.output_tokens,
-                media_seconds=result.media_seconds,
-                estimated_cost=result.estimated_cost,
-                cost_unpriced=cost_unpriced,
+                cached_input_tokens=result.cached_input_tokens,
+                audio_seconds=result.audio_seconds,
+                video_seconds=result.video_seconds,
+                image_count=result.image_count,
+                provider_credits=result.provider_credits,
+                raw_usage=result.raw_usage,
+            )
+            invocation = invocation.model_copy(
+                update={
+                    "status": ProviderStatus.succeeded,
+                    "usage": usage,
+                    "price_item_id": price_item_id,
+                    "billing_status": "unpriced" if cost_unpriced else "estimated",
+                    "duration_ms": duration_ms,
+                    "input_tokens": result.input_tokens,
+                    "output_tokens": result.output_tokens,
+                    "estimated_cost": result.estimated_cost,
+                    "finished_at": utcnow(),
+                    "updated_at": utcnow(),
+                }
             )
             self.repository.usage_records[usage.id] = usage
             self.repository.provider_invocations[invocation.id] = invocation
@@ -189,6 +204,7 @@ class ProviderGateway:
                     "status": status,
                     "duration_ms": int((perf_counter() - started) * 1000),
                     "error": ProviderError(code=exc.code, message=exc.message, retryable=True),
+                    "finished_at": utcnow(),
                     "updated_at": utcnow(),
                 }
             )
@@ -222,15 +238,15 @@ class ProviderGateway:
             )
         return None
 
-    def _has_price(self, *, provider_id: str, model_id: str, capability_id: str) -> bool:
+    def _find_price_item_id(self, *, provider_id: str, model_id: str, capability_id: str) -> str | None:
         for item in self.repository.price_items.values():
             if item.provider_id != provider_id:
                 continue
             model_matches = item.model_id in {model_id, "*"}
             capability_matches = item.capability_id in {capability_id, "*"}
             if model_matches and capability_matches:
-                return True
-        return False
+                return item.id
+        return None
 
     def _record_unpriced_alert(self, invocation: ProviderInvocation) -> None:
         alert_id = f"alert_unpriced_{invocation.provider_id}_{invocation.model_id}_{invocation.capability_id}"

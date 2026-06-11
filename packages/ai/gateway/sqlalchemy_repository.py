@@ -180,7 +180,7 @@ class SqlAlchemyProviderRepository:
             items=[
                 ProviderBalanceItem(
                     provider_id=item,
-                    balance=Money(amount=9999),
+                    balance=Money(amount=9999, currency="CNY"),
                     quota_remaining=1_000_000,
                     checked_at=utcnow(),
                     status="ok",

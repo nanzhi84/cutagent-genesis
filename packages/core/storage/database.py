@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy import (
     Boolean,
@@ -12,6 +13,7 @@ from sqlalchemy import (
     Index,
     Integer,
     MetaData,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -269,16 +271,20 @@ class ProviderInvocationRow(TimestampMixin, Base):
     capability_id: Mapped[str] = mapped_column(String, nullable=False)
     prompt_version_id: Mapped[str | None] = mapped_column(String)
     status: Mapped[str] = mapped_column(String, nullable=False)
+    price_item_id: Mapped[str | None] = mapped_column(ForeignKey("provider_price_items.id"))
+    billing_status: Mapped[str] = mapped_column(String, nullable=False, default="estimated")
     duration_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     input_tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     output_tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    media_seconds: Mapped[float] = mapped_column(Float, nullable=False, default=0)
-    estimated_cost: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    estimated_cost: Mapped[dict | None] = mapped_column(JSONB)
     actual_cost: Mapped[dict | None] = mapped_column(JSONB)
     request_artifact_id: Mapped[str | None] = mapped_column(ForeignKey("artifacts.id"))
     response_artifact_id: Mapped[str | None] = mapped_column(ForeignKey("artifacts.id"))
+    external_job_id: Mapped[str | None] = mapped_column(String)
     error: Mapped[dict | None] = mapped_column(JSONB)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class UsageMeterRecordRow(TimestampMixin, Base):
@@ -293,10 +299,12 @@ class UsageMeterRecordRow(TimestampMixin, Base):
     capability_id: Mapped[str] = mapped_column(String, nullable=False)
     input_tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     output_tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    media_seconds: Mapped[float] = mapped_column(Float, nullable=False, default=0)
-    estimated_cost: Mapped[dict] = mapped_column(JSONB, nullable=False)
-    actual_cost: Mapped[dict | None] = mapped_column(JSONB)
-    cost_unpriced: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    cached_input_tokens: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    audio_seconds: Mapped[float] = mapped_column(Float, nullable=False, default=0)
+    video_seconds: Mapped[float] = mapped_column(Float, nullable=False, default=0)
+    image_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    provider_credits: Mapped[Decimal | None] = mapped_column(Numeric)
+    raw_usage: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
 
 
 class ProviderPriceCatalogRow(TimestampMixin, Base):

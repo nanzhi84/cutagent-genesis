@@ -1285,11 +1285,11 @@ def provider_usage(
         invocations = [item for item in invocations if item.provider_id == provider_id]
     if case_id:
         invocations = [item for item in invocations if item.case_id == case_id]
-    amount = sum(item.estimated_cost.amount for item in invocations)
+    amount = sum((item.estimated_cost.amount for item in invocations if item.estimated_cost), c.Decimal("0"))
     return c.ProviderUsageReport(
         invocations=len(invocations),
-        estimated_cost=c.Money(amount=amount),
-        unpriced_invocation_count=len([item for item in invocations if item.status == c.ProviderStatus.cost_unpriced]),
+        estimated_cost=c.Money(amount=amount, currency="CNY"),
+        unpriced_invocation_count=len([item for item in invocations if item.billing_status == "unpriced"]),
     )
 
 
@@ -1311,7 +1311,7 @@ def provider_balances(
         items=[
             c.ProviderBalanceItem(
                 provider_id=provider_id,
-                balance=c.Money(amount=9999),
+                balance=c.Money(amount=9999, currency="CNY"),
                 quota_remaining=1_000_000,
                 checked_at=c.utcnow(),
                 status="ok",
@@ -1949,7 +1949,13 @@ def cost_rollups(
         id="cost_current",
         group_key=group_by or "all",
         group_by=group_by,
-        estimated_cost=c.Money(amount=sum(item.estimated_cost.amount for item in repo.provider_invocations.values())),
+        estimated_cost=c.Money(
+            amount=sum(
+                (item.estimated_cost.amount for item in repo.provider_invocations.values() if item.estimated_cost),
+                c.Decimal("0"),
+            ),
+            currency="CNY",
+        ),
         invocations=len(repo.provider_invocations),
     )
     repo.cost_rollups[rollup.id] = rollup

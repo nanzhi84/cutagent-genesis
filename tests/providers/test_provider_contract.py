@@ -87,8 +87,9 @@ def test_provider_cost_unpriced_is_recorded_without_blocking_result():
         )
     )
     assert result is not None
-    assert invocation.status == ProviderStatus.cost_unpriced
+    assert invocation.status == ProviderStatus.succeeded
+    assert invocation.billing_status == "unpriced"
+    assert invocation.price_item_id is None
     usage = next(item for item in repository.usage_records.values() if item.provider_invocation_id == invocation.id)
-    assert usage.cost_unpriced is True
+    assert invocation.usage == usage
     assert any(alert.code == "provider.cost_unpriced" for alert in repository.alerts.values())
-

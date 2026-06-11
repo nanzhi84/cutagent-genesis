@@ -71,9 +71,25 @@ def test_contract_columns_for_core_boundaries_exist():
     assert {"input_manifest_hash", "output_artifact_ids", "provider_invocation_ids"} <= set(
         tables["node_runs"].columns.keys()
     )
-    assert {"provider_id", "model_id", "capability_id", "estimated_cost"} <= set(
-        tables["provider_invocations"].columns.keys()
-    )
+    assert {
+        "provider_id",
+        "model_id",
+        "capability_id",
+        "price_item_id",
+        "billing_status",
+        "estimated_cost",
+        "started_at",
+        "finished_at",
+    } <= set(tables["provider_invocations"].columns.keys())
+    assert {
+        "cached_input_tokens",
+        "audio_seconds",
+        "video_seconds",
+        "image_count",
+        "provider_credits",
+        "raw_usage",
+    } <= set(tables["usage_meter_records"].columns.keys())
+    assert "media_seconds" not in tables["usage_meter_records"].columns.keys()
     assert {"variables_schema_ref", "output_schema_ref"} <= set(tables["prompt_templates"].columns.keys())
     assert {"topic", "aggregate_type", "aggregate_id", "dedupe_key", "payload_schema"} <= set(
         tables["outbox_events"].columns.keys()

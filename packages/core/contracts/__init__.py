@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal
 from enum import Enum
-from typing import Generic, Literal, TypeVar
+from typing import Any, Generic, Literal, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field, JsonValue
 
@@ -171,8 +172,13 @@ class UserRole(str, Enum):
 
 
 class Money(ContractModel):
-    currency: str = "CNY"
-    amount: float = 0
+    amount: Decimal
+    currency: str = Field(min_length=3, max_length=3, pattern=r"^[A-Z]{3}$")
+    amount_micro: int | None = None
+
+
+def zero_money(currency: str = "CNY") -> Money:
+    return Money(amount=Decimal("0"), currency=currency, amount_micro=0)
 
 
 class EntityMeta(ContractModel):
@@ -272,10 +278,12 @@ class UsageMeterRecord(EntityMeta):
     capability_id: str
     input_tokens: int = 0
     output_tokens: int = 0
-    media_seconds: float = 0
-    estimated_cost: Money = Field(default_factory=Money)
-    actual_cost: Money | None = None
-    cost_unpriced: bool = False
+    cached_input_tokens: int = 0
+    audio_seconds: float = 0
+    video_seconds: float = 0
+    image_count: int = 0
+    provider_credits: Decimal | None = None
+    raw_usage: dict[str, Any] = Field(default_factory=dict)
 
 
 class ProviderInvocation(EntityMeta):
@@ -288,16 +296,21 @@ class ProviderInvocation(EntityMeta):
     capability_id: str
     prompt_version_id: str | None = None
     status: ProviderStatus
+    usage: UsageMeterRecord | None = None
+    price_item_id: str | None = None
+    billing_status: Literal["estimated", "reconciled", "unpriced", "ignored"] = "estimated"
     duration_ms: int = 0
     retry_count: int = 0
     input_tokens: int = 0
     output_tokens: int = 0
-    media_seconds: float = 0
-    estimated_cost: Money = Field(default_factory=Money)
+    estimated_cost: Money | None = None
     actual_cost: Money | None = None
     request_artifact_id: str | None = None
     response_artifact_id: str | None = None
+    external_job_id: str | None = None
     error: ProviderError | None = None
+    started_at: datetime = Field(default_factory=utcnow)
+    finished_at: datetime | None = None
 
 
 class RetryPolicy(ContractModel):

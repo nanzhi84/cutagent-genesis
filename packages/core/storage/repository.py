@@ -258,7 +258,7 @@ class Repository:
             model_id="*",
             capability_id="*",
             unit="call",
-            unit_price=Money(currency="CNY", amount=0),
+            unit_price=Money(currency="CNY", amount=0, amount_micro=0),
         )
         self.alerts["alert_unpriced"] = OpsAlertEvent(
             id="alert_unpriced",

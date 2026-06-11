@@ -37,3 +37,16 @@
    提交 run 出片 → 成片 preview 浏览器可播（Playwright 截图或 curl 下载校验）。
 2. 发布中心：侧边栏无全局入口；/publish-center 重定向；Case 工作台发布 tab 正常；批次按 case 过滤。
 3. 全量 + DB + Temporal 三套绿。
+
+---
+
+## 验收记录（2026-06-12，验收官：Claude）
+
+**判定：通过并合入**（merge 见 git log）。证据：
+- 全量绿（local 默认不回退）+ S3 门控测试在真 MinIO 全绿 + 23 DB 集成绿。
+- **端到端真验**：s3 模式 multipart 上传 → `object_uri=s3://cutagent-local/...` → preview-url 返回 SigV4 presigned MinIO URL → curl 下到真实字节内容。**浏览器内成片/素材预览播不了的硬伤解决**。bootstrap seed 素材也正确落 MinIO（6 个对象）。
+- 发布中心归 Case：侧边栏/概览移除全局入口、/publish-center 重定向、批次按 case_id 过滤（contract test 覆盖）。
+
+真验抓到 2 个 mock 测不出的 bug（已修）：① `_is_bucket_absent_error` 引用未定义（首次 head_bucket NameError）；② MinIO 默认 SigV2，强制 boto3 SigV4 + path addressing 后 presigned 才带 X-Amz-* 且可下载。
+
+调用方式备忘：PUT /api/uploads/{id}/file 是 **multipart `file` 字段**（不是 raw body）。

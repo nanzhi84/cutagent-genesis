@@ -40,3 +40,17 @@ Codex sandbox 无网络、不能真调 API——**必须严格照搬原版已上
 - `CUTAGENT_RUN_LIVE_PROVIDER_TESTS=1` + 真 key + 公开素材：ASR（公开 wav）、VLM（公开图/视频）、
   TTS（已过）、HeyGem（真 portrait，可选）逐个 live 通过，产物真实可解析。
 - ASR 产出真句级时间戳 → strict_timestamps=true 真 run 能出对齐字幕成片。
+
+---
+
+## 验收记录（2026-06-12，验收官：Claude）
+
+**判定：通过并合入**（merge 见 git log）。真 key live 验收：
+- **MiniMax TTS** ✅（M6d 已验，保持）
+- **DashScope ASR** ✅ 异步任务流修对（提交→轮询→下载结果 JSON），返回句级时间戳——**strict_timestamps 真对齐字幕能力打通**
+- **DashScope VLM** ✅ 真图像理解（"女子沙滩与金毛击掌"）；修正：默认 model_id `qwen-vl-max-latest`→`qwen-vl-max`（该 key 未授权 latest 别名，access_denied，非代码 bug）
+- **HeyGem lipsync** ⏳ 代码照原版 runninghub_heygem.py 复查（节点自动发现+轮询+重试），真连通待真实 portrait mp4 素材验
+
+全量 + 23 DB 集成（重建 schema 47 seed）绿；sandbox 默认路径不变。
+
+提醒用户：若要 VLM 用 latest/快照版模型，需在阿里云百炼控制台开通对应模型授权。

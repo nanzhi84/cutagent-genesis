@@ -429,7 +429,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RegistrationCodePreview"
+                  "$ref": "#/components/schemas/CreatedRegistrationCode"
                 }
               }
             }
@@ -8730,6 +8730,73 @@
           "source_ref"
         ],
         "title": "CreateSourceBindingRequest"
+      },
+      "CreatedRegistrationCode": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "disabled",
+              "expired"
+            ],
+            "title": "Status"
+          },
+          "max_uses": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Uses"
+          },
+          "used_count": {
+            "type": "integer",
+            "title": "Used Count"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "plaintext_code": {
+            "type": "string",
+            "title": "Plaintext Code"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "role",
+          "status",
+          "used_count",
+          "created_at",
+          "plaintext_code"
+        ],
+        "title": "CreatedRegistrationCode"
       },
       "CreativeBrief": {
         "properties": {

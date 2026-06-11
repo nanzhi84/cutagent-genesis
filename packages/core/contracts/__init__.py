@@ -652,6 +652,10 @@ class RegistrationCodePreview(ContractModel):
     created_at: datetime
 
 
+class CreatedRegistrationCode(RegistrationCodePreview):
+    plaintext_code: str
+
+
 class CreateRegistrationCodeRequest(ContractModel):
     role: UserRole
     max_uses: int | None = None

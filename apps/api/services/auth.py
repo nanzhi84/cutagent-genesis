@@ -133,7 +133,7 @@ def registration_codes(request: Request, limit: int = 50) -> c.PageResponse[c.Re
 
 def create_registration_code(
     payload: c.CreateRegistrationCodeRequest, request: Request
-) -> c.RegistrationCodePreview:
+) -> c.CreatedRegistrationCode:
     if isinstance(auth(request), SqlAlchemyAuthService):
         return auth(request).create_registration_code(payload)
     plaintext_code = new_id("reg_code")
@@ -148,7 +148,7 @@ def create_registration_code(
     )
     repository(request).registration_codes[code.id] = code
     repository(request).registration_code_hashes[hash_registration_code(plaintext_code)] = code.id
-    return code
+    return c.CreatedRegistrationCode(**code.model_dump(), plaintext_code=plaintext_code)
 
 
 def patch_registration_code(

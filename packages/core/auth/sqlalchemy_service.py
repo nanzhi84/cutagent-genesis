@@ -17,6 +17,7 @@ from packages.core.contracts import (
     AuthResponse,
     AuthUser,
     ChangePasswordRequest,
+    CreatedRegistrationCode,
     CreateRegistrationCodeRequest,
     ErrorCode,
     RegistrationCodePreview,
@@ -186,11 +187,12 @@ class SqlAlchemyAuthService:
 
     def create_registration_code(
         self, payload: CreateRegistrationCodeRequest
-    ) -> RegistrationCodePreview:
+    ) -> CreatedRegistrationCode:
+        plaintext_code = new_id("reg_code")
         with self.session_factory() as session:
             row = RegistrationCodeRow(
                 id=new_id("reg"),
-                code_hash=hash_registration_code(new_id("reg_code")),
+                code_hash=hash_registration_code(plaintext_code),
                 role=payload.role.value,
                 status="active",
                 max_uses=payload.max_uses,
@@ -200,7 +202,8 @@ class SqlAlchemyAuthService:
             session.add(row)
             session.commit()
             session.refresh(row)
-            return registration_code_row_to_contract(row)
+            preview = registration_code_row_to_contract(row)
+            return CreatedRegistrationCode(**preview.model_dump(), plaintext_code=plaintext_code)
 
     def patch_registration_code(
         self, code_id: str, payload: UpdateRegistrationCodeRequest

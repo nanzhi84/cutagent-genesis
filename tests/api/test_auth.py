@@ -112,3 +112,51 @@ def test_registration_code_assigns_role_and_tracks_usage():
     assert response.status_code == 201, response.text
     assert response.json()["user"]["role"] == "admin"
     assert repository().registration_codes[code_id].used_count == before + 1
+
+
+def test_admin_created_registration_code_returns_plaintext_once_and_can_register():
+    client = TestClient(app)
+    login = client.post(
+        "/api/auth/login",
+        json={"email": "admin@local.cutagent", "password": "local-admin"},
+    )
+    assert login.status_code == 200, login.text
+
+    created = client.post(
+        "/api/auth/registration-codes",
+        json={"role": "operator", "max_uses": 1},
+    )
+    assert created.status_code == 201, created.text
+    created_body = created.json()
+    plaintext_code = created_body["plaintext_code"]
+    assert isinstance(plaintext_code, str)
+    assert plaintext_code.startswith("reg_code_")
+
+    listed = client.get("/api/auth/registration-codes")
+    assert listed.status_code == 200, listed.text
+    listed_code = next(item for item in listed.json()["items"] if item["id"] == created_body["id"])
+    assert "plaintext_code" not in listed_code
+
+    registered = client.post(
+        "/api/auth/register",
+        json={
+            "email": f"{created_body['id']}@example.test",
+            "password": "correct horse battery staple",
+            "display_name": "Issued Code User",
+            "registration_code": plaintext_code,
+        },
+    )
+    assert registered.status_code == 201, registered.text
+    assert registered.json()["user"]["role"] == "operator"
+
+    reused = client.post(
+        "/api/auth/register",
+        json={
+            "email": f"{created_body['id']}-again@example.test",
+            "password": "correct horse battery staple",
+            "display_name": "Reuse Code User",
+            "registration_code": plaintext_code,
+        },
+    )
+    assert reused.status_code == 400
+    assert reused.json()["error"]["code"] == "auth.registration_closed"

@@ -2919,6 +2919,30 @@ export interface components {
             /** Title */
             title?: string | null;
         };
+        /** CreatedRegistrationCode */
+        CreatedRegistrationCode: {
+            /** Id */
+            id: string;
+            role: components["schemas"]["UserRole"];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "disabled" | "expired";
+            /** Max Uses */
+            max_uses?: number | null;
+            /** Used Count */
+            used_count: number;
+            /** Expires At */
+            expires_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Plaintext Code */
+            plaintext_code: string;
+        };
         /** CreativeBrief */
         CreativeBrief: {
             /** Id */
@@ -6315,7 +6339,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RegistrationCodePreview"];
+                    "application/json": components["schemas"]["CreatedRegistrationCode"];
                 };
             };
             /** @description Validation Error */

@@ -2,6 +2,7 @@ import { Navigate, Route, Routes, useParams } from "react-router-dom";
 import { AppShell } from "./components/AppShell";
 import { RequireAuth } from "./components/RequireAuth";
 import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
 import CaseListPage from "./pages/studio/CaseListPage";
 import StudioCreatePage from "./pages/studio/StudioCreatePage";
 import RunsPage from "./pages/studio/RunsPage";
@@ -9,15 +10,19 @@ import SettingsPage from "./pages/settings/SettingsPage";
 import LibraryLayout from "./pages/library/LibraryLayout";
 import PublishCenterPage from "./pages/publish/PublishCenterPage";
 import PlaceholderPage from "./pages/PlaceholderPage";
+import OverviewPage from "./pages/OverviewPage";
+import AnalyticsPage from "./pages/AnalyticsPage";
+import AccountPage from "./pages/AccountPage";
 import { routePatterns, routes } from "./routes";
 
 export default function App() {
   return (
     <Routes>
       <Route path={routePatterns.login} element={<LoginPage />} />
+      <Route path={routePatterns.register} element={<RegisterPage />} />
         <Route element={<RequireAuth />}>
         <Route element={<AppShell />}>
-          <Route index element={<PlaceholderPage title="概览" />} />
+          <Route index element={<OverviewPage />} />
           <Route path={routePatterns.studio} element={<CaseListPage />} />
           <Route path={routePatterns.caseStudio} element={<StudioCreatePage />} />
           <Route path={routePatterns.caseOutputs} element={<RunsPage />} />
@@ -28,8 +33,8 @@ export default function App() {
           <Route path={routePatterns.publishCenterBatch} element={<PublishCenterPage />} />
           <Route path={routePatterns.settings} element={<SettingsPage />} />
           <Route path={routePatterns.library} element={<LibraryLayout />} />
-          <Route path={routePatterns.analytics} element={<PlaceholderPage title="数据统计" />} />
-          <Route path={routePatterns.account} element={<PlaceholderPage title="账户中心" />} />
+          <Route path={routePatterns.analytics} element={<AnalyticsPage />} />
+          <Route path={routePatterns.account} element={<AccountPage />} />
           <Route path={routePatterns.ops} element={<Navigate to={routes.analytics()} replace />} />
         </Route>
       </Route>

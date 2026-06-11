@@ -13,6 +13,7 @@ import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { useRunEvents } from "../../hooks/useRunEvents";
 import { usePageVisible } from "../../hooks/usePageVisible";
 import { shortId } from "../../lib/format";
+import { toDisplayUrl } from "../../lib/url";
 
 type RunAction = "cancel" | "retry" | "resume";
 
@@ -300,11 +301,12 @@ export default function RunsPage() {
 }
 
 function RunThumbnail({ run }: { run: RunCard }) {
+  const previewUrl = toDisplayUrl(run.previewUrl);
   return (
     <div className="group relative aspect-[9/16] w-full overflow-hidden rounded-[18px] border border-border/70 bg-[#20231f] shadow-sm">
-      {run.previewUrl ? (
+      {previewUrl ? (
         <img
-          src={run.previewUrl}
+          src={previewUrl}
           alt={run.title}
           className="h-full w-full object-cover opacity-90 transition-opacity group-hover:opacity-100"
           loading="lazy"

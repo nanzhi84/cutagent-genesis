@@ -1,5 +1,6 @@
 export const routePatterns = {
   login: "/login",
+  register: "/register",
   overview: "/",
   studio: "/studio",
   caseStudio: "/studio/:caseId",
@@ -20,6 +21,7 @@ const segment = (value: string) => encodeURIComponent(value);
 
 export const routes = {
   login: () => "/login",
+  register: () => "/register",
   overview: () => "/",
   studio: () => "/studio",
   caseStudio: (caseId: string) => `/studio/${segment(caseId)}`,

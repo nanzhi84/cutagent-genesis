@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5173",
-    "generate:api": "cd ..\\.. && python scripts\\export_openapi.py && cd apps\\web && openapi-typescript src\\api\\openapi.json -o src\\api\\schema.d.ts",
+    "generate:api": "openapi-typescript src/api/openapi.json -o src/api/schema.d.ts",
     "build": "tsc -b && vite build",
-    "preview": "vite preview --host 127.0.0.1 --port 4173"
+    "preview": "vite preview --host 127.0.0.1 --port 4173",
+    "export:openapi": "cd ../.. && python scripts/export_openapi.py"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.85.0",

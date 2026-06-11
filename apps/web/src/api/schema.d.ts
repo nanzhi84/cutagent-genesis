@@ -1840,22 +1840,20 @@ export interface components {
         AdminCreateUserRequest: {
             /** Email */
             email: string;
-            /** Password */
-            password: string;
             /** Display Name */
             display_name: string;
-            /** Registration Code */
-            registration_code?: string | null;
             /** @default viewer */
             role: components["schemas"]["UserRole"];
+            /** Password */
+            password?: string | null;
         };
         /** AdminUpdateUserRequest */
         AdminUpdateUserRequest: {
             /** Display Name */
             display_name?: string | null;
             role?: components["schemas"]["UserRole"] | null;
-            /** Disabled */
-            disabled?: boolean | null;
+            /** Status */
+            status?: ("active" | "disabled") | null;
         };
         /** AdoptScriptDraftRequest */
         AdoptScriptDraftRequest: {
@@ -1866,6 +1864,11 @@ export interface components {
         };
         /** AnnotationBatchRequest */
         AnnotationBatchRequest: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            schema_version: "annotation_batch_request.v1";
             /** Asset Ids */
             asset_ids: string[];
             /** Provider Profile Id */
@@ -1925,6 +1928,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -1957,12 +1967,14 @@ export interface components {
          * ArtifactKind
          * @enum {string}
          */
-        ArtifactKind: "uploaded.file" | "validated.production_spec" | "case.context" | "creative.intent" | "audio.tts" | "audio.alignment.raw" | "audio.alignment" | "narration.units" | "plan.material_pack" | "plan.portrait" | "plan.broll" | "plan.style" | "plan.timeline" | "plan.render" | "video.portrait_track" | "video.lipsync" | "video.rendered" | "video.final" | "video.finished" | "subtitle.ass" | "cover.image" | "publish.package" | "run.report.public" | "run.report.debug" | "case.reflection" | "editor.handoff" | "jianying.draft" | "import.mapping";
+        ArtifactKind: "uploaded.file" | "spec.validated_production" | "case.context" | "case.performance_analysis" | "case.reflection" | "script.strategy" | "creative.intent" | "audio.tts" | "audio.alignment.raw" | "audio.alignment" | "narration.units" | "plan.material_pack" | "plan.material_pack" | "plan.portrait" | "plan.portrait" | "plan.broll" | "plan.broll" | "plan.style" | "plan.style" | "plan.timeline" | "plan.timeline" | "plan.render" | "plan.render" | "video.portrait_track" | "video.lipsync" | "lipsync.report" | "video.rendered" | "video.final" | "video.finished" | "subtitle.ass" | "cover.image" | "publish.package" | "run.report.public" | "run.report.public" | "run.report.debug" | "run.report.debug" | "editor.handoff_package" | "editor.handoff_package" | "editor.jianying_draft_package" | "editor.jianying_draft_package" | "provider.raw_request" | "provider.raw_response" | "import.mapping";
         /** ArtifactRef */
         ArtifactRef: {
             /** Artifact Id */
             artifact_id: string;
             kind: components["schemas"]["ArtifactKind"];
+            /** Uri */
+            uri: string;
             /**
              * Schema Version
              * @default v1
@@ -1985,6 +1997,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -2024,6 +2043,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -2036,25 +2062,31 @@ export interface components {
             /** @default viewer */
             role: components["schemas"]["UserRole"];
             /**
-             * Disabled
-             * @default false
+             * Status
+             * @default active
+             * @enum {string}
              */
-            disabled: boolean;
+            status: "active" | "disabled";
         };
         /** BgmOptions */
         BgmOptions: {
             /**
              * Enabled
-             * @default false
+             * @default true
              */
             enabled: boolean;
-            /** Asset Id */
-            asset_id?: string | null;
+            /** Bgm Id */
+            bgm_id?: string | null;
             /**
              * Volume
-             * @default 0.2
+             * @default 0.25
              */
             volume: number;
+            /**
+             * Auto Mix
+             * @default true
+             */
+            auto_mix: boolean;
         };
         /** Body_upload_file_api_uploads__upload_session_id__file_put */
         Body_upload_file_api_uploads__upload_session_id__file_put: {
@@ -2065,19 +2097,24 @@ export interface components {
         BrollOptions: {
             /**
              * Enabled
-             * @default false
+             * @default true
              */
             enabled: boolean;
+            /** Case Id */
+            case_id?: string | null;
             /**
              * Max Inserts
-             * @default 3
+             * @default 4
              */
             max_inserts: number;
-            /** Asset Ids */
-            asset_ids?: string[];
+            /**
+             * Min Segment Duration
+             * @default 3
+             */
+            min_segment_duration: number;
         };
         /** Budget */
-        Budget: {
+        "Budget-Input": {
             /** Id */
             id: string;
             /**
@@ -2090,6 +2127,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -2099,7 +2143,49 @@ export interface components {
             scope_type: string;
             /** Scope Id */
             scope_id?: string | null;
-            limit: components["schemas"]["Money"];
+            limit: components["schemas"]["Money-Input"];
+            /**
+             * Alert Threshold
+             * @default 0.8
+             */
+            alert_threshold: number;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+        };
+        /** Budget */
+        "Budget-Output": {
+            /** Id */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
+            /**
+             * Schema Version
+             * @default v1
+             */
+            schema_version: string;
+            /** Scope Type */
+            scope_type: string;
+            /** Scope Id */
+            scope_id?: string | null;
+            limit: components["schemas"]["Money-Output"];
             /**
              * Alert Threshold
              * @default 0.8
@@ -2135,6 +2221,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -2164,6 +2257,11 @@ export interface components {
         };
         /** CaseAgentRunRequest */
         CaseAgentRunRequest: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            schema_version: "case_agent_run_request.v1";
             /** Case Id */
             case_id: string;
             /**
@@ -2188,6 +2286,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -2219,6 +2324,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -2256,6 +2368,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -2299,6 +2418,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -2328,6 +2454,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -2340,7 +2473,7 @@ export interface components {
              * @default proposed
              * @enum {string}
              */
-            status: "proposed" | "active" | "rejected" | "deprecated";
+            status: "proposed" | "approved" | "active" | "deprecated" | "rejected" | "superseded";
             scope?: components["schemas"]["CaseMemoryScope"];
             /** Insight */
             insight: string;
@@ -2369,8 +2502,8 @@ export interface components {
         };
         /** ChangePasswordRequest */
         ChangePasswordRequest: {
-            /** Current Password */
-            current_password: string;
+            /** Old Password */
+            old_password: string;
             /** New Password */
             new_password: string;
         };
@@ -2388,14 +2521,20 @@ export interface components {
             /** Upload Session Id */
             upload_session_id: string;
             /** Size Bytes */
-            size_bytes: number;
+            size_bytes?: number | null;
             /** Sha256 */
             sha256?: string | null;
+            /** Metadata */
+            metadata?: {
+                [key: string]: string;
+            };
         };
         /** CompleteUploadResponse */
         CompleteUploadResponse: {
             upload_session: components["schemas"]["UploadSession"];
-            artifact?: components["schemas"]["ArtifactRef"] | null;
+            artifact: components["schemas"]["ArtifactRef"];
+            media_asset?: components["schemas"]["MediaAssetRecord"] | null;
+            publish_package?: components["schemas"]["PublishPackage"] | null;
             /** Request Id */
             request_id: string;
         };
@@ -2413,6 +2552,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -2422,8 +2568,8 @@ export interface components {
             group_key: string;
             /** Group By */
             group_by?: string | null;
-            estimated_cost: components["schemas"]["Money"];
-            actual_cost?: components["schemas"]["Money"] | null;
+            estimated_cost: components["schemas"]["Money-Output"];
+            actual_cost?: components["schemas"]["Money-Output"] | null;
             /**
              * Invocations
              * @default 0
@@ -2437,9 +2583,9 @@ export interface components {
              * @default frame
              * @enum {string}
              */
-            mode: "ai" | "frame" | "upload";
-            /** Upload Artifact Id */
-            upload_artifact_id?: string | null;
+            mode: "none" | "frame" | "ai";
+            /** Template Id */
+            template_id?: string | null;
         };
         /** CreateCaseRequest */
         CreateCaseRequest: {
@@ -2509,7 +2655,7 @@ export interface components {
              * @default other
              * @enum {string}
              */
-            kind: "portrait" | "broll" | "bgm" | "font" | "voice" | "video" | "image" | "other";
+            kind: "portrait" | "broll" | "voice_reference" | "bgm" | "font" | "cover_template" | "video" | "image" | "other";
         };
         /** CreatePromptBindingRequest */
         CreatePromptBindingRequest: {
@@ -2573,11 +2719,29 @@ export interface components {
             environment: "local" | "dev" | "staging" | "prod";
             /** Secret Ref */
             secret_ref?: string | null;
+            /**
+             * Concurrency Key
+             * @default default
+             */
+            concurrency_key: string;
+            /**
+             * Timeout Sec
+             * @default 30
+             */
+            timeout_sec: number;
+            retry_policy?: components["schemas"]["RetryPolicy"];
+            /** Cost Policy Id */
+            cost_policy_id?: string | null;
             options_schema_ref: components["schemas"]["ProviderOptionsSchemaRef"];
             /** Default Options */
             default_options?: {
                 [key: string]: components["schemas"]["JsonValue"];
             };
+            /**
+             * Version
+             * @default v1
+             */
+            version: string;
         };
         /** CreatePublishBatchRequest */
         CreatePublishBatchRequest: {
@@ -2653,8 +2817,8 @@ export interface components {
             environment: "local" | "dev" | "staging" | "prod";
             /** Name */
             name: string;
-            /** Value */
-            value: string;
+            /** Plaintext Secret */
+            plaintext_secret: string;
         };
         /** CreateSourceBindingRequest */
         CreateSourceBindingRequest: {
@@ -2682,6 +2846,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -2725,6 +2896,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -2746,7 +2924,24 @@ export interface components {
          * DegradationCode
          * @enum {string}
          */
-        DegradationCode: "broll.skipped_no_material" | "bgm.skipped_library_unannotated" | "font.default_used" | "cover.frame_fallback";
+        DegradationCode: "broll.skipped_no_material" | "bgm.skipped_library_unannotated" | "font_default_used" | "cover.frame_fallback";
+        /** DegradationNotice */
+        DegradationNotice: {
+            code: components["schemas"]["WarningCode"];
+            /** Message */
+            message: string;
+            /** Node Id */
+            node_id?: string | null;
+            /**
+             * Affects True Yield
+             * @default false
+             */
+            affects_true_yield: boolean;
+            /** Details */
+            details?: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
+        };
         /** DesignVoiceRequest */
         DesignVoiceRequest: {
             /** Display Name */
@@ -2757,7 +2952,12 @@ export interface components {
             provider_profile_id?: string | null;
         };
         /** DigitalHumanVideoRequest */
-        "DigitalHumanVideoRequest-Input": {
+        DigitalHumanVideoRequest: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            schema_version: "digital_human_video_request.v1";
             /** Case Id */
             case_id: string;
             /** Script */
@@ -2781,38 +2981,7 @@ export interface components {
             portrait?: components["schemas"]["PortraitOptions"];
             broll?: components["schemas"]["BrollOptions"];
             lipsync?: components["schemas"]["LipSyncOptions"];
-            subtitles?: components["schemas"]["SubtitleOptions"];
-            bgm?: components["schemas"]["BgmOptions"];
-            cover?: components["schemas"]["CoverOptions"];
-            output?: components["schemas"]["OutputOptions"];
-            strictness?: components["schemas"]["StrictnessOptions"];
-        };
-        /** DigitalHumanVideoRequest */
-        "DigitalHumanVideoRequest-Output": {
-            /** Case Id */
-            case_id: string;
-            /** Script */
-            script: string;
-            /** Title */
-            title?: string | null;
-            /**
-             * Publish Content
-             * @default
-             */
-            publish_content: string;
-            /** Script Version Id */
-            script_version_id?: string | null;
-            creative_intent_ref?: components["schemas"]["ArtifactRef"] | null;
-            /**
-             * Workflow Template Id
-             * @default digital_human_v2
-             */
-            workflow_template_id: string;
-            voice?: components["schemas"]["VoiceOptions"];
-            portrait?: components["schemas"]["PortraitOptions"];
-            broll?: components["schemas"]["BrollOptions"];
-            lipsync?: components["schemas"]["LipSyncOptions"];
-            subtitles?: components["schemas"]["SubtitleOptions"];
+            subtitle?: components["schemas"]["SubtitleOptions"];
             bgm?: components["schemas"]["BgmOptions"];
             cover?: components["schemas"]["CoverOptions"];
             output?: components["schemas"]["OutputOptions"];
@@ -2835,7 +3004,7 @@ export interface components {
          * ErrorCode
          * @enum {string}
          */
-        ErrorCode: "validation.missing_case" | "validation.missing_voice" | "validation.missing_script" | "validation.invalid_options" | "auth.unauthorized" | "auth.forbidden" | "auth.invalid_credentials" | "auth.registration_closed" | "auth.user_disabled" | "upload.invalid_state" | "upload.expired" | "upload.size_mismatch" | "upload.sha256_mismatch" | "upload.unsupported_type" | "material.insufficient.portrait" | "material.insufficient.broll" | "material.annotation_failed" | "prompt.render_error" | "prompt.output_invalid" | "prompt.version_not_published" | "provider.unsupported_option" | "provider.quota_exceeded" | "provider.timeout" | "provider.remote_failed" | "provider.auth_failed" | "provider.cost_unpriced" | "artifact.missing" | "artifact.integrity_failed" | "artifact.schema_mismatch" | "workflow.invalid_transition" | "workflow.cancelled" | "workflow.resume_not_allowed" | "render.invalid_timeline" | "render.failed" | "render.subtitle_failed" | "publish.failed" | "import.failed";
+        ErrorCode: "validation.missing_case" | "validation.missing_voice" | "validation.missing_script" | "validation.invalid_options" | "auth.unauthorized" | "auth.forbidden" | "auth.invalid_credentials" | "auth.registration_closed" | "auth.user_disabled" | "upload.invalid_state" | "upload.expired" | "upload.size_mismatch" | "upload.sha256_mismatch" | "upload.unsupported_type" | "material.insufficient.portrait" | "material.insufficient.broll" | "material.annotation_failed" | "prompt.render_error" | "prompt.output_invalid" | "prompt.version_not_published" | "provider.unsupported_option" | "provider.quota_exceeded" | "provider.timeout" | "provider.remote_failed" | "provider.auth_failed" | "provider.cost_unpriced" | "artifact.missing" | "artifact.integrity_failed" | "artifact.schema_mismatch" | "workflow.invalid_transition" | "workflow.cancelled" | "workflow.resume_not_allowed" | "render.invalid_timeline" | "render.failed" | "render.subtitle_failed" | "publish.failed" | "import.failed" | "idempotency.conflict";
         /** EventStreamTokenResponse */
         EventStreamTokenResponse: {
             /** Stream Url */
@@ -2864,6 +3033,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -2983,22 +3159,31 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
              */
             schema_version: string;
             type: components["schemas"]["JobType"];
-            /** @default created */
+            /** @default draft */
             status: components["schemas"]["JobStatus"];
             /** Case Id */
             case_id?: string | null;
-            /** Created By User Id */
-            created_by_user_id?: string | null;
+            /** Request Schema */
+            request_schema: string;
             /** Request */
-            request: components["schemas"]["DigitalHumanVideoRequest-Output"] | components["schemas"]["CaseAgentRunRequest"] | components["schemas"]["PublishBatchRequest"] | components["schemas"]["AnnotationBatchRequest"];
-            /** Current Run Id */
-            current_run_id?: string | null;
+            request: components["schemas"]["DigitalHumanVideoRequest"] | components["schemas"]["CaseAgentRunRequest"] | components["schemas"]["PublishBatchRequest"] | components["schemas"]["AnnotationBatchRequest"];
+            /** Active Run Id */
+            active_run_id?: string | null;
+            /** Latest Finished Video Id */
+            latest_finished_video_id?: string | null;
         };
         /** JobDetailResponse */
         JobDetailResponse: {
@@ -3017,7 +3202,7 @@ export interface components {
          * JobStatus
          * @enum {string}
          */
-        JobStatus: "created" | "queued" | "running" | "waiting_approval" | "succeeded" | "failed" | "cancelled" | "partially_succeeded";
+        JobStatus: "draft" | "queued" | "running" | "succeeded" | "failed" | "cancelled" | "archived";
         /**
          * JobType
          * @enum {string}
@@ -3038,10 +3223,18 @@ export interface components {
             provider_profile_id: string;
             /** Ref Image Artifact Id */
             ref_image_artifact_id?: string | null;
-            /** Options */
-            options?: {
-                [key: string]: components["schemas"]["JsonValue"];
-            };
+            /**
+             * Video Extension
+             * @default false
+             */
+            video_extension: boolean;
+            /** Query Face Threshold */
+            query_face_threshold?: number | null;
+            /**
+             * Timeout Minutes
+             * @default 30
+             */
+            timeout_minutes: number;
         };
         /** LoginRequest */
         LoginRequest: {
@@ -3082,6 +3275,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -3095,7 +3295,7 @@ export interface components {
              * Kind
              * @enum {string}
              */
-            kind: "portrait" | "broll" | "bgm" | "font" | "voice" | "video" | "image" | "other";
+            kind: "portrait" | "broll" | "bgm" | "font" | "cover_template" | "voice_reference" | "voice" | "video" | "image" | "other";
             /** Source Artifact Id */
             source_artifact_id?: string | null;
             /** Tags */
@@ -3126,6 +3326,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -3138,7 +3345,7 @@ export interface components {
              * @default proposed
              * @enum {string}
              */
-            status: "proposed" | "active" | "rejected" | "deprecated";
+            status: "proposed" | "approved" | "active" | "deprecated" | "rejected" | "superseded";
             scope?: components["schemas"]["CaseMemoryScope"];
             /** Insight */
             insight: string;
@@ -3165,17 +3372,22 @@ export interface components {
             dry_run: boolean;
         };
         /** Money */
-        Money: {
-            /**
-             * Currency
-             * @default CNY
-             */
+        "Money-Input": {
+            /** Amount */
+            amount: number | string;
+            /** Currency */
             currency: string;
-            /**
-             * Amount
-             * @default 0
-             */
-            amount: number;
+            /** Amount Micro */
+            amount_micro?: number | null;
+        };
+        /** Money */
+        "Money-Output": {
+            /** Amount */
+            amount: string;
+            /** Currency */
+            currency: string;
+            /** Amount Micro */
+            amount_micro?: number | null;
         };
         /** NodeError */
         NodeError: {
@@ -3220,6 +3432,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -3232,17 +3451,26 @@ export interface components {
             /** Node Version */
             node_version: string;
             status: components["schemas"]["NodeStatus"];
+            /**
+             * Attempt
+             * @default 1
+             */
+            attempt: number;
             /** Input Manifest Hash */
-            input_manifest_hash?: string | null;
+            input_manifest_hash: string;
             /** Output Artifact Ids */
             output_artifact_ids?: string[];
             /** Provider Invocation Ids */
             provider_invocation_ids?: string[];
             error?: components["schemas"]["NodeError"] | null;
+            /** Skipped Reason */
+            skipped_reason?: string | null;
+            /** Degradation Reason */
+            degradation_reason?: string | null;
             /** Warnings */
             warnings?: components["schemas"]["WarningCode"][];
             /** Degradations */
-            degradations?: components["schemas"]["DegradationCode"][];
+            degradations?: components["schemas"]["DegradationNotice"][];
             /** Started At */
             started_at?: string | null;
             /** Finished At */
@@ -3277,6 +3505,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -3310,6 +3545,26 @@ export interface components {
         };
         /** OutputOptions */
         OutputOptions: {
+            /**
+             * Export Jianying Draft
+             * @default true
+             */
+            export_jianying_draft: boolean;
+            /**
+             * Export Editor Handoff
+             * @default true
+             */
+            export_editor_handoff: boolean;
+            /**
+             * Upload To Oss
+             * @default true
+             */
+            upload_to_oss: boolean;
+            /**
+             * Keep Local Originals
+             * @default false
+             */
+            keep_local_originals: boolean;
             /**
              * Width
              * @default 1080
@@ -3357,7 +3612,7 @@ export interface components {
         /** PageResponse[Budget] */
         PageResponse_Budget_: {
             /** Items */
-            items: components["schemas"]["Budget"][];
+            items: components["schemas"]["Budget-Output"][];
             /** Next Cursor */
             next_cursor?: string | null;
             /** Total Hint */
@@ -3615,7 +3870,7 @@ export interface components {
         };
         /** PatchBudgetRequest */
         PatchBudgetRequest: {
-            limit?: components["schemas"]["Money"] | null;
+            limit?: components["schemas"]["Money-Input"] | null;
             /** Alert Threshold */
             alert_threshold?: number | null;
             /** Enabled */
@@ -3660,6 +3915,13 @@ export interface components {
             enabled?: boolean | null;
             /** Secret Ref */
             secret_ref?: string | null;
+            /** Concurrency Key */
+            concurrency_key?: string | null;
+            /** Timeout Sec */
+            timeout_sec?: number | null;
+            retry_policy?: components["schemas"]["RetryPolicy"] | null;
+            /** Cost Policy Id */
+            cost_policy_id?: string | null;
             /** Default Options */
             default_options?: {
                 [key: string]: components["schemas"]["JsonValue"];
@@ -3730,6 +3992,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -3752,29 +4021,40 @@ export interface components {
         /** PortraitOptions */
         PortraitOptions: {
             /**
-             * Required
-             * @default true
+             * Template Mode
+             * @default agent
+             * @enum {string}
              */
-            required: boolean;
-            /** Asset Ids */
-            asset_ids?: string[];
+            template_mode: "agent" | "specific" | "sequence";
+            /** Specific Template Id */
+            specific_template_id?: string | null;
+            /** Template Sequence Ids */
+            template_sequence_ids?: string[];
+            /**
+             * Rhythm Preset
+             * @default balanced
+             * @enum {string}
+             */
+            rhythm_preset: "steady" | "balanced" | "fast";
         };
         /** PrepareUploadRequest */
         PrepareUploadRequest: {
+            kind: components["schemas"]["UploadKind"];
+            /** Case Id */
+            case_id?: string | null;
             /** Filename */
             filename: string;
-            /** Mime Type */
-            mime_type: string;
+            /** Content Type */
+            content_type: string;
             /** Size Bytes */
             size_bytes: number;
             /** Sha256 */
             sha256?: string | null;
             /**
-             * Purpose
-             * @default media
-             * @enum {string}
+             * Multipart
+             * @default false
              */
-            purpose: "media" | "voice" | "finished_video" | "import" | "cover";
+            multipart: boolean;
         };
         /** ProductionQualityCheck */
         ProductionQualityCheck: {
@@ -3790,6 +4070,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -3837,6 +4124,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -3882,6 +4176,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -3938,6 +4239,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -3975,6 +4283,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -4008,7 +4323,7 @@ export interface components {
             provider_id: string;
             /** Account Group */
             account_group?: string | null;
-            balance?: components["schemas"]["Money"] | null;
+            balance?: components["schemas"]["Money-Output"] | null;
             /** Quota Remaining */
             quota_remaining?: number | null;
             /** Unit */
@@ -4045,17 +4360,42 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
              */
             schema_version: string;
+            /** Capability */
+            capability: string;
             /** Provider Id */
             provider_id: string;
-            /** Capability Id */
-            capability_id: string;
-            input_schema_ref: components["schemas"]["ProviderOptionsSchemaRef"];
-            output_schema_ref: components["schemas"]["ProviderOptionsSchemaRef"];
+            /** Model Id */
+            model_id: string;
+            /** Display Name */
+            display_name: string;
+            /** Input Schema Id */
+            input_schema_id: string;
+            /** Output Schema Id */
+            output_schema_id: string;
+            /** Options Schema Id */
+            options_schema_id: string;
+            /** Supports Async Job */
+            supports_async_job: boolean;
+            /** Supports Cancel */
+            supports_cancel: boolean;
+            /** Max Payload Bytes */
+            max_payload_bytes?: number | null;
+            /** Max Duration Sec */
+            max_duration_sec?: number | null;
+            /** Default Timeout Sec */
+            default_timeout_sec: number;
         };
         /** ProviderError */
         ProviderError: {
@@ -4089,6 +4429,17 @@ export interface components {
              * @default v1
              */
             schema_version: string;
+            /**
+             * Dialect
+             * @default pydantic
+             * @enum {string}
+             */
+            dialect: "json_schema_2020_12" | "pydantic";
+            /**
+             * Sha256
+             * @default dev-unpinned
+             */
+            sha256: string;
         };
         /** ProviderPriceCatalog */
         ProviderPriceCatalog: {
@@ -4104,6 +4455,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -4137,6 +4495,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -4155,7 +4520,7 @@ export interface components {
              * @enum {string}
              */
             unit: "input_token" | "output_token" | "media_second" | "call";
-            unit_price: components["schemas"]["Money"];
+            unit_price: components["schemas"]["Money-Input"];
             /**
              * Active From
              * Format: date-time
@@ -4178,6 +4543,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default v1
+             */
+            version: string;
             /**
              * Schema Version
              * @default v1
@@ -4198,23 +4570,36 @@ export interface components {
             environment: "local" | "dev" | "staging" | "prod";
             /** Secret Ref */
             secret_ref?: string | null;
-            options_schema_ref: components["schemas"]["ProviderOptionsSchemaRef"];
-            /** Default Options */
-            default_options?: {
-                [key: string]: components["schemas"]["JsonValue"];
-            };
             /**
              * Enabled
              * @default true
              */
             enabled: boolean;
+            /**
+             * Concurrency Key
+             * @default default
+             */
+            concurrency_key: string;
+            /**
+             * Timeout Sec
+             * @default 30
+             */
+            timeout_sec: number;
+            retry_policy?: components["schemas"]["RetryPolicy"];
+            /** Cost Policy Id */
+            cost_policy_id?: string | null;
+            options_schema_ref: components["schemas"]["ProviderOptionsSchemaRef"];
+            /** Default Options */
+            default_options?: {
+                [key: string]: components["schemas"]["JsonValue"];
+            };
         };
         /** ProviderUsageReport */
         ProviderUsageReport: {
             /** Invocations */
             invocations: number;
-            estimated_cost: components["schemas"]["Money"];
-            actual_cost?: components["schemas"]["Money"] | null;
+            estimated_cost: components["schemas"]["Money-Output"];
+            actual_cost?: components["schemas"]["Money-Output"] | null;
             /** Unpriced Invocation Count */
             unpriced_invocation_count: number;
         };
@@ -4232,28 +4617,53 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
              */
             schema_version: string;
+            /** Batch Id */
+            batch_id: string;
             /** Item Id */
             item_id: string;
-            /** Platform */
-            platform: string;
+            /** Platforms */
+            platforms: string[];
             /**
-             * Status
-             * @default queued
-             * @enum {string}
+             * Manual Review
+             * @default false
              */
-            status: "queued" | "running" | "succeeded" | "failed";
-            error?: components["schemas"]["ProviderError"] | null;
+            manual_review: boolean;
+            /** @default created */
+            status: components["schemas"]["PublishAttemptStatus"];
+            /** Adapter Id */
+            adapter_id: string;
+            /** External Task Id */
+            external_task_id?: string | null;
+            /** Results */
+            results?: {
+                [key: string]: components["schemas"]["JsonValue"];
+            }[];
+            error?: components["schemas"]["NodeError"] | null;
+            /** Finished At */
+            finished_at?: string | null;
         };
         /** PublishAttemptDetail */
         PublishAttemptDetail: {
             attempt: components["schemas"]["PublishAttempt"];
             record?: components["schemas"]["PublishRecord"] | null;
         };
+        /**
+         * PublishAttemptStatus
+         * @enum {string}
+         */
+        PublishAttemptStatus: "created" | "manual_review_ready" | "scheduled" | "published" | "failed";
         /** PublishBatchItemVm */
         PublishBatchItemVm: {
             /** Id */
@@ -4268,6 +4678,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -4289,20 +4706,26 @@ export interface components {
              * @default true
              */
             selected: boolean;
-            /**
-             * Status
-             * @default draft
-             * @enum {string}
-             */
-            status: "draft" | "submitted" | "published" | "failed";
+            /** @default uploaded */
+            status: components["schemas"]["PublishItemStatus"];
         };
         /** PublishBatchRequest */
         PublishBatchRequest: {
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            schema_version: "publish_batch_request.v1";
             /** Publish Package Ids */
             publish_package_ids: string[];
             /** Platform Targets */
             platform_targets: string[];
         };
+        /**
+         * PublishBatchStatus
+         * @enum {string}
+         */
+        PublishBatchStatus: "draft" | "processing" | "review_ready" | "publishing" | "completed" | "partial_failed";
         /** PublishBatchVm */
         PublishBatchVm: {
             /** Id */
@@ -4317,17 +4740,20 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
              */
             schema_version: string;
-            /**
-             * Status
-             * @default draft
-             * @enum {string}
-             */
-            status: "draft" | "submitted" | "partially_failed" | "published" | "failed";
+            /** @default draft */
+            status: components["schemas"]["PublishBatchStatus"];
             /** Items */
             items?: components["schemas"]["PublishBatchItemVm"][];
         };
@@ -4343,6 +4769,11 @@ export interface components {
             /** Hashtags */
             hashtags?: string[];
         };
+        /**
+         * PublishItemStatus
+         * @enum {string}
+         */
+        PublishItemStatus: "uploaded" | "normalizing" | "asr_running" | "copy_running" | "cover_running" | "review_ready" | "manual_review_ready" | "publishing" | "published" | "generation_failed" | "publish_failed" | "excluded";
         /** PublishPackage */
         PublishPackage: {
             /** Id */
@@ -4357,6 +4788,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -4391,6 +4829,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -4463,6 +4908,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -4544,6 +4996,26 @@ export interface components {
              */
             reuse_valid_artifacts: boolean;
         };
+        /** RetryPolicy */
+        RetryPolicy: {
+            /**
+             * Max Attempts
+             * @default 1
+             */
+            max_attempts: number;
+            /**
+             * Backoff Seconds
+             * @default 0
+             */
+            backoff_seconds: number;
+            /**
+             * Backoff Multiplier
+             * @default 2
+             */
+            backoff_multiplier: number;
+            /** Retryable Error Codes */
+            retryable_error_codes?: components["schemas"]["ErrorCode"][];
+        };
         /** RetryRunRequest */
         RetryRunRequest: {
             /** Reason */
@@ -4558,8 +5030,8 @@ export interface components {
         };
         /** RotateSecretRequest */
         RotateSecretRequest: {
-            /** Value */
-            value: string;
+            /** Plaintext Secret */
+            plaintext_secret: string;
             /** Reason */
             reason: string;
         };
@@ -4648,7 +5120,7 @@ export interface components {
          * RunStatus
          * @enum {string}
          */
-        RunStatus: "created" | "queued" | "running" | "cancelling" | "cancelled" | "succeeded" | "failed" | "degraded" | "waiting_approval";
+        RunStatus: "created" | "admitted" | "running" | "cancelling" | "succeeded" | "failed" | "cancelled";
         /** ScriptDraft */
         ScriptDraft: {
             /** Id */
@@ -4663,6 +5135,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -4697,6 +5176,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -4727,6 +5213,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -4738,21 +5231,32 @@ export interface components {
             environment: string;
             /** Name */
             name: string;
-            /**
-             * Status
-             * @default active
-             * @enum {string}
-             */
-            status: "active" | "disabled";
+            /** Secret Ref */
+            secret_ref?: string | null;
+            /** @default active */
+            status: components["schemas"]["SecretStatus"];
+            /** Rotated From Secret Id */
+            rotated_from_secret_id?: string | null;
+            /** Rotated At */
+            rotated_at?: string | null;
+            /** Disabled At */
+            disabled_at?: string | null;
             /**
              * Masked Value
              * @default ********
              */
             masked_value: string;
         };
+        /**
+         * SecretStatus
+         * @enum {string}
+         */
+        SecretStatus: "active" | "disabled" | "rotated";
         /** SessionInfo */
         SessionInfo: {
             user: components["schemas"]["AuthUser"];
+            /** Session Id */
+            session_id: string;
             /**
              * Expires At
              * Format: date-time
@@ -4800,10 +5304,28 @@ export interface components {
         /** StrictnessOptions */
         StrictnessOptions: {
             /**
-             * Strict Alignment
-             * @default false
+             * Strict Timestamps
+             * @default true
              */
-            strict_alignment: boolean;
+            strict_timestamps: boolean;
+            /**
+             * Portrait Insufficient Policy
+             * @default hard_fail
+             * @constant
+             */
+            portrait_insufficient_policy: "hard_fail";
+            /**
+             * Broll Insufficient Policy
+             * @default soft_degrade
+             * @constant
+             */
+            broll_insufficient_policy: "soft_degrade";
+            /**
+             * Bgm Unavailable Policy
+             * @default soft_degrade
+             * @constant
+             */
+            bgm_unavailable_policy: "soft_degrade";
             /**
              * Strict Cost Pricing
              * @default false
@@ -4825,10 +5347,19 @@ export interface components {
              * @default true
              */
             enabled: boolean;
-            /** Style */
-            style?: {
-                [key: string]: components["schemas"]["JsonValue"];
-            };
+            /**
+             * Style Preset
+             * @default douyin
+             */
+            style_preset: string;
+            /** Font Id */
+            font_id?: string | null;
+            /** Font Size */
+            font_size?: number | null;
+            /** Position */
+            position?: {
+                [key: string]: number;
+            } | null;
         };
         /** TestProviderProfileRequest */
         TestProviderProfileRequest: {
@@ -4849,6 +5380,11 @@ export interface components {
             /** Expires At */
             expires_at?: string | null;
         };
+        /**
+         * UploadKind
+         * @enum {string}
+         */
+        UploadKind: "portrait" | "broll" | "voice_reference" | "bgm" | "font" | "cover_template" | "publish_video";
         /** UploadSession */
         UploadSession: {
             /** Id */
@@ -4863,28 +5399,35 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
              */
             schema_version: string;
+            kind: components["schemas"]["UploadKind"];
+            /** Case Id */
+            case_id?: string | null;
             /** Filename */
             filename: string;
-            /** Mime Type */
-            mime_type: string;
+            /** Content Type */
+            content_type: string;
             /** Size Bytes */
             size_bytes: number;
             /** Sha256 */
             sha256?: string | null;
             /** @default prepared */
-            status: components["schemas"]["UploadStatus"];
-            /**
-             * Purpose
-             * @default media
-             */
-            purpose: string;
+            status: components["schemas"]["UploadSessionStatus"];
             /** Upload Url */
             upload_url?: string | null;
+            /** Local Temp Path */
+            local_temp_path?: string | null;
             /** Object Uri */
             object_uri?: string | null;
             /**
@@ -4894,13 +5437,13 @@ export interface components {
             expires_at?: string;
         };
         /**
-         * UploadStatus
+         * UploadSessionStatus
          * @enum {string}
          */
-        UploadStatus: "prepared" | "uploaded" | "completed" | "cancelled" | "expired";
+        UploadSessionStatus: "prepared" | "uploading" | "completed" | "failed" | "cancelled" | "expired";
         /** UpsertBudgetRequest */
         UpsertBudgetRequest: {
-            budget: components["schemas"]["Budget"];
+            budget: components["schemas"]["Budget-Input"];
         };
         /** UpsertPriceCatalogRequest */
         UpsertPriceCatalogRequest: {
@@ -4921,6 +5464,10 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+            /** Input */
+            input?: unknown;
+            /** Context */
+            ctx?: Record<string, never>;
         };
         /** VideoVersion */
         VideoVersion: {
@@ -4936,6 +5483,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -4955,7 +5509,7 @@ export interface components {
         /** VoiceOptions */
         VoiceOptions: {
             /** Voice Id */
-            voice_id?: string | null;
+            voice_id: string;
             /** Provider Profile Id */
             provider_profile_id?: string | null;
             /**
@@ -4963,6 +5517,16 @@ export interface components {
              * @default 1
              */
             speed: number;
+            /**
+             * Emotion
+             * @default neutral
+             */
+            emotion: string;
+            /**
+             * Volume
+             * @default 1
+             */
+            volume: number;
         };
         /** VoicePreviewRequest */
         VoicePreviewRequest: {
@@ -4993,6 +5557,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -5019,7 +5590,7 @@ export interface components {
          * WarningCode
          * @enum {string}
          */
-        WarningCode: "provider.cost_unpriced" | "cover.frame_fallback" | "bgm.skipped_library_unannotated" | "font.default_used" | "platform.metrics_waiting";
+        WarningCode: "broll.skipped_no_material" | "bgm.skipped_library_unannotated" | "font_default_used" | "cover.frame_fallback" | "timestamp.estimated" | "cost.unpriced";
         /** WorkflowRun */
         WorkflowRun: {
             /** Id */
@@ -5034,6 +5605,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -5049,6 +5627,8 @@ export interface components {
             workflow_version: string;
             /** @default created */
             status: components["schemas"]["RunStatus"];
+            /** Requested By */
+            requested_by?: string | null;
             /**
              * Run Attempt
              * @default 1
@@ -5056,8 +5636,10 @@ export interface components {
             run_attempt: number;
             /** Resume From Run Id */
             resume_from_run_id?: string | null;
-            /** Retry From Run Id */
-            retry_from_run_id?: string | null;
+            /** Retry Of Run Id */
+            retry_of_run_id?: string | null;
+            /** Experiment Assignment Id */
+            experiment_assignment_id?: string | null;
             /** Public Report Artifact Id */
             public_report_artifact_id?: string | null;
             /** Debug Report Artifact Id */
@@ -5087,6 +5669,13 @@ export interface components {
              * Format: date-time
              */
             updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
             /**
              * Schema Version
              * @default v1
@@ -5988,7 +6577,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DigitalHumanVideoRequest-Input"];
+                "application/json": components["schemas"]["DigitalHumanVideoRequest"];
             };
         };
         responses: {
@@ -8917,7 +9506,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Budget"];
+                    "application/json": components["schemas"]["Budget-Output"];
                 };
             };
             /** @description Validation Error */
@@ -8952,7 +9541,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Budget"];
+                    "application/json": components["schemas"]["Budget-Output"];
                 };
             };
             /** @description Validation Error */

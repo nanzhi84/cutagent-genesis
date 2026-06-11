@@ -86,3 +86,15 @@ CUTAGENT_DATABASE_URL='postgresql+psycopg://cutagent:cutagent@127.0.0.1:55432/cu
 - `tests/contract/test_artifact_schema_registry.py`：每个 JSON ArtifactKind 都能在 registry 找到模型；URI-only kind 校验 MediaInfo+sha256 规则。
 - `tests/contract/test_error_envelope.py`：422、404、409 都返回统一错误体且带 request_id；同一请求内 request_id 一致。
 - 钱字段断言 Decimal/micro 不丢精度。
+
+---
+
+## 验收记录（2026-06-11，验收官：Claude）
+
+**判定：通过**（merge `55e94e0`）。证据：62 单测/契约/golden + 20 DB 集成全绿；OpenAPI 可导出；前端类型重新生成后构建通过。
+
+核销：A1-A3、B1-B4、C1-C6、D2-D6、E1-E7、F1-F6 done；**D1 partial**（`uploaded.file`/`import.mapping` 两个 spec 外兼容 kind 保留，并入 M2 裁决）；**D7 partial**（pipeline 仍有部分手拼 dict payload，并入 M2/M6 清理）。
+
+验收修复（4 处，由验收官完成）：secret 字段名对齐 spec `plaintext_secret`；`Money.amount_micro` 缺省自动推导（spec 23.1）；publishing submit 的 `item_status` NameError；陈旧测试断言更新（Money 字符串序列化、rotate 创建新记录语义、ops/providers 金额断言）。
+
+过程记录：Codex 五轮（前四轮分别死于 worktree gitdir 越界、sandbox 配置未生效、sandbox 内 pytest 线程死锁、rescue agent 工作目录设错；第五轮直驱 codex exec 成功，833k tokens）。教训已固化：用独立 clone 而非 worktree 给 Codex；pytest 一律包 timeout；DB 测试由验收官在 sandbox 外跑。

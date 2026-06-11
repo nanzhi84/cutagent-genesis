@@ -109,7 +109,12 @@ def test_live_dashscope_asr_smoke(tmp_path):
     assert invocation.status == ProviderStatus.succeeded
     assert result is not None
     assert result.output["text"]
+    assert result.output["source"] == "asr"
     assert isinstance(result.output["segments"], list)
+    assert result.output["segments"], "DashScope ASR should return sentence-level timestamps."
+    for segment in result.output["segments"]:
+        assert isinstance(segment["text"], str) and segment["text"]
+        assert float(segment["end"]) >= float(segment["start"])
 
 
 def test_live_dashscope_vlm_annotation_smoke(tmp_path):

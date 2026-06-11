@@ -152,7 +152,7 @@ export default function StudioCreatePage() {
   });
   const voices = useQuery({
     queryKey: ["voices"],
-    queryFn: api.voices.list,
+    queryFn: () => api.voices.list(),
   });
 
   const voiceOptions = useMemo(() => voices.data?.items.filter((voice) => voice.enabled) ?? [], [voices.data?.items]);

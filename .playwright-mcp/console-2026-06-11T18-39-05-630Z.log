@@ -2572,3 +2572,689 @@
 [ 4220385ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
 [ 4222162ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
 [ 4227140ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4229954ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4230287ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4230388ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4231292ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4231392ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4234335ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4238790ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4241296ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4241396ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4241459ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4242299ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4242400ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4243587ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4248990ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4252317ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4252419ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4253321ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4253422ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4254126ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4258706ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4263325ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4263425ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4264328ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4264428ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4264683ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4270413ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4274035ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4274351ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4274452ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4275354ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4275455ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4277722ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4282564ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4285358ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4285459ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4285826ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4286361ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4286462ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4289603ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4294696ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4296365ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4296467ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4297368ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4297470ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4299092ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4304284ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4307394ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4307496ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4308398ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4308501ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4309109ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4314614ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4318403ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4318506ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4318754ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4319408ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4319509ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4321114ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4323832ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4326135ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4329412ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4329428ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4329513ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4330416ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4330517ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4334536ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4339079ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4340442ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4340541ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4341446ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4341545ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4342524ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4345027ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4349995ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4351450ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4351548ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4352453ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4352551ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4354968ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4358587ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4362456ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4362534ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4362554ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4363460ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4363557ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4367048ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4370713ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4373484ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4373580ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4373779ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4374487ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4374582ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4378227ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4383263ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4384491ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4384585ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4385493ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4385587ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4386945ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4389027ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4392145ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4394279ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4395515ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4395609ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4396518ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4396611ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4398043ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4403281ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4406420ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4406521ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4406614ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4407524ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4407617ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4410325ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4414338ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4417528ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4417620ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4418531ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4418622ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4419089ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4423635ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4428554ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4428645ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4428721ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4429558ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4429648ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4431879ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4434743ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4438598ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4439561ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4439651ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4440564ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4440655ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4442985ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4448949ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4450568ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4450658ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4451571ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4451661ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4453931ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4458725ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4461594ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4461683ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4462597ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4462686ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4464109ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4466856ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4471928ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4472600ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4472689ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4473602ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4473692ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4476221ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4480233ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4483605ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4483696ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4483952ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4484627ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4484718ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4487080ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4492310ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4494631ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4494723ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4495635ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4495646ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4495726ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4500577ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4503344ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4505638ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4505729ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4506641ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4506732ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4507479ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4511308ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4513611ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4516664ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4516753ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4517667ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4517758ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4519027ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4524137ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4527670ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4527761ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4528673ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4528764ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4529687ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4534589ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4538676ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4538767ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4538916ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4539679ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4539771ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4541574ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4546595ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4549698ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4549791ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4550701ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4550796ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4551113ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4556688ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4560704ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4560799ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4561704ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4561707ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4561802ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4564251ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4568542ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4570793ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4571710ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4571805ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4572714ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4572809ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4575053ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4578612ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4582328ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4582739ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4582834ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4583742ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4583837ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4585703ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4588780ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4591415ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4593745ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4593841ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4594747ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4594843ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4597368ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4599794ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4602536ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4604766ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4604862ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4605250ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4605770ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4605866ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4608024ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4611419ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4615774ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4615870ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4616778ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4616873ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4616945ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4621869ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4626363ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4626781ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4626876ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4627784ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4627879ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4628718ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4633069ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4637274ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4637808ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4637904ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4638811ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4638906ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4643197ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4646340ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4648455ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4648815ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4648909ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4649818ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4649913ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4652525ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4654651ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4659822ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4659916ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4660266ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4660824ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4660918ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4663853ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4666266ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4670806ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4670847ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4670942ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4671850ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4671945ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4672938ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4677414ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4681843ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4681853ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4681948ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4682855ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4682952ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4685319ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4688085ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4691441ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4692858ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4692956ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4693860ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4693959ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4697267ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4703002ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4703885ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4703983ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4704889ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4704987ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4708139ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4712798ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4714891ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4714991ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4715896ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4715994ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4716346ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4719401ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4723265ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4725916ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4726015ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4726544ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4726919ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4727018ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4729638ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4731760ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4734945ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4736922ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4737022ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4737925ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4738025ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4740631ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4745121ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4747928ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4748028ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4748714ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4748931ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4749032ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4750936ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4753616ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4756819ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4758957ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4759058ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4759960ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4760060ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4761386ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4766965ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4769478ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4769964ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4770063ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4770967ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4771066ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4772450ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4775611ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4780971ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4781070ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4781130ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4781975ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4782072ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4784284ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4786782ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4792001ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4792098ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4792108ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4793005ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4793102ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4796781ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4802629ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4803009ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4803107ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4804013ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4804109ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4805838ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4810482ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4814016ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4814113ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4814702ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4815043ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4815141ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4818396ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4823396ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4825046ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4825144ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4826049ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4826148ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4829296ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4834463ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4836052ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4836151ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4837055ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4837154ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4837911ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4843451ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4847077ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4847175ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4847325ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4848080ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4848180ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4851710ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4854952ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4858084ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4858173ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4858183ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4859087ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4859187ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4862173ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4867178ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4869090ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4869190ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4870093ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4870193ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4872783ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4876832ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4879959ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4880060ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4880962ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4881063ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4881314ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4884986ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4890373ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4890965ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4891068ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4891968ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4892071ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4892749ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4895707ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4901043ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4901972ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4902074ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4902974ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4903077ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4903880ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4908089ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4910564ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4912999ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4913102ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4914002ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4914105ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4915181ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4918286ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4922120ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4924005ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4924108ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4925007ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4925111ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4926284ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4932011ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4934215ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4935025ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4935130ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4936029ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4936132ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4939588ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4942992ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4946033ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4946135ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4947036ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4947139ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4948517ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4953126ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4957040ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4957143ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4958042ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4958146ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4958171ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4963914ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4966688ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4968066ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4968169ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4969069ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4969172ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4972537ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4974816ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4979072ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4979175ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4979921ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4980076ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4980179ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4984454ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4989347ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 4990080ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4990182ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4991084ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 4991184ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 4995115ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5000887ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5001106ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5001209ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5002110ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5002212ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5004211ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5007751ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5012113ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5012158ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5012216ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5013116ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5013219ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5017502ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5019646ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5023065ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5023119ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5023222ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5024123ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5024227ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5027267ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5030353ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5034145ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5034248ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5035149ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5035252ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5036297ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5037300ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5038304ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5039307ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5040310ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5041312ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5042318ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5043327ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5044344ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5045152ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5045256ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5045381ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5046155ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5046258ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5046430ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5047541ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5048847ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5050170ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5052055ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5053764ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5056176ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5056278ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5057180ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5057282ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5058439ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5063529ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5067183ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5067286ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5067619ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5068187ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5068289ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5072957ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5078190ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5078292ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5078531ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5079192ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5079294ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5081143ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5086880ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5089207ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5089310ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5090211ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5090313ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5091857ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5097635ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5100215ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5100317ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5101218ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5101320ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5102511ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5107583ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5110128ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5111222ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5111324ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5112225ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5112327ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5115795ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5119584ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5121619ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5122251ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5122352ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5123254ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5123355ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5125870ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5130517ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5133259ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5133359ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5133905ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5134261ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5134361ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5138383ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5142730ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5144264ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5144364ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5145286ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5145387ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5145601ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5148726ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5152032ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5155290ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5155390ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5156293ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5156392ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5156651ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5157654ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5158657ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5159660ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5160663ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5161668ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5162675ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5163683ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5164693ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5165722ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5166297ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5166396ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5166761ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5167301ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5167399ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5167821ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5169068ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5170288ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5172250ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5174574ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5177301ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5177399ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5178305ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5178403ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5178984ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5183023ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5185193ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5187273ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5188310ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5188407ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5189314ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5189411ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5191615ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5195386ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5199317ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5199414ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5200321ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5200417ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5200807ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5203387ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5207154ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5210341ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5210435ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5210785ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5211345ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5211438ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5213630ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5218386ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5221350ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5221442ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5221594ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5222352ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5222446ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5224342ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5226755ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5230443ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5232355ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5232449ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5233359ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5233452ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5234496ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5237396ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5243203ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5243384ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5243478ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5244388ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5244482ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5246132ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5250984ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5254392ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5254484ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5255395ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5255488ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5256392ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5259380ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5263338ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5265427ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5265520ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5266430ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5266524ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5267490ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5273221ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5276433ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5276527ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5277435ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5277529ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5278263ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5280794ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5284685ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5287439ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5287532ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5288442ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5288536ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5290437ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5293374ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5298253ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5298488ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5298582ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5299492ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5299585ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5301703ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5304778ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5306789ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034
+[ 5309495ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5309589ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5310499ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs?limit=30:0
+[ 5310591ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/api/cases/case_demo/agent/runs/agent_run_74f6949dc1bb:0
+[ 5311560ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5174/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5174/@vite/client:1034

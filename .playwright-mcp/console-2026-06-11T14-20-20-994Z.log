@@ -1,0 +1,27 @@
+[      84ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-JTSFUJHW.js?v=f65863be:21606
+[     109ms] [WARNING] ⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition. @ http://127.0.0.1:5173/node_modules/.vite/deps/react-router-dom.js?v=f65863be:4424
+[     109ms] [WARNING] ⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath. @ http://127.0.0.1:5173/node_modules/.vite/deps/react-router-dom.js?v=f65863be:4424
+[   17484ms] [ERROR] Warning: validateDOMNesting(...): %s cannot appear as a descendant of <%s>.%s <button> button 
+    at button
+    at span
+    at button
+    at div
+    at div
+    at section
+    at RunsPage (http://127.0.0.1:5173/src/pages/studio/RunsPage.tsx:39:27)
+    at RenderedRoute (http://127.0.0.1:5173/node_modules/.vite/deps/react-router-dom.js?v=f65863be:4120:5)
+    at Outlet (http://127.0.0.1:5173/node_modules/.vite/deps/react-router-dom.js?v=f65863be:4526:26)
+    at main
+    at div
+    at AppShell (http://127.0.0.1:5173/src/components/AppShell.tsx:69:28)
+    at RenderedRoute (http://127.0.0.1:5173/node_modules/.vite/deps/react-router-dom.js?v=f65863be:4120:5)
+    at Outlet (http://127.0.0.1:5173/node_modules/.vite/deps/react-router-dom.js?v=f65863be:4526:26)
+    at RequireAuth (http://127.0.0.1:5173/src/components/RequireAuth.tsx:24:16)
+    at RenderedRoute (http://127.0.0.1:5173/node_modules/.vite/deps/react-router-dom.js?v=f65863be:4120:5)
+    at Routes (http://127.0.0.1:5173/node_modules/.vite/deps/react-router-dom.js?v=f65863be:4590:5)
+    at App
+    at AuthProvider (http://127.0.0.1:5173/src/pages/auth/AuthContext.tsx:25:32)
+    at ToastProvider (http://127.0.0.1:5173/src/components/Toast.tsx:33:33)
+    at Router (http://127.0.0.1:5173/node_modules/.vite/deps/react-router-dom.js?v=f65863be:4533:15)
+    at BrowserRouter (http://127.0.0.1:5173/node_modules/.vite/deps/react-router-dom.js?v=f65863be:5271:5)
+    at QueryClientProvider (http://127.0.0.1:5173/node_modules/.vite/deps/@tanstack_react-query.js?v=f65863be:3233:3) @ http://127.0.0.1:5173/node_modules/.vite/deps/chunk-JTSFUJHW.js?v=f65863be:518

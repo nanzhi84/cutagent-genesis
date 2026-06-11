@@ -1,0 +1,175 @@
+- generic [ref=e28]:
+  - complementary [ref=e29]:
+    - generic [ref=e30]:
+      - img [ref=e31]
+      - generic [ref=e41]:
+        - strong [ref=e42]: Cutagent
+        - generic [ref=e43]: Case Studio
+    - navigation "主导航" [ref=e44]:
+      - link "Cases" [ref=e45] [cursor=pointer]:
+        - /url: /studio
+        - img [ref=e46]
+        - generic [ref=e50]: Cases
+      - link "素材库" [ref=e51] [cursor=pointer]:
+        - /url: /library
+        - img [ref=e52]
+        - generic [ref=e54]: 素材库
+      - generic "进入 Case 后可用" [ref=e55]:
+        - img [ref=e56]
+        - generic [ref=e61]: 发布
+      - link "Ops" [ref=e62] [cursor=pointer]:
+        - /url: /ops
+        - img [ref=e63]
+        - generic [ref=e66]: Ops
+      - link "设置" [ref=e67] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e68]
+        - generic [ref=e71]: 设置
+    - generic [ref=e72]:
+      - generic [ref=e73]:
+        - img [ref=e74]
+        - generic [ref=e77]: Local Admin
+        - generic [ref=e78]: admin
+      - button "退出登录" [ref=e79] [cursor=pointer]:
+        - img [ref=e80]
+        - generic [ref=e83]: 退出登录
+  - main [ref=e84]:
+    - generic [ref=e85]: 工作台 / Cases
+    - generic [ref=e86]:
+      - generic [ref=e87]:
+        - generic [ref=e88]:
+          - heading "Cases" [level=1] [ref=e89]
+          - paragraph [ref=e90]: 20 个工作空间，按 Case 管理创作、Runs 和成片。
+        - button "新建 Case" [ref=e91] [cursor=pointer]:
+          - img [ref=e92]
+          - generic [ref=e93]: 新建 Case
+      - generic [ref=e95]:
+        - img [ref=e96]
+        - textbox [ref=e99]:
+          - /placeholder: 搜索 Case 名称
+      - generic [ref=e100]:
+        - generic [ref=e101]:
+          - generic [ref=e102]: 名称
+          - generic [ref=e103]: 活跃记忆
+          - generic [ref=e104]: 更新
+          - generic [ref=e105]: Owner
+        - link "Imported Case 8370fa91 0 6/11/2026, 8:56:59 PM usr_admin" [ref=e106] [cursor=pointer]:
+          - /url: /studio/case_301d582a6aa2
+          - strong [ref=e107]: Imported Case 8370fa91
+          - generic [ref=e108]: "0"
+          - generic [ref=e109]: 6/11/2026, 8:56:59 PM
+          - generic [ref=e110]: usr_admin
+        - link "Idempotent SQL Case 0 6/11/2026, 8:56:59 PM usr_admin" [ref=e111] [cursor=pointer]:
+          - /url: /studio/case_ba029a2ef3b6
+          - strong [ref=e112]: Idempotent SQL Case
+          - generic [ref=e113]: "0"
+          - generic [ref=e114]: 6/11/2026, 8:56:59 PM
+          - generic [ref=e115]: usr_admin
+        - link "Integration Case 0 6/11/2026, 8:56:58 PM usr_admin" [ref=e116] [cursor=pointer]:
+          - /url: /studio/case_d11d42710e33
+          - strong [ref=e117]: Integration Case
+          - generic [ref=e118]: "0"
+          - generic [ref=e119]: 6/11/2026, 8:56:58 PM
+          - generic [ref=e120]: usr_admin
+        - link "Imported Case 848ddeba 0 6/11/2026, 8:50:22 PM usr_admin" [ref=e121] [cursor=pointer]:
+          - /url: /studio/case_4e9381268cd9
+          - strong [ref=e122]: Imported Case 848ddeba
+          - generic [ref=e123]: "0"
+          - generic [ref=e124]: 6/11/2026, 8:50:22 PM
+          - generic [ref=e125]: usr_admin
+        - link "Idempotent SQL Case 0 6/11/2026, 8:50:22 PM usr_admin" [ref=e126] [cursor=pointer]:
+          - /url: /studio/case_2876aa01f24a
+          - strong [ref=e127]: Idempotent SQL Case
+          - generic [ref=e128]: "0"
+          - generic [ref=e129]: 6/11/2026, 8:50:22 PM
+          - generic [ref=e130]: usr_admin
+        - link "Integration Case 0 6/11/2026, 8:50:22 PM usr_admin" [ref=e131] [cursor=pointer]:
+          - /url: /studio/case_38edcbba0439
+          - strong [ref=e132]: Integration Case
+          - generic [ref=e133]: "0"
+          - generic [ref=e134]: 6/11/2026, 8:50:22 PM
+          - generic [ref=e135]: usr_admin
+        - link "Idempotent SQL Case 0 6/11/2026, 8:47:46 PM usr_admin" [ref=e136] [cursor=pointer]:
+          - /url: /studio/case_545e9a62eeb5
+          - strong [ref=e137]: Idempotent SQL Case
+          - generic [ref=e138]: "0"
+          - generic [ref=e139]: 6/11/2026, 8:47:46 PM
+          - generic [ref=e140]: usr_admin
+        - link "Imported Case 45af3a7f 0 6/11/2026, 8:47:12 PM usr_admin" [ref=e141] [cursor=pointer]:
+          - /url: /studio/case_999e5fd8961b
+          - strong [ref=e142]: Imported Case 45af3a7f
+          - generic [ref=e143]: "0"
+          - generic [ref=e144]: 6/11/2026, 8:47:12 PM
+          - generic [ref=e145]: usr_admin
+        - link "Idempotent SQL Case 0 6/11/2026, 8:47:12 PM usr_admin" [ref=e146] [cursor=pointer]:
+          - /url: /studio/case_d7043422f87f
+          - strong [ref=e147]: Idempotent SQL Case
+          - generic [ref=e148]: "0"
+          - generic [ref=e149]: 6/11/2026, 8:47:12 PM
+          - generic [ref=e150]: usr_admin
+        - link "Integration Case 0 6/11/2026, 8:47:12 PM usr_admin" [ref=e151] [cursor=pointer]:
+          - /url: /studio/case_a933230496b5
+          - strong [ref=e152]: Integration Case
+          - generic [ref=e153]: "0"
+          - generic [ref=e154]: 6/11/2026, 8:47:12 PM
+          - generic [ref=e155]: usr_admin
+        - link "Imported Case 0915e3fc 0 6/11/2026, 8:46:28 PM usr_admin" [ref=e156] [cursor=pointer]:
+          - /url: /studio/case_7926a05ad3d0
+          - strong [ref=e157]: Imported Case 0915e3fc
+          - generic [ref=e158]: "0"
+          - generic [ref=e159]: 6/11/2026, 8:46:28 PM
+          - generic [ref=e160]: usr_admin
+        - link "Idempotent SQL Case 0 6/11/2026, 8:46:28 PM usr_admin" [ref=e161] [cursor=pointer]:
+          - /url: /studio/case_802d02da5008
+          - strong [ref=e162]: Idempotent SQL Case
+          - generic [ref=e163]: "0"
+          - generic [ref=e164]: 6/11/2026, 8:46:28 PM
+          - generic [ref=e165]: usr_admin
+        - link "Integration Case 0 6/11/2026, 8:46:28 PM usr_admin" [ref=e166] [cursor=pointer]:
+          - /url: /studio/case_edc5638c0799
+          - strong [ref=e167]: Integration Case
+          - generic [ref=e168]: "0"
+          - generic [ref=e169]: 6/11/2026, 8:46:28 PM
+          - generic [ref=e170]: usr_admin
+        - link "Imported Case ad549d48 0 6/11/2026, 8:13:18 PM usr_admin" [ref=e171] [cursor=pointer]:
+          - /url: /studio/case_0541359524b1
+          - strong [ref=e172]: Imported Case ad549d48
+          - generic [ref=e173]: "0"
+          - generic [ref=e174]: 6/11/2026, 8:13:18 PM
+          - generic [ref=e175]: usr_admin
+        - link "Idempotent SQL Case 0 6/11/2026, 8:13:18 PM usr_admin" [ref=e176] [cursor=pointer]:
+          - /url: /studio/case_f2bdbfa084f0
+          - strong [ref=e177]: Idempotent SQL Case
+          - generic [ref=e178]: "0"
+          - generic [ref=e179]: 6/11/2026, 8:13:18 PM
+          - generic [ref=e180]: usr_admin
+        - link "Integration Case 0 6/11/2026, 8:13:18 PM usr_admin" [ref=e181] [cursor=pointer]:
+          - /url: /studio/case_1e667089545f
+          - strong [ref=e182]: Integration Case
+          - generic [ref=e183]: "0"
+          - generic [ref=e184]: 6/11/2026, 8:13:18 PM
+          - generic [ref=e185]: usr_admin
+        - link "Imported Case 9c13d515 0 6/11/2026, 7:53:54 PM usr_admin" [ref=e186] [cursor=pointer]:
+          - /url: /studio/case_5481bf9c5bd7
+          - strong [ref=e187]: Imported Case 9c13d515
+          - generic [ref=e188]: "0"
+          - generic [ref=e189]: 6/11/2026, 7:53:54 PM
+          - generic [ref=e190]: usr_admin
+        - link "Idempotent SQL Case 0 6/11/2026, 7:53:54 PM usr_admin" [ref=e191] [cursor=pointer]:
+          - /url: /studio/case_7f00ae52d87d
+          - strong [ref=e192]: Idempotent SQL Case
+          - generic [ref=e193]: "0"
+          - generic [ref=e194]: 6/11/2026, 7:53:54 PM
+          - generic [ref=e195]: usr_admin
+        - link "Integration Case 0 6/11/2026, 7:53:53 PM usr_admin" [ref=e196] [cursor=pointer]:
+          - /url: /studio/case_589be67f9c19
+          - strong [ref=e197]: Integration Case
+          - generic [ref=e198]: "0"
+          - generic [ref=e199]: 6/11/2026, 7:53:53 PM
+          - generic [ref=e200]: usr_admin
+        - link "Demo Case 0 6/11/2026, 7:53:51 PM usr_admin" [ref=e201] [cursor=pointer]:
+          - /url: /studio/case_demo
+          - strong [ref=e202]: Demo Case
+          - generic [ref=e203]: "0"
+          - generic [ref=e204]: 6/11/2026, 7:53:51 PM
+          - generic [ref=e205]: usr_admin

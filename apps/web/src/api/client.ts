@@ -148,6 +148,12 @@ const enc = encodeURIComponent;
 
 export const api = {
   auth: {
+    register: (payload: JsonRequest<operations["register_api_auth_register_post"]>) =>
+      fetchJson<JsonResponse<operations["register_api_auth_register_post"]>>("/api/auth/register", {
+        method: "POST",
+        body: payload,
+        idempotencyKey: createIdempotencyKey("register"),
+      }),
     login: (payload: JsonRequest<operations["login_api_auth_login_post"]>) =>
       fetchJson<JsonResponse<operations["login_api_auth_login_post"]>>("/api/auth/login", {
         method: "POST",
@@ -160,6 +166,51 @@ export const api = {
         method: "POST",
         idempotencyKey: createIdempotencyKey("logout"),
       }),
+    me: () => fetchJson<JsonResponse<operations["me_api_auth_me_get"]>>("/api/auth/me"),
+    updateMe: (payload: JsonRequest<operations["update_me_api_auth_me_patch"]>) =>
+      fetchJson<JsonResponse<operations["update_me_api_auth_me_patch"]>>("/api/auth/me", {
+        method: "PATCH",
+        body: payload,
+        idempotencyKey: createIdempotencyKey("auth_me"),
+      }),
+    changePassword: (payload: JsonRequest<operations["change_password_api_auth_me_change_password_post"]>) =>
+      fetchJson<JsonResponse<operations["change_password_api_auth_me_change_password_post"]>>(
+        "/api/auth/me/change-password",
+        { method: "POST", body: payload, idempotencyKey: createIdempotencyKey("change_password") },
+      ),
+    users: (query: QueryParams<operations["list_users_api_auth_users_get"]> = {}) =>
+      fetchJson<JsonResponse<operations["list_users_api_auth_users_get"]>>("/api/auth/users", { query }),
+    createUser: (payload: JsonRequest<operations["create_user_api_auth_users_post"]>) =>
+      fetchJson<JsonResponse<operations["create_user_api_auth_users_post"]>>("/api/auth/users", {
+        method: "POST",
+        body: payload,
+        idempotencyKey: createIdempotencyKey("auth_user"),
+      }),
+    patchUser: (userId: string, payload: JsonRequest<operations["patch_user_api_auth_users__user_id__patch"]>) =>
+      fetchJson<JsonResponse<operations["patch_user_api_auth_users__user_id__patch"]>>(
+        `/api/auth/users/${enc(userId)}`,
+        { method: "PATCH", body: payload, idempotencyKey: createIdempotencyKey("auth_user_patch") },
+      ),
+    registrationCodes: (query: QueryParams<operations["registration_codes_api_auth_registration_codes_get"]> = {}) =>
+      fetchJson<JsonResponse<operations["registration_codes_api_auth_registration_codes_get"]>>(
+        "/api/auth/registration-codes",
+        { query },
+      ),
+    createRegistrationCode: (
+      payload: JsonRequest<operations["create_registration_code_api_auth_registration_codes_post"]>,
+    ) =>
+      fetchJson<JsonResponse<operations["create_registration_code_api_auth_registration_codes_post"]>>(
+        "/api/auth/registration-codes",
+        { method: "POST", body: payload, idempotencyKey: createIdempotencyKey("registration_code") },
+      ),
+    patchRegistrationCode: (
+      codeId: string,
+      payload: JsonRequest<operations["patch_registration_code_api_auth_registration_codes__code_id__patch"]>,
+    ) =>
+      fetchJson<JsonResponse<operations["patch_registration_code_api_auth_registration_codes__code_id__patch"]>>(
+        `/api/auth/registration-codes/${enc(codeId)}`,
+        { method: "PATCH", body: payload, idempotencyKey: createIdempotencyKey("registration_code_patch") },
+      ),
   },
   cases: {
     list: (query: QueryParams<operations["list_cases_api_cases_get"]> = {}) =>
@@ -429,6 +480,10 @@ export const api = {
       fetchJson<JsonResponse<operations["provider_capabilities_api_providers_capabilities_get"]>>(
         "/api/providers/capabilities",
       ),
+    usage: (query: QueryParams<operations["provider_usage_api_providers_usage_get"]> = {}) =>
+      fetchJson<JsonResponse<operations["provider_usage_api_providers_usage_get"]>>("/api/providers/usage", {
+        query,
+      }),
     priceCatalogs: (query: QueryParams<operations["price_catalogs_api_providers_price_catalogs_get"]> = {}) =>
       fetchJson<JsonResponse<operations["price_catalogs_api_providers_price_catalogs_get"]>>(
         "/api/providers/price-catalogs",
@@ -483,9 +538,23 @@ export const api = {
         { method: "PATCH", body: payload, idempotencyKey: createIdempotencyKey("secret_disable") },
       ),
   },
+  ops: {
+    dashboard: (query: QueryParams<operations["ops_dashboard_api_ops_dashboard_get"]> = {}) =>
+      fetchJson<JsonResponse<operations["ops_dashboard_api_ops_dashboard_get"]>>("/api/ops/dashboard", { query }),
+    costRollups: (query: QueryParams<operations["cost_rollups_api_ops_cost_rollups_get"]> = {}) =>
+      fetchJson<JsonResponse<operations["cost_rollups_api_ops_cost_rollups_get"]>>("/api/ops/cost-rollups", {
+        query,
+      }),
+    yieldFunnel: (query: QueryParams<operations["yield_funnel_api_ops_yield_funnel_get"]> = {}) =>
+      fetchJson<JsonResponse<operations["yield_funnel_api_ops_yield_funnel_get"]>>("/api/ops/yield-funnel", {
+        query,
+      }),
+  },
 } as const;
 
 export type AuthUser = components["schemas"]["AuthUser"];
+export type CreatedRegistrationCode = components["schemas"]["CreatedRegistrationCode"];
+export type RegistrationCodePreview = components["schemas"]["RegistrationCodePreview"];
 export type CaseListItem = components["schemas"]["CaseListItem"];
 export type CaseDetail = components["schemas"]["CaseDetail"];
 export type WorkflowRun = components["schemas"]["WorkflowRun"];
@@ -509,3 +578,8 @@ export type ProviderProfile = components["schemas"]["ProviderProfile"];
 export type SecretPreview = components["schemas"]["SecretPreview"];
 export type ProviderPriceCatalog = components["schemas"]["ProviderPriceCatalog"];
 export type ProviderPriceItem = components["schemas"]["ProviderPriceItem-Output"];
+export type CostRollup = components["schemas"]["CostRollup"];
+export type OpsDashboardVm = components["schemas"]["OpsDashboardVm"];
+export type ProviderUsageReport = components["schemas"]["ProviderUsageReport"];
+export type YieldFunnelEvent = components["schemas"]["YieldFunnelEvent"];
+export type YieldFunnelResponse = components["schemas"]["YieldFunnelResponse"];

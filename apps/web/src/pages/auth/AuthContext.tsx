@@ -19,11 +19,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
+  const isPublicAuthPath = location.pathname === routes.login() || location.pathname === routes.register();
   const session = useQuery({
     queryKey: SESSION_QUERY_KEY,
     queryFn: api.auth.session,
     retry: false,
-    enabled: location.pathname !== routes.login(),
+    enabled: !isPublicAuthPath,
   });
 
   const clearSession = useCallback(() => {

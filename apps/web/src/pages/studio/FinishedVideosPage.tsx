@@ -9,6 +9,7 @@ import { StudioTabs } from "../../components/StudioTabs";
 import { useAuth } from "../auth/AuthContext";
 import { routes } from "../../routes";
 import { TimeText } from "../../components/TimeText";
+import { toDisplayUrl } from "../../lib/url";
 
 export default function FinishedVideosPage() {
   const { caseId = "" } = useParams();
@@ -29,11 +30,14 @@ export default function FinishedVideosPage() {
   });
   const preview = useMutation({
     mutationFn: (id: string) => api.finishedVideos.previewUrl(id),
-    onSuccess: (data) => setPreviewUrl(data.url),
+    onSuccess: (data) => setPreviewUrl(toDisplayUrl(data.url)),
   });
   const download = useMutation({
     mutationFn: (id: string) => api.finishedVideos.downloadUrl(id),
-    onSuccess: (data) => window.open(data.url, "_blank", "noopener,noreferrer"),
+    onSuccess: (data) => {
+      const url = toDisplayUrl(data.url);
+      if (url) window.open(url, "_blank", "noopener,noreferrer");
+    },
   });
   const deleteVideo = useMutation({
     mutationFn: (id: string) => api.finishedVideos.delete(id),

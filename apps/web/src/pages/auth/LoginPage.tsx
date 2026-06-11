@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { KeyRound, Loader2 } from "lucide-react";
 import { ErrorState } from "../../components/State";
 import { useAuth } from "./AuthContext";
@@ -74,6 +74,12 @@ export default function LoginPage() {
           {submitting ? <Loader2 size={16} className="spin" /> : <KeyRound size={16} />}
           <span>登录</span>
         </button>
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <span className="text-text-secondary">还没有账户？</span>
+          <Link className="font-medium text-accent hover:text-accent-hover" to={routes.register()}>
+            使用注册码注册
+          </Link>
+        </div>
       </form>
     </main>
   );

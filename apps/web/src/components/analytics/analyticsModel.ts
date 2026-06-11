@@ -1,0 +1,117 @@
+import type { CostRollup, ProviderUsageReport, YieldFunnelEvent, YieldFunnelResponse } from "../../api/client";
+import type { OverviewStats } from "../overview/overviewModel";
+
+export type TimeRange = "7d" | "30d" | "90d";
+export type AnalyticsTab = "cost" | "yield" | "tasks";
+
+export const rangeOptions: Array<{ key: TimeRange; label: string; days: number }> = [
+  { key: "7d", label: "7 天", days: 7 },
+  { key: "30d", label: "30 天", days: 30 },
+  { key: "90d", label: "90 天", days: 90 },
+];
+
+export const analyticsTabs: Array<{ key: AnalyticsTab; label: string }> = [
+  { key: "cost", label: "成本 & 用量" },
+  { key: "yield", label: "成品率漏斗" },
+  { key: "tasks", label: "任务统计" },
+];
+
+export function rangeWindow(range: TimeRange) {
+  const days = rangeOptions.find((item) => item.key === range)?.days ?? 7;
+  const end = new Date();
+  const start = new Date(end.getTime() - days * 24 * 60 * 60 * 1000);
+  return { window_start: start.toISOString(), window_end: end.toISOString(), days };
+}
+
+export function moneyAmount(value?: { amount: string; currency: string } | null) {
+  const amount = Number(value?.amount ?? 0);
+  return Number.isFinite(amount) ? amount : 0;
+}
+
+export function formatMoney(value?: { amount: string; currency: string } | null) {
+  const amount = moneyAmount(value);
+  return new Intl.NumberFormat("zh-CN", {
+    style: "currency",
+    currency: value?.currency ?? "CNY",
+    maximumFractionDigits: amount >= 1 ? 2 : 6,
+  }).format(amount);
+}
+
+function eventIdentity(event: YieldFunnelEvent) {
+  return event.run_id || event.job_id || event.dedupe_key || event.id;
+}
+
+function normalizeWorkflowStatus(eventType: string) {
+  return eventType.startsWith("workflow_") ? eventType.slice("workflow_".length) : eventType;
+}
+
+function bucketWorkflowStatus(status: string): keyof OverviewStats | "other" {
+  if (status === "succeeded" || status === "completed") return "completed";
+  if (status === "failed" || status === "cancelled") return "failed";
+  if (status === "created" || status === "admitted" || status === "running" || status === "cancelling") {
+    return "processing";
+  }
+  return "other";
+}
+
+export function latestWorkflowEvents(events: YieldFunnelEvent[]) {
+  const latestByRun = new Map<string, YieldFunnelEvent>();
+  events
+    .filter((event) => event.event_type.startsWith("workflow_"))
+    .forEach((event) => {
+      const key = eventIdentity(event);
+      const current = latestByRun.get(key);
+      if (!current || Date.parse(event.event_time) >= Date.parse(current.event_time)) {
+        latestByRun.set(key, event);
+      }
+    });
+  return Array.from(latestByRun.values());
+}
+
+export function summarizeWorkflowStats(events: YieldFunnelEvent[]): OverviewStats {
+  const stats: OverviewStats = { total: 0, processing: 0, completed: 0, failed: 0 };
+  latestWorkflowEvents(events).forEach((event) => {
+    const bucket = bucketWorkflowStatus(normalizeWorkflowStatus(event.event_type));
+    if (bucket === "other") return;
+    stats.total += 1;
+    stats[bucket] += 1;
+  });
+  return stats;
+}
+
+export function successRate(funnel?: YieldFunnelResponse, stats?: OverviewStats) {
+  if (typeof funnel?.true_yield_rate === "number") return funnel.true_yield_rate;
+  if (!stats || stats.total === 0) return null;
+  return stats.completed / stats.total;
+}
+
+export function buildFunnelSteps(funnel?: YieldFunnelResponse) {
+  const events = funnel?.events ?? [];
+  const workflowTotal = latestWorkflowEvents(events).length;
+  const workflowSucceeded = events.filter((event) => event.event_type === "workflow_succeeded").length;
+  const finishedVideos = events.filter((event) => event.finished_video_id || event.event_type.includes("finished_video")).length;
+  const publishAttempts = events.filter((event) => event.publish_attempt_id || event.event_type.includes("publish")).length;
+  return [
+    { key: "workflow", label: "工作流运行", value: workflowTotal },
+    { key: "succeeded", label: "成功完成", value: workflowSucceeded },
+    { key: "finished", label: "成片产出", value: finishedVideos },
+    { key: "published", label: "发布触达", value: publishAttempts },
+  ];
+}
+
+export function buildCostBars(rollups: CostRollup[]) {
+  return rollups
+    .map((item) => ({
+      key: item.id,
+      label: item.group_key || item.group_by || "全部",
+      cost: moneyAmount(item.actual_cost ?? item.estimated_cost),
+      invocations: item.invocations,
+      currency: item.actual_cost?.currency ?? item.estimated_cost.currency,
+    }))
+    .filter((item) => item.cost > 0 || item.invocations > 0)
+    .sort((left, right) => right.cost - left.cost || right.invocations - left.invocations);
+}
+
+export function usageHasData(usage?: ProviderUsageReport) {
+  return Boolean(usage && (usage.invocations > 0 || moneyAmount(usage.estimated_cost) > 0 || usage.unpriced_invocation_count > 0));
+}

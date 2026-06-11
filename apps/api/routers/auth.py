@@ -74,12 +74,12 @@ def registration_codes(request: Request, limit: int = 50) -> c.PageResponse[c.Re
 
 @router.post(
     "/api/auth/registration-codes",
-    response_model=c.RegistrationCodePreview,
+    response_model=c.CreatedRegistrationCode,
     status_code=201,
 )
 def create_registration_code(
     payload: c.CreateRegistrationCodeRequest, request: Request
-) -> c.RegistrationCodePreview:
+) -> c.CreatedRegistrationCode:
     require_role(request, c.UserRole.admin)
     return service.create_registration_code(payload, request)
 

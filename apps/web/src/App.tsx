@@ -6,6 +6,7 @@ import CaseListPage from "./pages/studio/CaseListPage";
 import StudioCreatePage from "./pages/studio/StudioCreatePage";
 import RunsPage from "./pages/studio/RunsPage";
 import SettingsPage from "./pages/settings/SettingsPage";
+import LibraryLayout from "./pages/library/LibraryLayout";
 import PlaceholderPage from "./pages/PlaceholderPage";
 import { routePatterns, routes } from "./routes";
 
@@ -23,7 +24,7 @@ export default function App() {
           <Route path={routePatterns.caseFinishedVideos} element={<NavigateToCaseOutputs />} />
           <Route path={routePatterns.casePublish} element={<PlaceholderPage title="发布中心" />} />
           <Route path={routePatterns.settings} element={<SettingsPage />} />
-          <Route path={routePatterns.library} element={<PlaceholderPage title="素材库" />} />
+          <Route path={routePatterns.library} element={<LibraryLayout />} />
           <Route path={routePatterns.analytics} element={<PlaceholderPage title="数据统计" />} />
           <Route path={routePatterns.account} element={<PlaceholderPage title="账户中心" />} />
           <Route path={routePatterns.ops} element={<Navigate to={routes.analytics()} replace />} />

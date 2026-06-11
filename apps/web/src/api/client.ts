@@ -179,7 +179,101 @@ export const api = {
       ),
   },
   voices: {
-    list: () => fetchJson<JsonResponse<operations["list_voices_api_voices_get"]>>("/api/voices"),
+    list: (query: QueryParams<operations["list_voices_api_voices_get"]> = {}) =>
+      fetchJson<JsonResponse<operations["list_voices_api_voices_get"]>>("/api/voices", { query }),
+    clone: (payload: JsonRequest<operations["clone_voice_api_voices_clone_post"]>) =>
+      fetchJson<JsonResponse<operations["clone_voice_api_voices_clone_post"]>>("/api/voices/clone", {
+        method: "POST",
+        body: payload,
+        idempotencyKey: createIdempotencyKey("voice_clone"),
+      }),
+    design: (payload: JsonRequest<operations["design_voice_api_voices_design_post"]>) =>
+      fetchJson<JsonResponse<operations["design_voice_api_voices_design_post"]>>("/api/voices/design", {
+        method: "POST",
+        body: payload,
+        idempotencyKey: createIdempotencyKey("voice_design"),
+      }),
+    preview: (voiceId: string, payload: JsonRequest<operations["voice_preview_api_voices__voice_id__preview_post"]>) =>
+      fetchJson<JsonResponse<operations["voice_preview_api_voices__voice_id__preview_post"]>>(
+        `/api/voices/${enc(voiceId)}/preview`,
+        { method: "POST", body: payload, idempotencyKey: createIdempotencyKey("voice_preview") },
+      ),
+    patch: (voiceId: string, payload: JsonRequest<operations["patch_voice_api_voices__voice_id__patch"]>) =>
+      fetchJson<JsonResponse<operations["patch_voice_api_voices__voice_id__patch"]>>(`/api/voices/${enc(voiceId)}`, {
+        method: "PATCH",
+        body: payload,
+        idempotencyKey: createIdempotencyKey("voice_patch"),
+      }),
+    delete: (voiceId: string) =>
+      fetchJson<JsonResponse<operations["delete_voice_api_voices__voice_id__delete"]>>(`/api/voices/${enc(voiceId)}`, {
+        method: "DELETE",
+        idempotencyKey: createIdempotencyKey("voice_delete"),
+      }),
+  },
+  uploads: {
+    prepare: (payload: JsonRequest<operations["prepare_upload_api_uploads_prepare_post"]>) =>
+      fetchJson<JsonResponse<operations["prepare_upload_api_uploads_prepare_post"]>>("/api/uploads/prepare", {
+        method: "POST",
+        body: payload,
+        idempotencyKey: createIdempotencyKey("upload_prepare"),
+      }),
+    uploadFile: (uploadSessionId: string, file: File) => {
+      const body = new FormData();
+      body.set("file", file);
+      return fetchJson<JsonResponse<operations["upload_file_api_uploads__upload_session_id__file_put"]>>(
+        `/api/uploads/${enc(uploadSessionId)}/file`,
+        { method: "PUT", body },
+      );
+    },
+    complete: (payload: JsonRequest<operations["complete_upload_api_uploads_complete_post"]>) =>
+      fetchJson<JsonResponse<operations["complete_upload_api_uploads_complete_post"]>>("/api/uploads/complete", {
+        method: "POST",
+        body: payload,
+        idempotencyKey: createIdempotencyKey("upload_complete"),
+      }),
+    cancel: (uploadSessionId: string) =>
+      fetchJson<JsonResponse<operations["cancel_upload_api_uploads__upload_session_id__cancel_post"]>>(
+        `/api/uploads/${enc(uploadSessionId)}/cancel`,
+        { method: "POST", idempotencyKey: createIdempotencyKey("upload_cancel") },
+      ),
+    get: (uploadSessionId: string) =>
+      fetchJson<JsonResponse<operations["get_upload_api_uploads__upload_session_id__get"]>>(
+        `/api/uploads/${enc(uploadSessionId)}`,
+      ),
+  },
+  mediaAssets: {
+    list: (query: QueryParams<operations["list_media_assets_api_media_assets_get"]> = {}) =>
+      fetchJson<JsonResponse<operations["list_media_assets_api_media_assets_get"]>>("/api/media/assets", { query }),
+    create: (payload: JsonRequest<operations["create_media_asset_api_media_assets_post"]>) =>
+      fetchJson<JsonResponse<operations["create_media_asset_api_media_assets_post"]>>("/api/media/assets", {
+        method: "POST",
+        body: payload,
+        idempotencyKey: createIdempotencyKey("media_asset"),
+      }),
+    detail: (assetId: string) =>
+      fetchJson<JsonResponse<operations["media_asset_detail_api_media_assets__asset_id__get"]>>(
+        `/api/media/assets/${enc(assetId)}`,
+      ),
+    previewUrl: (assetId: string) =>
+      fetchJson<JsonResponse<operations["media_asset_preview_api_media_assets__asset_id__preview_url_get"]>>(
+        `/api/media/assets/${enc(assetId)}/preview-url`,
+      ),
+  },
+  annotations: {
+    get: (assetId: string) =>
+      fetchJson<JsonResponse<operations["get_annotation_api_annotations__asset_id__get"]>>(
+        `/api/annotations/${enc(assetId)}`,
+      ),
+    patch: (assetId: string, payload: JsonRequest<operations["patch_annotation_api_annotations__asset_id__patch"]>) =>
+      fetchJson<JsonResponse<operations["patch_annotation_api_annotations__asset_id__patch"]>>(
+        `/api/annotations/${enc(assetId)}`,
+        { method: "PATCH", body: payload, idempotencyKey: createIdempotencyKey("annotation_patch") },
+      ),
+    rerun: (assetId: string, payload: JsonRequest<operations["rerun_annotation_api_annotations__asset_id__rerun_post"]>) =>
+      fetchJson<JsonResponse<operations["rerun_annotation_api_annotations__asset_id__rerun_post"]>>(
+        `/api/annotations/${enc(assetId)}/rerun`,
+        { method: "POST", body: payload, idempotencyKey: createIdempotencyKey("annotation_rerun") },
+      ),
   },
   jobs: {
     createDigitalHumanVideo: (
@@ -333,6 +427,12 @@ export type NodeRun = components["schemas"]["NodeRun"];
 export type RunCard = components["schemas"]["RunCard"];
 export type RunDetailResponse = components["schemas"]["RunDetailResponse"];
 export type VoiceProfile = components["schemas"]["VoiceProfile"];
+export type UploadKind = components["schemas"]["UploadKind"];
+export type UploadSession = components["schemas"]["UploadSession"];
+export type CompleteUploadResponse = components["schemas"]["CompleteUploadResponse"];
+export type MediaAssetCard = components["schemas"]["MediaAssetCard"];
+export type MediaAssetRecord = components["schemas"]["MediaAssetRecord"];
+export type AnnotationEditorVm = components["schemas"]["AnnotationEditorVm"];
 export type FinishedVideo = components["schemas"]["FinishedVideo"];
 export type ProviderProfile = components["schemas"]["ProviderProfile"];
 export type SecretPreview = components["schemas"]["SecretPreview"];

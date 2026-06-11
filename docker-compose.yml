@@ -38,12 +38,14 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DB: postgresql
+      DB: postgres12
       DB_PORT: 5432
       POSTGRES_USER: cutagent
       POSTGRES_PWD: cutagent
       POSTGRES_SEEDS: postgres
       DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/development-sql.yaml
+    volumes:
+      - ./deploy/temporal/dynamicconfig:/etc/temporal/config/dynamicconfig
     ports:
       - "7233:7233"
 

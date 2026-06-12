@@ -122,6 +122,8 @@ class UploadSessionRow(TimestampMixin, Base):
     status: Mapped[str] = mapped_column(String, nullable=False)
     object_uri: Mapped[str | None] = mapped_column(Text)
     local_temp_path: Mapped[str | None] = mapped_column(Text)
+    stabilize: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    stabilized: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 

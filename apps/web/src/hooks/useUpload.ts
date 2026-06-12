@@ -8,6 +8,7 @@ type UploadFileInput = {
   kind: UploadKind;
   caseId?: string | null;
   metadata?: Record<string, string>;
+  stabilize?: boolean;
 };
 
 type UploadState = {
@@ -28,7 +29,7 @@ export function useUpload() {
 
   const reset = useCallback(() => setState(initialState), []);
 
-  const uploadFile = useCallback(async ({ file, kind, caseId = null, metadata }: UploadFileInput) => {
+  const uploadFile = useCallback(async ({ file, kind, caseId = null, metadata, stabilize = false }: UploadFileInput) => {
     let prepared: UploadSession | undefined;
     try {
       setState({ status: "preparing", progress: 8 });
@@ -39,6 +40,7 @@ export function useUpload() {
         content_type: file.type || "application/octet-stream",
         size_bytes: file.size,
         multipart: false,
+        stabilize,
       });
 
       setState({ status: "uploading", progress: 42, session: prepared });

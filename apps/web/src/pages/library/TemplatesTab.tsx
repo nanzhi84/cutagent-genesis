@@ -1,14 +1,14 @@
-import { CheckCircle2, Film, FolderUp, Loader2, RefreshCw, Tag, Trash2, Upload, Video } from "lucide-react";
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { CheckCircle2, Film, FolderUp, Video } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, type MediaAssetRecord, type UploadKind } from "../../api/client";
 import { AnnotationEditorModal } from "../../components/annotation/AnnotationEditorModal";
+import { TemplateBatchActionBar } from "../../components/library/TemplateBatchActionBar";
 import { TemplateAssetCard } from "../../components/library/TemplateAssetCard";
 import { TemplateGridSkeleton } from "../../components/library/TemplateGridSkeleton";
+import { TemplateUploadModal } from "../../components/library/TemplateUploadModal";
 import { UploadPlaceholderCard } from "../../components/library/UploadPlaceholderCard";
-import { templateKindLabels, type TemplateKind, type UploadPlaceholder, uploadStageLabel, toDisplayUrl } from "../../components/library/libraryModel";
-import { DropZone } from "../../components/ui/DropZone";
-import { Modal } from "../../components/ui/Modal";
+import { templateKindLabels, type TemplateKind, type UploadPlaceholder, toDisplayUrl } from "../../components/library/libraryModel";
 import { SearchInput } from "../../components/ui/SearchInput";
 import { useToast } from "../../components/ui/Toast";
 import { InfiniteScrollSentinel } from "../../components/ui/InfiniteScrollSentinel";
@@ -20,6 +20,8 @@ export function TemplatesTab() {
   const toast = useToast();
   const pageVisible = usePageVisible();
   const queryClient = useQueryClient();
+  const replaceUpload = useUpload();
+  const replaceInputRef = useRef<HTMLInputElement>(null);
   const [caseSearch, setCaseSearch] = useState("");
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [kind, setKind] = useState<TemplateKind>("portrait");
@@ -31,6 +33,7 @@ export function TemplatesTab() {
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [annotationAssetId, setAnnotationAssetId] = useState<string | null>(null);
+  const [replaceTargetAssetId, setReplaceTargetAssetId] = useState<string | null>(null);
   const [placeholders, setPlaceholders] = useState<UploadPlaceholder[]>([]);
   const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
 
@@ -97,6 +100,69 @@ export function TemplatesTab() {
     },
     onError: (error) => toast.error("分析失败", error),
   });
+
+  const stabilizeMutation = useMutation({
+    mutationFn: (assetIds: string[]) => api.mediaAssets.batchStabilize({ asset_ids: assetIds }),
+    onSuccess: async (response) => {
+      await queryClient.invalidateQueries({ queryKey: ["library", "media", selectedCaseId] });
+      const failed = response.results.filter((item) => item.status === "failed");
+      if (failed.length > 0) {
+        toast.warning("部分素材增稳失败", failed.map((item) => item.message || item.error_code).join("；"));
+      } else {
+        toast.success("批量增稳完成", `已处理 ${response.results.length} 个素材`);
+      }
+      setSelectedAssetIds([]);
+    },
+    onError: (error) => toast.error("批量增稳失败", error),
+  });
+
+  const replaceMutation = useMutation({
+    mutationFn: async ({ assetId, file }: { assetId: string; file: File }) => {
+      const result = await replaceUpload.uploadFile({
+        file,
+        kind: kind as UploadKind,
+        caseId: selectedCaseId,
+        metadata: { title: file.name, template_mode: "replace" },
+      });
+      return api.mediaAssets.replaceSource(assetId, { upload_session_id: result.upload_session.id });
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["library", "media", selectedCaseId] });
+      toast.success("素材原视频已替换", "标注和卡片位置已保留。");
+    },
+    onError: (error) => toast.error("替换失败", error),
+    onSettled: () => {
+      setReplaceTargetAssetId(null);
+      if (replaceInputRef.current) replaceInputRef.current.value = "";
+      replaceUpload.reset();
+    },
+  });
+
+  async function autoReplaceUploads(uploadSessionIds: string[]) {
+    const response = await api.mediaAssets.autoMatchReplace({
+      case_id: selectedCaseId,
+      kind,
+      upload_session_ids: uploadSessionIds,
+    });
+    await queryClient.invalidateQueries({ queryKey: ["library", "media", selectedCaseId] });
+    const matched = response.results.filter((item) => item.status === "matched").length;
+    const pending = response.results.length - matched;
+    if (pending > 0) {
+      toast.warning("自动匹配替换完成", `已替换 ${matched} 个，${pending} 个需手动处理。`);
+    } else {
+      toast.success("自动匹配替换完成", `已替换 ${matched} 个素材。`);
+    }
+  }
+
+  function openReplacePicker(assetId: string) {
+    setReplaceTargetAssetId(assetId);
+    replaceInputRef.current?.click();
+  }
+
+  function handleReplaceFile(file: File | undefined) {
+    if (!file || !replaceTargetAssetId) return;
+    replaceMutation.mutate({ assetId: replaceTargetAssetId, file });
+  }
 
   async function ensurePreview(assetId: string) {
     if (previewUrls[assetId]) return previewUrls[assetId];
@@ -208,7 +274,14 @@ export function TemplatesTab() {
           </select>
         </div>
 
-        {batchMode ? <BatchActionBar selectedCount={selectedAssetIds.length} onClear={() => setSelectedAssetIds([])} /> : null}
+        {batchMode ? (
+          <TemplateBatchActionBar
+            selectedCount={selectedAssetIds.length}
+            isStabilizing={stabilizeMutation.isPending}
+            onStabilize={() => stabilizeMutation.mutate(selectedAssetIds)}
+            onClear={() => setSelectedAssetIds([])}
+          />
+        ) : null}
 
         {activeQuery.isLoading ? <TemplateGridSkeleton /> : null}
         {activeQuery.error ? (
@@ -229,6 +302,7 @@ export function TemplatesTab() {
               batchMode={batchMode}
               selected={selectedAssetIds.includes(card.asset.id)}
               isAnalyzing={rerunMutation.isPending && rerunMutation.variables === card.asset.id}
+              isReplacing={replaceMutation.isPending && replaceMutation.variables?.assetId === card.asset.id}
               onToggleSelected={() =>
                 setSelectedAssetIds((current) =>
                   current.includes(card.asset.id) ? current.filter((id) => id !== card.asset.id) : [...current, card.asset.id],
@@ -236,6 +310,7 @@ export function TemplatesTab() {
               }
               onPreview={() => void ensurePreview(card.asset.id)}
               onAnalyze={() => rerunMutation.mutate(card.asset.id)}
+              onReplaceSource={() => openReplacePicker(card.asset.id)}
               onOpenAnnotation={() => setAnnotationAssetId(card.asset.id)}
             />
           ))}
@@ -265,127 +340,16 @@ export function TemplatesTab() {
           clearSuccessfulPlaceholder(placeholderId);
           await queryClient.invalidateQueries({ queryKey: ["library", "media", selectedCaseId] });
         }}
+        onAutoReplace={autoReplaceUploads}
+      />
+      <input
+        ref={replaceInputRef}
+        className="hidden"
+        type="file"
+        accept=".mp4,.mov,.m4v,.webm,.avi,.mkv"
+        onChange={(event) => handleReplaceFile(event.currentTarget.files?.[0])}
       />
       <AnnotationEditorModal assetId={annotationAssetId} caseId={selectedCaseId} onClose={() => setAnnotationAssetId(null)} />
     </section>
-  );
-}
-
-function BatchActionBar({ selectedCount, onClear }: { selectedCount: number; onClear: () => void }) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/80 bg-white/65 p-3">
-      <span className="text-sm text-text-secondary">已选择 {selectedCount} 个素材</span>
-      <div className="flex flex-wrap gap-2">
-        <button className="btn-secondary min-h-9 px-3" type="button" disabled title="待接入（依赖 M6b/M6d）">
-          <RefreshCw className="h-4 w-4" />
-          <span>批量分析</span>
-        </button>
-        <button className="btn-secondary min-h-9 px-3" type="button" disabled title="待接入（依赖 M6b/M6d）">
-          <Tag className="h-4 w-4" />
-          <span>改场景/标签</span>
-        </button>
-        <button className="btn-secondary min-h-9 px-3" type="button" disabled title="后端暂无素材删除 API">
-          <Trash2 className="h-4 w-4" />
-          <span>批量删除</span>
-        </button>
-        <button className="btn-ghost min-h-9 px-3" type="button" onClick={onClear}>
-          清空选择
-        </button>
-      </div>
-    </div>
-  );
-}
-
-type TemplateUploadModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-  caseId: string | null;
-  kind: TemplateKind;
-  onPlaceholder: (placeholder: UploadPlaceholder) => void;
-  onSuccess: (placeholderId: string) => Promise<void>;
-};
-
-function TemplateUploadModal({ isOpen, onClose, caseId, kind, onPlaceholder, onSuccess }: TemplateUploadModalProps) {
-  const toast = useToast();
-  const upload = useUpload();
-  const [files, setFiles] = useState<File[]>([]);
-  const [scene, setScene] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const accept = kind === "portrait" ? ".mp4,.mov,.m4v,.webm" : ".mp4,.mov,.m4v,.webm,.avi,.mkv";
-
-  async function handleSubmit(event: FormEvent) {
-    event.preventDefault();
-    if (!caseId) {
-      setError("请先选择案例");
-      return;
-    }
-    if (files.length === 0) {
-      setError("请上传至少一个文件");
-      return;
-    }
-    setError(null);
-    setIsSubmitting(true);
-    for (const file of files) {
-      const placeholderId = `${file.name}_${file.lastModified}_${Math.random().toString(16).slice(2)}`;
-      onPlaceholder({ id: placeholderId, name: file.name, kind, status: "uploading", progress: 30 });
-      try {
-        await upload.uploadFile({
-          file,
-          kind: kind as UploadKind,
-          caseId,
-          metadata: {
-            title: file.name,
-            scene: scene.trim(),
-          },
-        });
-        onPlaceholder({ id: placeholderId, name: file.name, kind, status: "uploading", progress: 100 });
-        await onSuccess(placeholderId);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "上传失败";
-        onPlaceholder({ id: placeholderId, name: file.name, kind, status: "failed", progress: 100, error: message });
-      }
-    }
-    setIsSubmitting(false);
-    toast.success("上传处理完成", "成功素材会进入当前案例网格，失败卡片会保留错误。");
-    setFiles([]);
-    upload.reset();
-    onClose();
-  }
-
-  return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`上传${templateKindLabels[kind]}`} size="lg">
-      <form className="grid gap-4" onSubmit={handleSubmit}>
-        <DropZone accept={accept} maxSize={500} multiple onFilesDrop={(nextFiles) => setFiles(nextFiles)} label={`上传${templateKindLabels[kind]}文件`} />
-        <label>
-          <span>统一场景标签</span>
-          <input value={scene} onChange={(event) => setScene(event.target.value)} placeholder="例如：办公室、产品特写、生活方式" />
-        </label>
-        <div className="rounded-2xl border border-status-info/20 bg-status-info/10 p-3 text-xs leading-5 text-status-info">
-          批量文件夹解析依赖浏览器目录能力和 M6b 素材处理增强；当前支持多文件批量上传，全部走 UploadSession。
-        </div>
-        {upload.status !== "idle" ? (
-          <div className="rounded-2xl border border-border/80 bg-white/65 p-3">
-            <div className="flex items-center justify-between gap-3 text-sm text-text-secondary">
-              <span>当前文件：{uploadStageLabel(upload.status)}</span>
-              <span>{upload.progress}%</span>
-            </div>
-            <div className="mt-2 h-2 overflow-hidden rounded-full bg-border/70">
-              <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${upload.progress}%` }} />
-            </div>
-          </div>
-        ) : null}
-        {error ? <p className="text-sm text-status-error">{error}</p> : null}
-        <div className="flex justify-end gap-3 border-t border-border/70 pt-4">
-          <button className="btn-secondary" type="button" onClick={onClose} disabled={isSubmitting}>
-            取消
-          </button>
-          <button className="btn-primary" type="submit" disabled={isSubmitting || files.length === 0 || !caseId}>
-            {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
-            <span>{isSubmitting ? "上传中" : "开始上传"}</span>
-          </button>
-        </div>
-      </form>
-    </Modal>
   );
 }

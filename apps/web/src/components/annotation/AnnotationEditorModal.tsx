@@ -1,4 +1,4 @@
-import { CheckCircle2, Edit3, Loader2, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { CheckCircle2, Edit3, Loader2, Plus, RefreshCw, Scissors, Trash2 } from "lucide-react";
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, isApiError, type AnnotationEditorVm } from "../../api/client";
@@ -106,6 +106,19 @@ export function AnnotationEditorModal({ assetId, caseId, onClose }: AnnotationEd
     onError: (error) => toast.error("重新分析失败", error),
   });
 
+  const trimMutation = useMutation({
+    mutationFn: () => {
+      if (!assetId) throw new Error("标注未加载");
+      return api.annotations.trim(assetId, {});
+    },
+    onSuccess: async (response) => {
+      await queryClient.invalidateQueries({ queryKey: ["library", "annotation", assetId] });
+      await queryClient.invalidateQueries({ queryKey: ["library", "media", caseId] });
+      toast.success("裁剪完成", `有效时长 ${formatDuration(response.valid_duration_sec)}`);
+    },
+    onError: (error) => toast.error("裁剪失败", error),
+  });
+
   const projection = editor?.projection ?? {};
   const canonical = editor?.canonical ?? {};
   const segments = readJsonArray(projection, "segments");
@@ -140,6 +153,10 @@ export function AnnotationEditorModal({ assetId, caseId, onClose }: AnnotationEd
               <button className="btn-secondary" type="button" onClick={() => setRerunPreview(true)} disabled={rerunMutation.isPending}>
                 <RefreshCw className="h-4 w-4" />
                 <span>重新分析</span>
+              </button>
+              <button className="btn-secondary" type="button" onClick={() => trimMutation.mutate()} disabled={trimMutation.isPending}>
+                {trimMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Scissors className="h-4 w-4" />}
+                <span>裁剪无效片段</span>
               </button>
               <button className="btn-primary" type="button" onClick={() => setEditing((value) => !value)}>
                 <Edit3 className="h-4 w-4" />

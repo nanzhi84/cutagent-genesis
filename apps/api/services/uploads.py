@@ -36,8 +36,8 @@ from packages.core.registration_codes import hash_registration_code
 from packages.core.storage.object_store import parse_object_uri
 from packages.core.storage.repository import new_id
 from packages.core.workflow import NodeExecutionError
-from packages.media.assets import local_object_path
-from packages.media.video.ffmpeg import FfmpegCommandError, extract_thumbnails, probe_media
+from packages.media.assets import local_object_path, store_file
+from packages.media.video.ffmpeg import FfmpegCommandError, extract_thumbnails, probe_media, stabilize_video
 
 def prepare_upload(payload: c.PrepareUploadRequest, request: Request) -> c.UploadSession:
     object_ref = object_store(request).prepare_upload(payload.filename, payload.kind.value)
@@ -51,6 +51,7 @@ def prepare_upload(payload: c.PrepareUploadRequest, request: Request) -> c.Uploa
         sha256=payload.sha256,
         upload_url=object_store(request).signed_url(object_ref.uri).url,
         object_uri=object_ref.uri,
+        stabilize=payload.stabilize,
     )
     if upload_repository(request) is not None:
         return upload_repository(request).create_upload(upload)
@@ -98,6 +99,8 @@ def complete_upload(payload: c.CompleteUploadRequest, request: Request) -> c.Com
     if upload.sha256 and payload.sha256 and upload.sha256 != payload.sha256:
         raise NodeExecutionError(c.ErrorCode.upload_sha256_mismatch, "Upload sha256 mismatch.")
     media_info = _probe_upload_media(request, upload)
+    if upload.stabilize and upload.kind in {c.UploadKind.portrait, c.UploadKind.broll}:
+        upload, media_info = _stabilize_upload_video(request, upload)
     if upload_repository(request) is not None:
         upload = upload_repository(request).patch_upload(upload.id, {"status": c.UploadStatus.completed})
         artifact = upload_repository(request).create_artifact_from_upload(upload, media_info=media_info)
@@ -116,13 +119,14 @@ def complete_upload(payload: c.CompleteUploadRequest, request: Request) -> c.Com
         _create_upload_thumbnails(request, artifact)
     media_asset = None
     publish_package = None
+    replace_mode = payload.metadata.get("template_mode") == "replace"
     if upload.kind in {
         c.UploadKind.portrait,
         c.UploadKind.broll,
         c.UploadKind.bgm,
         c.UploadKind.font,
         c.UploadKind.cover_template,
-    }:
+    } and not replace_mode:
         media_payload = c.CreateMediaAssetFromUploadRequest(
             upload_session_id=upload.id,
             case_id=upload.case_id,
@@ -130,6 +134,8 @@ def complete_upload(payload: c.CompleteUploadRequest, request: Request) -> c.Com
             kind=upload.kind.value,
             tags=[upload.kind.value, "upload"],
         )
+        if upload.stabilized:
+            media_payload.tags.append("stabilized")
         if media_repository(request) is not None:
             media_asset = media_repository(request).create_asset_from_upload(media_payload)
         else:
@@ -182,6 +188,31 @@ def _probe_upload_media(request: Request, upload: c.UploadSession) -> c.MediaInf
             c.ErrorCode.upload_unsupported_type,
             "上传的媒体文件无法解析，请确认文件未损坏且为受支持的格式。",
         ) from exc
+
+
+def _stabilize_upload_video(
+    request: Request, upload: c.UploadSession
+) -> tuple[c.UploadSession, c.MediaInfo]:
+    if upload.object_uri is None:
+        raise NodeExecutionError(c.ErrorCode.artifact_missing, "Upload object is missing.")
+    source_path = local_object_path(object_store(request), upload.object_uri)
+    try:
+        output_path = stabilize_video(source_path)
+        media_info = probe_media(output_path)
+    except FfmpegCommandError as exc:
+        raise NodeExecutionError(exc.error_code, "上传视频增稳失败，请确认视频可解析且 ffmpeg 支持 vidstab。") from exc
+    stored = store_file(object_store(request), output_path, purpose="media-stabilized")
+    updates = {
+        "object_uri": stored.ref.uri,
+        "sha256": stored.sha256,
+        "size_bytes": stored.size_bytes,
+        "stabilized": True,
+    }
+    if upload_repository(request) is not None:
+        upload = upload_repository(request).patch_upload(upload.id, updates)
+    else:
+        upload = repository(request).patch(repository(request).uploads, upload.id, updates)
+    return upload, media_info
 
 
 def _create_upload_thumbnails(request: Request, artifact: c.Artifact) -> None:

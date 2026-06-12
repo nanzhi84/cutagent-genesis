@@ -5,6 +5,8 @@ from fastapi.testclient import TestClient
 from apps.api.main import app
 from apps.api.main import repository
 from packages.core.contracts import ArtifactKind
+from packages.media.assets import local_object_path
+from packages.media.video.ffmpeg import probe_media
 from tests.fixtures.media import generate_test_video
 
 
@@ -27,7 +29,7 @@ def test_upload_flow_uses_object_store_uri_and_validates_integrity():
         "/api/uploads/prepare",
         json={
             "kind": "portrait",
-            "case_id": "case_demo",
+            "case_id": "case_stabilize_upload",
             "filename": "sample.txt",
             "content_type": "text/plain",
             "size_bytes": len(content),
@@ -160,3 +162,210 @@ def test_video_upload_probes_media_and_creates_real_thumbnail_artifacts(tmp_path
     assert {artifact.payload["thumbnail_label"] for artifact in thumbnails} == {"first", "mid"}
     assert all(artifact.sha256 for artifact in thumbnails)
     assert all(artifact.media_info and artifact.media_info.media_type == "image" for artifact in thumbnails)
+
+
+def test_video_upload_can_stabilize_before_creating_media_asset(tmp_path):
+    login_admin()
+    video = generate_test_video(tmp_path, duration_sec=1.2, width=160, height=120, fps=15)
+    content = video.read_bytes()
+    digest = hashlib.sha256(content).hexdigest()
+    prepared = client.post(
+        "/api/uploads/prepare",
+        json={
+            "kind": "portrait",
+            "case_id": "case_demo",
+            "filename": "shaky.mp4",
+            "content_type": "video/mp4",
+            "size_bytes": len(content),
+            "sha256": digest,
+            "stabilize": True,
+        },
+    )
+    assert prepared.status_code == 201, prepared.text
+    upload = prepared.json()
+    uploaded = client.put(
+        f"/api/uploads/{upload['id']}/file",
+        files={"file": ("shaky.mp4", content, "video/mp4")},
+    )
+    assert uploaded.status_code == 200, uploaded.text
+
+    completed = client.post(
+        "/api/uploads/complete",
+        json={"upload_session_id": upload["id"], "size_bytes": len(content), "sha256": digest},
+    )
+
+    assert completed.status_code == 200, completed.text
+    body = completed.json()
+    assert body["media_asset"]["source_artifact_id"] == body["artifact"]["artifact_id"]
+    assert "stabilized" in body["media_asset"]["tags"]
+    stabilized_artifact = repository().artifacts[body["artifact"]["artifact_id"]]
+    assert stabilized_artifact.sha256 != digest
+    assert (stabilized_artifact.payload or {})["stabilized"] is True
+    info = probe_media(local_object_path(client.app.state.object_store, stabilized_artifact.uri))
+    assert info.media_type == "video"
+    assert 0.95 <= (info.duration_sec or 0) <= 1.45
+
+
+def test_batch_stabilize_updates_media_assets_and_reports_results(tmp_path):
+    login_admin()
+    video = generate_test_video(tmp_path, duration_sec=1.2, width=160, height=120, fps=15)
+    content = video.read_bytes()
+    digest = hashlib.sha256(content).hexdigest()
+    prepared = client.post(
+        "/api/uploads/prepare",
+        json={
+            "kind": "broll",
+            "case_id": "case_batch_stabilize",
+            "filename": "batch-shaky.mp4",
+            "content_type": "video/mp4",
+            "size_bytes": len(content),
+            "sha256": digest,
+        },
+    )
+    assert prepared.status_code == 201, prepared.text
+    upload = prepared.json()
+    uploaded = client.put(
+        f"/api/uploads/{upload['id']}/file",
+        files={"file": ("batch-shaky.mp4", content, "video/mp4")},
+    )
+    assert uploaded.status_code == 200, uploaded.text
+    completed = client.post(
+        "/api/uploads/complete",
+        json={"upload_session_id": upload["id"], "size_bytes": len(content), "sha256": digest},
+    )
+    assert completed.status_code == 200, completed.text
+    asset_id = completed.json()["media_asset"]["id"]
+    original_artifact_id = completed.json()["artifact"]["artifact_id"]
+
+    response = client.post("/api/media/assets/batch-stabilize", json={"asset_ids": [asset_id]})
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["results"] == [
+        {
+            "asset_id": asset_id,
+            "status": "completed",
+            "artifact_id": repository().media_assets[asset_id].source_artifact_id,
+            "error_code": None,
+            "message": None,
+        }
+    ]
+    updated_asset = repository().media_assets[asset_id]
+    assert updated_asset.source_artifact_id != original_artifact_id
+    assert "stabilized" in updated_asset.tags
+
+
+def test_annotation_trim_creates_trimmed_artifact_from_invalid_segments(tmp_path):
+    login_admin()
+    video = generate_test_video(tmp_path, duration_sec=2, width=160, height=120, fps=15)
+    content = video.read_bytes()
+    digest = hashlib.sha256(content).hexdigest()
+    prepared = client.post(
+        "/api/uploads/prepare",
+        json={
+            "kind": "broll",
+            "case_id": "case_trim_annotation",
+            "filename": "trim-source.mp4",
+            "content_type": "video/mp4",
+            "size_bytes": len(content),
+            "sha256": digest,
+        },
+    )
+    assert prepared.status_code == 201, prepared.text
+    upload = prepared.json()
+    uploaded = client.put(
+        f"/api/uploads/{upload['id']}/file",
+        files={"file": ("trim-source.mp4", content, "video/mp4")},
+    )
+    assert uploaded.status_code == 200, uploaded.text
+    completed = client.post(
+        "/api/uploads/complete",
+        json={"upload_session_id": upload["id"], "size_bytes": len(content), "sha256": digest},
+    )
+    assert completed.status_code == 200, completed.text
+    asset_id = completed.json()["media_asset"]["id"]
+    editor = client.get(f"/api/annotations/{asset_id}").json()
+    patched = client.patch(
+        f"/api/annotations/{asset_id}",
+        json={
+            "etag": editor["etag"],
+            "patch": {
+                "operations": [
+                    {
+                        "op": "replace",
+                        "path": "/projection/invalid_segments",
+                        "value": [
+                            {"start_sec": 0, "end_sec": 0.4, "reason": "开头无效"},
+                            {"start_sec": 1.4, "end_sec": 2.0, "reason": "结尾无效"},
+                        ],
+                    }
+                ]
+            },
+        },
+    )
+    assert patched.status_code == 200, patched.text
+
+    response = client.post(f"/api/annotations/{asset_id}/trim", json={})
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    artifact = repository().artifacts[body["artifact"]["artifact_id"]]
+    assert body["asset_id"] == asset_id
+    assert 0.85 <= body["valid_duration_sec"] <= 1.15
+    assert (artifact.payload or {})["trimmed"] is True
+    assert repository().media_assets[asset_id].source_artifact_id == artifact.id
+    info = probe_media(local_object_path(client.app.state.object_store, artifact.uri))
+    assert 0.85 <= (info.duration_sec or 0) <= 1.15
+
+
+def test_annotation_trim_rejects_empty_valid_region(tmp_path):
+    login_admin()
+    video = generate_test_video(tmp_path, duration_sec=1, width=160, height=120, fps=15)
+    content = video.read_bytes()
+    digest = hashlib.sha256(content).hexdigest()
+    prepared = client.post(
+        "/api/uploads/prepare",
+        json={
+            "kind": "broll",
+            "case_id": "case_trim_empty",
+            "filename": "all-invalid.mp4",
+            "content_type": "video/mp4",
+            "size_bytes": len(content),
+            "sha256": digest,
+        },
+    )
+    assert prepared.status_code == 201, prepared.text
+    upload = prepared.json()
+    uploaded = client.put(
+        f"/api/uploads/{upload['id']}/file",
+        files={"file": ("all-invalid.mp4", content, "video/mp4")},
+    )
+    assert uploaded.status_code == 200, uploaded.text
+    completed = client.post(
+        "/api/uploads/complete",
+        json={"upload_session_id": upload["id"], "size_bytes": len(content), "sha256": digest},
+    )
+    assert completed.status_code == 200, completed.text
+    asset_id = completed.json()["media_asset"]["id"]
+    editor = client.get(f"/api/annotations/{asset_id}").json()
+    patched = client.patch(
+        f"/api/annotations/{asset_id}",
+        json={
+            "etag": editor["etag"],
+            "patch": {
+                "operations": [
+                    {
+                        "op": "replace",
+                        "path": "/projection/invalid_segments",
+                        "value": [{"start_sec": 0, "end_sec": 1, "reason": "全段无效"}],
+                    }
+                ]
+            },
+        },
+    )
+    assert patched.status_code == 200, patched.text
+
+    response = client.post(f"/api/annotations/{asset_id}/trim", json={})
+
+    assert response.status_code == 400
+    assert response.json()["error"]["code"] == "material.insufficient.broll"

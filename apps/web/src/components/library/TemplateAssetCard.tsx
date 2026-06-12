@@ -1,4 +1,4 @@
-import { Download, Eye, Loader2, Play, RefreshCw, Trash2 } from "lucide-react";
+import { Download, Eye, Loader2, Play, RefreshCw, Upload } from "lucide-react";
 import type { MediaAssetCard } from "../../api/client";
 import { shortId } from "../../lib/format";
 import { annotationStatusLabels, annotationTone } from "./libraryModel";
@@ -9,9 +9,11 @@ type TemplateAssetCardProps = {
   batchMode: boolean;
   selected: boolean;
   isAnalyzing: boolean;
+  isReplacing: boolean;
   onToggleSelected: () => void;
   onPreview: () => void;
   onAnalyze: () => void;
+  onReplaceSource: () => void;
   onOpenAnnotation: () => void;
 };
 
@@ -21,9 +23,11 @@ export function TemplateAssetCard({
   batchMode,
   selected,
   isAnalyzing,
+  isReplacing,
   onToggleSelected,
   onPreview,
   onAnalyze,
+  onReplaceSource,
   onOpenAnnotation,
 }: TemplateAssetCardProps) {
   const asset = card.asset;
@@ -83,8 +87,8 @@ export function TemplateAssetCard({
         <a className={`icon-button w-full ${previewUrl ? "" : "pointer-events-none opacity-50"}`} href={previewUrl ?? undefined} download title="下载">
           <Download className="h-4 w-4" />
         </a>
-        <button className="icon-button w-full" type="button" disabled title="后端暂无素材删除 API">
-          <Trash2 className="h-4 w-4" />
+        <button className="icon-button w-full" type="button" onClick={onReplaceSource} disabled={isReplacing} title="替换原视频">
+          {isReplacing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
         </button>
       </div>
     </article>

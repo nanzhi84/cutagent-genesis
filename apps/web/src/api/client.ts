@@ -375,6 +375,24 @@ export const api = {
         body: payload,
         idempotencyKey: createIdempotencyKey("media_asset"),
       }),
+    batchStabilize: (payload: JsonRequest<operations["batch_stabilize_assets_api_media_assets_batch_stabilize_post"]>) =>
+      fetchJson<JsonResponse<operations["batch_stabilize_assets_api_media_assets_batch_stabilize_post"]>>(
+        "/api/media/assets/batch-stabilize",
+        { method: "POST", body: payload, idempotencyKey: createIdempotencyKey("media_stabilize") },
+      ),
+    autoMatchReplace: (payload: JsonRequest<operations["auto_match_replace_api_media_assets_auto_match_replace_post"]>) =>
+      fetchJson<JsonResponse<operations["auto_match_replace_api_media_assets_auto_match_replace_post"]>>(
+        "/api/media/assets/auto-match-replace",
+        { method: "POST", body: payload, idempotencyKey: createIdempotencyKey("media_auto_replace") },
+      ),
+    replaceSource: (
+      assetId: string,
+      payload: JsonRequest<operations["replace_asset_source_api_media_assets__asset_id__replace_source_post"]>,
+    ) =>
+      fetchJson<JsonResponse<operations["replace_asset_source_api_media_assets__asset_id__replace_source_post"]>>(
+        `/api/media/assets/${enc(assetId)}/replace-source`,
+        { method: "POST", body: payload, idempotencyKey: createIdempotencyKey("media_replace_source") },
+      ),
     detail: (assetId: string) =>
       fetchJson<JsonResponse<operations["media_asset_detail_api_media_assets__asset_id__get"]>>(
         `/api/media/assets/${enc(assetId)}`,
@@ -393,6 +411,11 @@ export const api = {
       fetchJson<JsonResponse<operations["patch_annotation_api_annotations__asset_id__patch"]>>(
         `/api/annotations/${enc(assetId)}`,
         { method: "PATCH", body: payload, idempotencyKey: createIdempotencyKey("annotation_patch") },
+      ),
+    trim: (assetId: string, payload: JsonRequest<operations["trim_annotation_api_annotations__asset_id__trim_post"]>) =>
+      fetchJson<JsonResponse<operations["trim_annotation_api_annotations__asset_id__trim_post"]>>(
+        `/api/annotations/${enc(assetId)}/trim`,
+        { method: "POST", body: payload, idempotencyKey: createIdempotencyKey("annotation_trim") },
       ),
     rerun: (assetId: string, payload: JsonRequest<operations["rerun_annotation_api_annotations__asset_id__rerun_post"]>) =>
       fetchJson<JsonResponse<operations["rerun_annotation_api_annotations__asset_id__rerun_post"]>>(
@@ -662,6 +685,8 @@ export type UploadSession = components["schemas"]["UploadSession"];
 export type CompleteUploadResponse = components["schemas"]["CompleteUploadResponse"];
 export type MediaAssetCard = components["schemas"]["MediaAssetCard"];
 export type MediaAssetRecord = components["schemas"]["MediaAssetRecord"];
+export type AutoMatchReplaceResponse = components["schemas"]["AutoMatchReplaceResponse"];
+export type MediaAssetReplaceResponse = components["schemas"]["MediaAssetReplaceResponse"];
 export type AnnotationEditorVm = components["schemas"]["AnnotationEditorVm"];
 export type FinishedVideo = components["schemas"]["FinishedVideo"];
 export type PublishAttempt = components["schemas"]["PublishAttempt"];

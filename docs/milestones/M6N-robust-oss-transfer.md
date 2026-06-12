@@ -52,3 +52,17 @@
 1. 演示切 OSS 后端（addressing=virtual）+ 本批 multipart 配置，提交 `strict_timestamps=true` 真人声 run：render 各节点的大视频产物**可靠传上 OSS**，PortraitTrackBuild→Render→Subtitle→Export 全过，**完整 strict 真对齐成片产出**；下载抽帧 + ASS 时间与真 ASR 对齐一致。
 2. MinIO 后端回归不变（addressing=path 默认仍 put/get/presigned）。
 3. 全量 + DB + Temporal 三套绿。
+
+---
+
+## 验收记录（2026-06-12，验收官：Claude，真 OSS live）
+
+**判定：通过并合入**（merge 239c708）。Codex 实现 A/B/C/D，提交被 sandbox 只读 .git 阻断，验收官沙箱外 commit（6c291cb）。
+
+验收官独立证据：
+- 全量单测独立复跑：**188 passed, 23 skipped**（基线 187→188；object store backend 测试改观测 upload_fileobj/download_fileobj，MinIO 路径不回退）。
+- 代码核对：`put_bytes`→`upload_fileobj(BytesIO, Config=TransferConfig(multipart_threshold/chunksize/concurrency))`；`get_bytes`→`download_fileobj`；botocore Config 加 connect/read 超时 + retries(standard)；6 个 env 可配（默认 threshold/chunk 8MB、concurrency 4、connect 10s、read 120s、attempts 5）；sha256/size 仍按内存 content 计算不变。
+- **真 OSS live 端到端（演示切 OSS 后端 + M6N）：strict_timestamps=true 真人声 run 完整出片成功**（run_e8399a9fa0a4，全 16 节点 succeeded，0 activity 失败）。此前 M6M+heartbeat 修复后仍因单发 put_object 卡死/重试耗尽；M6N multipart 后 render 各大视频产物可靠上传上海 OSS。成片 `final.mp4` h264 1080×1920/30fps/11.17s/12.3MB，`narration source=asr, strict=True`，字幕真 ASR 词级时间 0.03–3.60 / 4.18–10.46 / 10.46–11.17（含句间真实停顿、结尾精确，非估算均分）。抽帧确认字幕烧录。
+- 说明：远端 OSS（上海）渲染慢（~15min，受上行带宽限制，非失败）；multipart 解决的是可靠性。若要快可换近端 region / 提升上行 / 工作文件留本地仅成品上 OSS（后续优化）。
+
+至此 strict 真对齐字幕**完整出片**在 genesis 全链路（OSS 后端）跑通；非 strict 真人声出片本地 MinIO 亦通。真口播片（真人像 + HeyGem）为后续 M6 项。

@@ -37,6 +37,12 @@ from packages.core.storage.object_store import parse_local_uri
 from packages.core.storage.repository import new_id
 from packages.core.workflow import NodeExecutionError
 from packages.ai.gateway import ProviderCall
+from packages.media.voice_provider_bridge import (
+    hydrate_voice_reference_upload,
+    load_voice,
+    persist_provider_preview,
+    persist_provider_voice,
+)
 
 def list_voices(
     request: Request,
@@ -56,8 +62,22 @@ def list_voices(
 
 
 def clone_voice(payload: c.CloneVoiceRequest, request: Request) -> c.VoiceProfile:
-    if media_repository(request) is not None:
-        return media_repository(request).clone_voice(payload)
+    media_repo = media_repository(request)
+    if media_repo is not None:
+        provider_voice = _provider_voice_build(
+            payload.provider_profile_id,
+            request,
+            operation="clone",
+            display_name=payload.display_name,
+            source="cloned",
+            input_payload={"reference_upload_session_id": payload.reference_upload_session_id},
+            before_invoke=lambda repo: hydrate_voice_reference_upload(
+                media_repo, repo, payload.reference_upload_session_id
+            ),
+        )
+        if provider_voice is not None:
+            return persist_provider_voice(media_repo, provider_voice)
+        return media_repo.clone_voice(payload)
     provider_voice = _provider_voice_build(
         payload.provider_profile_id,
         request,
@@ -79,8 +99,19 @@ def clone_voice(payload: c.CloneVoiceRequest, request: Request) -> c.VoiceProfil
 
 
 def design_voice(payload: c.DesignVoiceRequest, request: Request) -> c.VoiceProfile:
-    if media_repository(request) is not None:
-        return media_repository(request).design_voice(payload)
+    media_repo = media_repository(request)
+    if media_repo is not None:
+        provider_voice = _provider_voice_build(
+            payload.provider_profile_id,
+            request,
+            operation="design",
+            display_name=payload.display_name,
+            source="designed",
+            input_payload={"prompt": payload.prompt},
+        )
+        if provider_voice is not None:
+            return persist_provider_voice(media_repo, provider_voice)
+        return media_repo.design_voice(payload)
     provider_voice = _provider_voice_build(
         payload.provider_profile_id,
         request,
@@ -109,13 +140,18 @@ def _provider_voice_build(
     display_name: str,
     source: str,
     input_payload: dict,
+    before_invoke=None,
 ) -> c.VoiceProfile | None:
     if not provider_profile_id:
         return None
     repo = repository(request)
-    profile = repo.provider_profiles.get(provider_profile_id)
-    if profile is None or profile.capability != "tts.speech":
+    profile = _tts_provider_profile(provider_profile_id, request, missing_ok=False)
+    if profile is None:
+        return None
+    if profile.capability != "tts.speech":
         raise NodeExecutionError(c.ErrorCode.provider_unsupported_option, "Voice provider profile is invalid.")
+    if before_invoke is not None:
+        before_invoke(repo)
     invocation, result = request.app.state.provider_gateway.invoke(
         ProviderCall(
             provider_profile_id=profile.id,
@@ -142,8 +178,18 @@ def _provider_voice_build(
 
 
 def voice_preview(voice_id: str, payload: c.VoicePreviewRequest, request: Request) -> c.VoicePreviewResponse:
-    if media_repository(request) is not None:
-        response = media_repository(request).preview_voice(voice_id, payload)
+    media_repo = media_repository(request)
+    if media_repo is not None:
+        voice = load_voice(media_repo, voice_id)
+        if voice is not None:
+            response = _provider_voice_preview(voice, payload, request)
+            if response is not None:
+                artifact = repository(request).artifacts.get(response.audio_artifact.artifact_id)
+                if artifact is not None:
+                    artifact_ref = persist_provider_preview(media_repo, voice_id, artifact)
+                    return response.model_copy(update={"audio_artifact": artifact_ref})
+                return response
+        response = media_repo.preview_voice(voice_id, payload)
         if response is None:
             raise NodeExecutionError(c.ErrorCode.validation_missing_voice, "Voice not found.")
         return response
@@ -151,9 +197,32 @@ def voice_preview(voice_id: str, payload: c.VoicePreviewRequest, request: Reques
         raise NodeExecutionError(c.ErrorCode.validation_missing_voice, "Voice not found.")
     repo = repository(request)
     voice = repo.voices[voice_id]
+    response = _provider_voice_preview(voice, payload, request)
+    if response is not None:
+        return response
+    artifact = repository(request).create_artifact(
+        kind=c.ArtifactKind.audio_tts,
+        payload_schema="VoicePreviewArtifact.v1",
+        payload={"text": payload.text},
+        uri=f"sandbox://voice-preview/{voice_id}.wav",
+    )
+    return c.VoicePreviewResponse(
+        voice_id=voice_id,
+        audio_artifact=repository(request).artifact_ref(artifact.id),
+        duration_sec=max(1, len(payload.text) / 6),
+    )
+
+
+def _provider_voice_preview(
+    voice: c.VoiceProfile,
+    payload: c.VoicePreviewRequest,
+    request: Request,
+) -> c.VoicePreviewResponse | None:
+    repo = repository(request)
+    voice_id = voice.id
     provider_profile_id = payload.provider_profile_id or voice.provider_profile_id
-    profile = repo.provider_profiles.get(provider_profile_id or "")
-    if profile is not None and profile.capability == "tts.speech":
+    profile = _tts_provider_profile(provider_profile_id, request, missing_ok=True)
+    if profile is not None:
         invocation, result = request.app.state.provider_gateway.invoke(
             ProviderCall(
                 provider_profile_id=profile.id,
@@ -182,17 +251,32 @@ def voice_preview(voice_id: str, payload: c.VoicePreviewRequest, request: Reques
                 audio_artifact=repo.artifact_ref(artifact_id),
                 duration_sec=duration,
             )
-    artifact = repository(request).create_artifact(
-        kind=c.ArtifactKind.audio_tts,
-        payload_schema="VoicePreviewArtifact.v1",
-        payload={"text": payload.text},
-        uri=f"sandbox://voice-preview/{voice_id}.wav",
-    )
-    return c.VoicePreviewResponse(
-        voice_id=voice_id,
-        audio_artifact=repository(request).artifact_ref(artifact.id),
-        duration_sec=max(1, len(payload.text) / 6),
-    )
+    return None
+
+
+def _tts_provider_profile(provider_profile_id: str | None, request: Request, *, missing_ok: bool):
+    if not provider_profile_id:
+        return None
+    gateway = request.app.state.provider_gateway
+    profile = None
+    reader = getattr(gateway, "provider_reader", None)
+    if reader is not None:
+        profile = reader.get_profile(provider_profile_id)
+    if profile is None:
+        profile = repository(request).provider_profiles.get(provider_profile_id)
+    if profile is None:
+        if missing_ok:
+            return None
+        raise NodeExecutionError(c.ErrorCode.provider_unsupported_option, "Voice provider profile is invalid.")
+    if profile.capability != "tts.speech":
+        raise NodeExecutionError(c.ErrorCode.provider_unsupported_option, "Voice provider profile is invalid.")
+    if not profile.enabled:
+        return None
+    if profile.provider_id not in gateway.plugins:
+        return None
+    if profile.secret_ref and not gateway._secret_is_active(profile.secret_ref):
+        return None
+    return profile
 
 
 def patch_voice(voice_id: str, payload: c.PatchVoiceRequest, request: Request) -> c.VoiceProfile:

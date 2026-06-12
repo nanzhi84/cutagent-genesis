@@ -887,7 +887,8 @@ class LocalRuntimeAdapter(WorkflowRuntimeAdapter):
         return NodeOutput(artifacts=[artifact], provider_invocation_ids=[invocation.id])
 
     def _tts(self, run: WorkflowRun, node_run: NodeRun, state: RunState) -> NodeOutput:
-        provider_profile_id = state.request.voice.provider_profile_id or "sandbox.tts.default"
+        voice_id = state.request.voice.voice_id or "voice_sandbox"
+        provider_profile_id = self._tts_provider_profile_id(state.request)
         invocation, result = self.provider_gateway.invoke(
             ProviderCall(
                 case_id=run.case_id,
@@ -895,7 +896,7 @@ class LocalRuntimeAdapter(WorkflowRuntimeAdapter):
                 node_run_id=node_run.id,
                 provider_profile_id=provider_profile_id,
                 capability_id="tts.speech",
-                input={"text": state.request.script, "voice_id": state.request.voice.voice_id or "voice_sandbox"},
+                input={"text": state.request.script, "voice_id": voice_id},
             )
         )
         if result is None or invocation.error:
@@ -1145,6 +1146,37 @@ class LocalRuntimeAdapter(WorkflowRuntimeAdapter):
                 continue
             return profile
         return None
+
+    def _tts_provider_profile_id(self, request: DigitalHumanVideoRequest) -> str:
+        explicit_profile_id = request.voice.provider_profile_id
+        voice = self.repository.voices.get(request.voice.voice_id or "voice_sandbox")
+        voice_profile_id = voice.provider_profile_id if voice is not None else None
+        profile_id = explicit_profile_id or voice_profile_id
+        if not profile_id:
+            return "sandbox.tts.default"
+        profile = self._provider_profile_by_id(profile_id)
+        if profile is None or profile.capability != "tts.speech":
+            if explicit_profile_id:
+                raise NodeExecutionError(
+                    ErrorCode.provider_unsupported_option,
+                    "TTS provider profile is missing or incompatible.",
+                )
+            return "sandbox.tts.default"
+        if not profile.enabled:
+            return "sandbox.tts.default"
+        if profile.provider_id not in self.provider_gateway.plugins:
+            return "sandbox.tts.default"
+        if profile.secret_ref and not self.provider_gateway._secret_is_active(profile.secret_ref):
+            return "sandbox.tts.default"
+        return profile.id
+
+    def _provider_profile_by_id(self, profile_id: str):
+        reader = getattr(self.provider_gateway, "provider_reader", None)
+        if reader is not None:
+            profile = reader.get_profile(profile_id)
+            if profile is not None:
+                return profile
+        return self.repository.provider_profiles.get(profile_id)
 
     def _narration_units_from_segments(self, segments, fallback_duration: float) -> list[NarrationUnit]:
         units: list[NarrationUnit] = []

@@ -77,17 +77,21 @@ from packages.core.storage.database import (
     ProviderInvocationRow,
     ProviderPriceCatalogRow,
     ProviderPriceItemRow,
+    ProviderProfileRow,
     PublishPackageRow,
     PublishRecordRow,
     ScriptVersionRow,
     UsageMeterRecordRow,
+    VoiceProfileRow,
     WorkflowRunRow,
     VideoVersionRow,
     YieldFunnelEventRow,
 )
+from packages.ai.gateway.sqlalchemy_repository import provider_profile_row_to_contract
 from packages.core.storage.repository import new_id
 from packages.core.workflow import NodeExecutionError
 from packages.media.assets import local_object_path
+from packages.media.sqlalchemy_repository import voice_row_to_contract
 from packages.production.editor_handoff import EditorHandoffAsset, EditorHandoffBuilder, EditorHandoffInput
 from packages.production.jianying_draft import JianyingDraftBuilder, JianyingDraftInput
 
@@ -566,6 +570,12 @@ class SqlAlchemyProductionRepository:
                 case_row = session.get(CaseRow, run_row.case_id)
                 if case_row is not None:
                     repository.cases[case_row.id] = case_row_to_contract(case_row)
+            for profile_row in session.scalars(select(ProviderProfileRow)):
+                profile = provider_profile_row_to_contract(profile_row)
+                repository.provider_profiles[profile.id] = profile
+            for voice_row in session.scalars(select(VoiceProfileRow)):
+                voice = voice_row_to_contract(voice_row)
+                repository.voices[voice.id] = voice
 
             job = job_row_to_contract(job_row)
             run = workflow_run_row_to_contract(run_row)

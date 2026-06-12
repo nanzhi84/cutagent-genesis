@@ -693,6 +693,7 @@ class PrepareUploadRequest(ContractModel):
     size_bytes: int = Field(gt=0)
     sha256: str | None = None
     multipart: bool = False
+    stabilize: bool = False
 
 
 class UploadSession(EntityMeta):
@@ -706,6 +707,8 @@ class UploadSession(EntityMeta):
     upload_url: str | None = None
     local_temp_path: str | None = None
     object_uri: str | None = None
+    stabilize: bool = False
+    stabilized: bool = False
     expires_at: datetime = Field(default_factory=lambda: utcnow() + timedelta(hours=1))
 
 
@@ -975,6 +978,70 @@ class MediaAssetDetail(ContractModel):
     asset: MediaAssetRecord
     preview_url: str | None = None
     latest_annotation_id: str | None = None
+
+
+class BatchStabilizeMediaAssetsRequest(ContractModel):
+    asset_ids: list[str] = Field(min_length=1, max_length=50)
+
+
+class MediaAssetProcessingResult(ContractModel):
+    asset_id: str
+    status: Literal["completed", "failed"]
+    artifact_id: str | None = None
+    error_code: ErrorCode | None = None
+    message: str | None = None
+
+
+class BatchMediaProcessResponse(ContractModel):
+    results: list[MediaAssetProcessingResult]
+    request_id: str
+
+
+class TimelineSegment(ContractModel):
+    start_sec: float = Field(ge=0)
+    end_sec: float = Field(gt=0)
+
+
+class TrimAnnotationRequest(ContractModel):
+    valid_segments: list[TimelineSegment] | None = None
+
+
+class TrimAnnotationResponse(ContractModel):
+    asset_id: str
+    artifact: ArtifactRef
+    valid_duration_sec: float
+    request_id: str
+
+
+class MediaAssetReplaceSourceRequest(ContractModel):
+    upload_session_id: str
+
+
+class MediaAssetReplaceResponse(ContractModel):
+    asset: MediaAssetRecord
+    artifact: ArtifactRef
+    preserved_annotation: bool
+    request_id: str
+
+
+class AutoMatchReplaceRequest(ContractModel):
+    upload_session_ids: list[str] = Field(min_length=1, max_length=100)
+    case_id: str | None = None
+    kind: str = "broll"
+
+
+class AutoMatchReplaceResult(ContractModel):
+    upload_session_id: str
+    filename: str
+    status: Literal["matched", "unmatched", "ambiguous", "failed"]
+    asset_id: str | None = None
+    artifact_id: str | None = None
+    message: str | None = None
+
+
+class AutoMatchReplaceResponse(ContractModel):
+    results: list[AutoMatchReplaceResult]
+    request_id: str
 
 
 class AnnotationPatch(ContractModel):

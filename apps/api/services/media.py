@@ -37,6 +37,7 @@ from packages.core.storage.object_store import parse_local_uri
 from packages.core.storage.repository import new_id
 from packages.core.workflow import NodeExecutionError
 from packages.ai.gateway import ProviderCall
+from apps.api.services import media_processing
 
 def list_media_assets(
     request: Request,
@@ -111,6 +112,30 @@ def media_asset_preview(request: Request, asset_id: str) -> c.SignedUrlResponse:
     return signed(request, f"media/{asset_id}")
 
 
+def batch_stabilize_assets(
+    payload: c.BatchStabilizeMediaAssetsRequest, request: Request
+) -> c.BatchMediaProcessResponse:
+    return media_processing.batch_stabilize_assets(payload, request)
+
+
+def replace_asset_source(
+    asset_id: str, payload: c.MediaAssetReplaceSourceRequest, request: Request
+) -> c.MediaAssetReplaceResponse:
+    return media_processing.replace_asset_source(asset_id, payload, request)
+
+
+def auto_match_replace(
+    payload: c.AutoMatchReplaceRequest, request: Request
+) -> c.AutoMatchReplaceResponse:
+    return media_processing.auto_match_replace(payload, request)
+
+
+def trim_annotation(
+    asset_id: str, payload: c.TrimAnnotationRequest, request: Request
+) -> c.TrimAnnotationResponse:
+    return media_processing.trim_annotation(asset_id, payload, request)
+
+
 def get_annotation(request: Request, asset_id: str) -> c.AnnotationEditorVm:
 
     if media_repository(request) is not None:
@@ -137,12 +162,46 @@ def patch_annotation(asset_id: str, payload: c.PatchAnnotationRequest, request: 
             raise NodeExecutionError(c.ErrorCode.artifact_missing, "Asset missing.")
         return editor
     editor = get_annotation(request, asset_id)
-    updated = editor.model_copy(update={"etag": new_id("etag")})
+    canonical = dict(editor.canonical or {})
+    projection = dict(editor.projection or {})
+    _apply_annotation_operations(canonical, projection, payload.patch.operations)
+    updated = editor.model_copy(update={"etag": new_id("etag"), "canonical": canonical, "projection": projection})
     repository(request).annotations[asset_id] = updated
     repository(request).media_assets[asset_id] = repository(request).media_assets[asset_id].model_copy(
         update={"annotation_status": "annotated", "updated_at": c.utcnow()}
     )
     return updated
+
+
+def _apply_annotation_operations(canonical: dict, projection: dict, operations: list[dict]) -> None:
+    for operation in operations:
+        op_name = operation.get("op", "replace")
+        path = operation.get("path")
+        if op_name not in {"add", "replace"} or not isinstance(path, str) or "value" not in operation:
+            continue
+        value = operation["value"]
+        if path == "/labels":
+            canonical["labels"] = value
+        elif path == "/usable":
+            projection["usable"] = value
+        elif path == "/title":
+            projection["title"] = value
+        elif path.startswith("/canonical/"):
+            _set_nested(canonical, path.removeprefix("/canonical/").split("/"), value)
+        elif path.startswith("/projection/"):
+            _set_nested(projection, path.removeprefix("/projection/").split("/"), value)
+
+
+def _set_nested(target: dict, parts: list[str], value) -> None:
+    current = target
+    for part in [item for item in parts[:-1] if item]:
+        child = current.get(part)
+        if not isinstance(child, dict):
+            child = {}
+            current[part] = child
+        current = child
+    if parts and parts[-1]:
+        current[parts[-1]] = value
 
 
 def rerun_annotation(

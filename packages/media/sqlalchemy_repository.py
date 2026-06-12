@@ -12,6 +12,7 @@ from packages.core.contracts import (
     CreateMediaAssetFromUploadRequest,
     DesignVoiceRequest,
     ErrorCode,
+    MediaInfo,
     MediaAssetCard,
     MediaAssetDetail,
     MediaAssetRecord,
@@ -183,6 +184,39 @@ class SqlAlchemyMediaRepository:
                 return ""
             artifact = session.get(ArtifactRow, asset.source_artifact_id)
             return artifact.uri if artifact is not None else ""
+
+    def artifact_ref_for_asset(self, asset_id: str) -> ArtifactRef | None:
+        with self.session_factory() as session:
+            asset = session.get(MediaAssetRow, asset_id)
+            if asset is None or not asset.source_artifact_id:
+                return None
+            artifact = session.get(ArtifactRow, asset.source_artifact_id)
+            return artifact_ref_from_row(artifact) if artifact is not None else None
+
+    def replace_asset_source_artifact(
+        self, asset_id: str, *, kind: ArtifactKind, uri: str, size_bytes: int, sha256: str, media_info: MediaInfo, payload: dict, tag: str | None = None
+    ) -> ArtifactRef | None:
+        with self.session_factory() as session:
+            asset = session.get(MediaAssetRow, asset_id)
+            if asset is None:
+                return None
+            artifact = ArtifactRow(
+                id=new_id("art"), kind=kind.value, uri=uri, size_bytes=size_bytes, sha256=sha256,
+                media_info=media_info.model_dump(mode="json"),
+                payload_schema="ProcessedMediaArtifact.v1",
+                payload=payload,
+            )
+            artifact_ref = ArtifactRef(artifact_id=artifact.id, kind=kind, uri=uri, sha256=sha256)
+            session.add(artifact)
+            session.flush()
+            asset.source_artifact_id = artifact.id
+            tags = list(asset.tags or [])
+            if tag and tag not in tags:
+                tags.append(tag)
+            asset.tags = tags
+            asset.updated_at = utcnow()
+            session.commit()
+            return artifact_ref
 
     def get_or_create_annotation(self, asset_id: str) -> AnnotationEditorVm | None:
         with self.session_factory() as session:

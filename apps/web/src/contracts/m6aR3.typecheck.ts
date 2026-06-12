@@ -15,6 +15,7 @@ async function assertR3ApiSurface(file: File) {
     content_type: file.type || "application/octet-stream",
     size_bytes: file.size,
     multipart: false,
+    stabilize: false,
   });
   const uploaded = await api.uploads.uploadFile(prepared.id, file);
   const completed = await api.uploads.complete({ upload_session_id: uploaded.id, size_bytes: file.size });

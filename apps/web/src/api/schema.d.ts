@@ -608,6 +608,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/media/assets/batch-stabilize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Batch Stabilize Assets */
+        post: operations["batch_stabilize_assets_api_media_assets_batch_stabilize_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/media/assets/auto-match-replace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Auto Match Replace */
+        post: operations["auto_match_replace_api_media_assets_auto_match_replace_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/media/assets/{asset_id}/replace-source": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Replace Asset Source */
+        post: operations["replace_asset_source_api_media_assets__asset_id__replace_source_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/media/assets/{asset_id}": {
         parameters: {
             query?: never;
@@ -658,6 +709,23 @@ export interface paths {
         head?: never;
         /** Patch Annotation */
         patch: operations["patch_annotation_api_annotations__asset_id__patch"];
+        trace?: never;
+    };
+    "/api/annotations/{asset_id}/trim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Trim Annotation */
+        post: operations["trim_annotation_api_annotations__asset_id__trim_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/annotations/{asset_id}/rerun": {
@@ -2191,6 +2259,55 @@ export interface components {
              */
             status: "active" | "disabled";
         };
+        /** AutoMatchReplaceRequest */
+        AutoMatchReplaceRequest: {
+            /** Upload Session Ids */
+            upload_session_ids: string[];
+            /** Case Id */
+            case_id?: string | null;
+            /**
+             * Kind
+             * @default broll
+             */
+            kind: string;
+        };
+        /** AutoMatchReplaceResponse */
+        AutoMatchReplaceResponse: {
+            /** Results */
+            results: components["schemas"]["AutoMatchReplaceResult"][];
+            /** Request Id */
+            request_id: string;
+        };
+        /** AutoMatchReplaceResult */
+        AutoMatchReplaceResult: {
+            /** Upload Session Id */
+            upload_session_id: string;
+            /** Filename */
+            filename: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "matched" | "unmatched" | "ambiguous" | "failed";
+            /** Asset Id */
+            asset_id?: string | null;
+            /** Artifact Id */
+            artifact_id?: string | null;
+            /** Message */
+            message?: string | null;
+        };
+        /** BatchMediaProcessResponse */
+        BatchMediaProcessResponse: {
+            /** Results */
+            results: components["schemas"]["MediaAssetProcessingResult"][];
+            /** Request Id */
+            request_id: string;
+        };
+        /** BatchStabilizeMediaAssetsRequest */
+        BatchStabilizeMediaAssetsRequest: {
+            /** Asset Ids */
+            asset_ids: string[];
+        };
         /** BgmOptions */
         BgmOptions: {
             /**
@@ -3468,6 +3585,21 @@ export interface components {
             /** Latest Annotation Id */
             latest_annotation_id?: string | null;
         };
+        /** MediaAssetProcessingResult */
+        MediaAssetProcessingResult: {
+            /** Asset Id */
+            asset_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "completed" | "failed";
+            /** Artifact Id */
+            artifact_id?: string | null;
+            error_code?: components["schemas"]["ErrorCode"] | null;
+            /** Message */
+            message?: string | null;
+        };
         /** MediaAssetRecord */
         MediaAssetRecord: {
             /** Id */
@@ -3518,6 +3650,20 @@ export interface components {
              * @default true
              */
             usable: boolean;
+        };
+        /** MediaAssetReplaceResponse */
+        MediaAssetReplaceResponse: {
+            asset: components["schemas"]["MediaAssetRecord"];
+            artifact: components["schemas"]["ArtifactRef"];
+            /** Preserved Annotation */
+            preserved_annotation: boolean;
+            /** Request Id */
+            request_id: string;
+        };
+        /** MediaAssetReplaceSourceRequest */
+        MediaAssetReplaceSourceRequest: {
+            /** Upload Session Id */
+            upload_session_id: string;
         };
         /** MemoryProposal */
         MemoryProposal: {
@@ -4306,6 +4452,11 @@ export interface components {
              * @default false
              */
             multipart: boolean;
+            /**
+             * Stabilize
+             * @default false
+             */
+            stabilize: boolean;
         };
         /** ProductionQualityCheck */
         ProductionQualityCheck: {
@@ -5704,6 +5855,28 @@ export interface components {
                 [key: string]: components["schemas"]["JsonValue"];
             };
         };
+        /** TimelineSegment */
+        TimelineSegment: {
+            /** Start Sec */
+            start_sec: number;
+            /** End Sec */
+            end_sec: number;
+        };
+        /** TrimAnnotationRequest */
+        TrimAnnotationRequest: {
+            /** Valid Segments */
+            valid_segments?: components["schemas"]["TimelineSegment"][] | null;
+        };
+        /** TrimAnnotationResponse */
+        TrimAnnotationResponse: {
+            /** Asset Id */
+            asset_id: string;
+            artifact: components["schemas"]["ArtifactRef"];
+            /** Valid Duration Sec */
+            valid_duration_sec: number;
+            /** Request Id */
+            request_id: string;
+        };
         /** UpdateMeRequest */
         UpdateMeRequest: {
             /** Display Name */
@@ -5768,6 +5941,16 @@ export interface components {
             local_temp_path?: string | null;
             /** Object Uri */
             object_uri?: string | null;
+            /**
+             * Stabilize
+             * @default false
+             */
+            stabilize: boolean;
+            /**
+             * Stabilized
+             * @default false
+             */
+            stabilized: boolean;
             /**
              * Expires At
              * Format: date-time
@@ -7441,6 +7624,107 @@ export interface operations {
             };
         };
     };
+    batch_stabilize_assets_api_media_assets_batch_stabilize_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchStabilizeMediaAssetsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchMediaProcessResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    auto_match_replace_api_media_assets_auto_match_replace_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AutoMatchReplaceRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AutoMatchReplaceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    replace_asset_source_api_media_assets__asset_id__replace_source_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MediaAssetReplaceSourceRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MediaAssetReplaceResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     media_asset_detail_api_media_assets__asset_id__get: {
         parameters: {
             query?: never;
@@ -7556,6 +7840,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AnnotationEditorVm"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trim_annotation_api_annotations__asset_id__trim_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                asset_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TrimAnnotationRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrimAnnotationResponse"];
                 };
             };
             /** @description Validation Error */

@@ -1797,6 +1797,131 @@
         }
       }
     },
+    "/api/media/assets/batch-stabilize": {
+      "post": {
+        "summary": "Batch Stabilize Assets",
+        "operationId": "batch_stabilize_assets_api_media_assets_batch_stabilize_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchStabilizeMediaAssetsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchMediaProcessResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/media/assets/auto-match-replace": {
+      "post": {
+        "summary": "Auto Match Replace",
+        "operationId": "auto_match_replace_api_media_assets_auto_match_replace_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AutoMatchReplaceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AutoMatchReplaceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/media/assets/{asset_id}/replace-source": {
+      "post": {
+        "summary": "Replace Asset Source",
+        "operationId": "replace_asset_source_api_media_assets__asset_id__replace_source_post",
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Asset Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaAssetReplaceSourceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaAssetReplaceResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/media/assets/{asset_id}": {
       "get": {
         "summary": "Media Asset Detail",
@@ -1944,6 +2069,55 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AnnotationEditorVm"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/annotations/{asset_id}/trim": {
+      "post": {
+        "summary": "Trim Annotation",
+        "operationId": "trim_annotation_api_annotations__asset_id__trim_post",
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Asset Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrimAnnotationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrimAnnotationResponse"
                 }
               }
             }
@@ -7021,6 +7195,167 @@
         ],
         "title": "AuthUser"
       },
+      "AutoMatchReplaceRequest": {
+        "properties": {
+          "upload_session_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Upload Session Ids"
+          },
+          "case_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Case Id"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind",
+            "default": "broll"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "upload_session_ids"
+        ],
+        "title": "AutoMatchReplaceRequest"
+      },
+      "AutoMatchReplaceResponse": {
+        "properties": {
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/AutoMatchReplaceResult"
+            },
+            "type": "array",
+            "title": "Results"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "results",
+          "request_id"
+        ],
+        "title": "AutoMatchReplaceResponse"
+      },
+      "AutoMatchReplaceResult": {
+        "properties": {
+          "upload_session_id": {
+            "type": "string",
+            "title": "Upload Session Id"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "matched",
+              "unmatched",
+              "ambiguous",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "asset_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asset Id"
+          },
+          "artifact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifact Id"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "upload_session_id",
+          "filename",
+          "status"
+        ],
+        "title": "AutoMatchReplaceResult"
+      },
+      "BatchMediaProcessResponse": {
+        "properties": {
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/MediaAssetProcessingResult"
+            },
+            "type": "array",
+            "title": "Results"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "results",
+          "request_id"
+        ],
+        "title": "BatchMediaProcessResponse"
+      },
+      "BatchStabilizeMediaAssetsRequest": {
+        "properties": {
+          "asset_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Asset Ids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "asset_ids"
+        ],
+        "title": "BatchStabilizeMediaAssetsRequest"
+      },
       "BgmOptions": {
         "properties": {
           "enabled": {
@@ -10324,6 +10659,61 @@
         ],
         "title": "MediaAssetDetail"
       },
+      "MediaAssetProcessingResult": {
+        "properties": {
+          "asset_id": {
+            "type": "string",
+            "title": "Asset Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "artifact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Artifact Id"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorCode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "asset_id",
+          "status"
+        ],
+        "title": "MediaAssetProcessingResult"
+      },
       "MediaAssetRecord": {
         "properties": {
           "id": {
@@ -10434,6 +10824,47 @@
           "kind"
         ],
         "title": "MediaAssetRecord"
+      },
+      "MediaAssetReplaceResponse": {
+        "properties": {
+          "asset": {
+            "$ref": "#/components/schemas/MediaAssetRecord"
+          },
+          "artifact": {
+            "$ref": "#/components/schemas/ArtifactRef"
+          },
+          "preserved_annotation": {
+            "type": "boolean",
+            "title": "Preserved Annotation"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "asset",
+          "artifact",
+          "preserved_annotation",
+          "request_id"
+        ],
+        "title": "MediaAssetReplaceResponse"
+      },
+      "MediaAssetReplaceSourceRequest": {
+        "properties": {
+          "upload_session_id": {
+            "type": "string",
+            "title": "Upload Session Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "upload_session_id"
+        ],
+        "title": "MediaAssetReplaceSourceRequest"
       },
       "MemoryProposal": {
         "properties": {
@@ -12948,6 +13379,11 @@
           "multipart": {
             "type": "boolean",
             "title": "Multipart",
+            "default": false
+          },
+          "stabilize": {
+            "type": "boolean",
+            "title": "Stabilize",
             "default": false
           }
         },
@@ -16168,6 +16604,76 @@
         "type": "object",
         "title": "TestProviderProfileRequest"
       },
+      "TimelineSegment": {
+        "properties": {
+          "start_sec": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Start Sec"
+          },
+          "end_sec": {
+            "type": "number",
+            "exclusiveMinimum": 0.0,
+            "title": "End Sec"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "start_sec",
+          "end_sec"
+        ],
+        "title": "TimelineSegment"
+      },
+      "TrimAnnotationRequest": {
+        "properties": {
+          "valid_segments": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/TimelineSegment"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid Segments"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "TrimAnnotationRequest"
+      },
+      "TrimAnnotationResponse": {
+        "properties": {
+          "asset_id": {
+            "type": "string",
+            "title": "Asset Id"
+          },
+          "artifact": {
+            "$ref": "#/components/schemas/ArtifactRef"
+          },
+          "valid_duration_sec": {
+            "type": "number",
+            "title": "Valid Duration Sec"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "asset_id",
+          "artifact",
+          "valid_duration_sec",
+          "request_id"
+        ],
+        "title": "TrimAnnotationResponse"
+      },
       "UpdateMeRequest": {
         "properties": {
           "display_name": {
@@ -16355,6 +16861,16 @@
               }
             ],
             "title": "Object Uri"
+          },
+          "stabilize": {
+            "type": "boolean",
+            "title": "Stabilize",
+            "default": false
+          },
+          "stabilized": {
+            "type": "boolean",
+            "title": "Stabilized",
+            "default": false
           },
           "expires_at": {
             "type": "string",

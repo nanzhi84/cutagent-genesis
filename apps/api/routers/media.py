@@ -28,6 +28,30 @@ def create_media_asset(payload: c.CreateMediaAssetFromUploadRequest, request: Re
     return service.create_media_asset(payload, request)
 
 
+@router.post("/api/media/assets/batch-stabilize", response_model=c.BatchMediaProcessResponse)
+def batch_stabilize_assets(
+    payload: c.BatchStabilizeMediaAssetsRequest, request: Request
+) -> c.BatchMediaProcessResponse:
+    require_role(request, c.UserRole.operator)
+    return service.batch_stabilize_assets(payload, request)
+
+
+@router.post("/api/media/assets/auto-match-replace", response_model=c.AutoMatchReplaceResponse)
+def auto_match_replace(
+    payload: c.AutoMatchReplaceRequest, request: Request
+) -> c.AutoMatchReplaceResponse:
+    require_role(request, c.UserRole.operator)
+    return service.auto_match_replace(payload, request)
+
+
+@router.post("/api/media/assets/{asset_id}/replace-source", response_model=c.MediaAssetReplaceResponse)
+def replace_asset_source(
+    asset_id: str, payload: c.MediaAssetReplaceSourceRequest, request: Request
+) -> c.MediaAssetReplaceResponse:
+    require_role(request, c.UserRole.operator)
+    return service.replace_asset_source(asset_id, payload, request)
+
+
 @router.get("/api/media/assets/{asset_id}", response_model=c.MediaAssetDetail)
 def media_asset_detail(request: Request, asset_id: str) -> c.MediaAssetDetail:
 
@@ -50,6 +74,14 @@ def get_annotation(request: Request, asset_id: str) -> c.AnnotationEditorVm:
 def patch_annotation(asset_id: str, payload: c.PatchAnnotationRequest, request: Request) -> c.AnnotationEditorVm:
     require_role(request, c.UserRole.operator)
     return service.patch_annotation(asset_id, payload, request)
+
+
+@router.post("/api/annotations/{asset_id}/trim", response_model=c.TrimAnnotationResponse)
+def trim_annotation(
+    asset_id: str, payload: c.TrimAnnotationRequest, request: Request
+) -> c.TrimAnnotationResponse:
+    require_role(request, c.UserRole.operator)
+    return service.trim_annotation(asset_id, payload, request)
 
 
 @router.post("/api/annotations/{asset_id}/rerun", response_model=c.AnnotationRunResponse, status_code=202)

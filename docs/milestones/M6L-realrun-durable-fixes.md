@@ -74,3 +74,14 @@ JSON 必须且只能包含以下字段：
 脚本：
 {script}
 ```
+
+---
+
+## 验收记录（2026-06-12，验收官：Claude）
+
+**判定：通过并合入**（merge 见 git log）。Codex 实现 A/B/A3/C/D，TDD red→green；提交被 sandbox 只读 .git 阻断，验收官沙箱外 commit（673d6bb）。
+
+验收官独立证据：
+- **全量单测独立复跑：183 passed, 23 skipped**（基线 178→183，新增 narration-alignment/seed-prompt-braces/dashscope-fenced-json 测试）。
+- 代码核对：creative prompt 内容与 live 验证版一致（brace-safe，仅 {script}）；`_narration_alignment` 把估算逻辑抽成 helper，非 strict ASR 失败→估算降级（带 DegradationNotice reason=asr_unavailable_estimated_fallback + 失败 invocation id + warning），strict 仍 raise；`_parse_json_object` 剥离 ```/```json 围栏。
+- 此前演示用「在线 prompt 版本 + binding + 临时禁用 ASR profile」的临时补丁，现已被 A/B 代码化——全新 bootstrap 即可：非 strict 真人声出片不再被创意 prompt 或 ASR 失败阻断。

@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-from packages.core.storage.object_store import ObjectStore, parse_local_uri
+from packages.core.storage.object_store import ObjectStore, StoredObject, parse_local_uri
 
 
 def local_object_path(object_store: ObjectStore, uri: str) -> Path:
@@ -28,4 +28,6 @@ def store_file(
     content = path.read_bytes()
     content_key = hashlib.sha256(content).hexdigest() if addressed else None
     ref = object_store.prepare_upload(path.name, purpose, content_key=content_key, tier=tier)
+    if addressed and content_key is not None and object_store.exists(ref):
+        return StoredObject(ref=ref, size_bytes=len(content), sha256=content_key)
     return object_store.put_bytes(ref, content)

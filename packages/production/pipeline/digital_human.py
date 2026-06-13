@@ -358,10 +358,6 @@ class LocalRuntimeAdapter(WorkflowRuntimeAdapter):
             reuse_plan=ReusePlan.model_validate(reuse_plan),
         )
 
-    def get_run_status(self, run_id: str) -> RunStatus | None:
-        run = self.repository.runs.get(run_id)
-        return run.status if run else None
-
     def cancel_run(self, run_id: str, *, force: bool = False, reason: str | None = None) -> WorkflowRun:
         run = self.repository.runs[run_id]
         if run.status not in {RunStatus.created, RunStatus.admitted, RunStatus.running}:

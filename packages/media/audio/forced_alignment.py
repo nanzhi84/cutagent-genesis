@@ -16,8 +16,12 @@ from typing import Any
 
 # Sentence-ending punctuation (full-width CJK + ASCII). A run of these closes a
 # sentence; consecutive markers (e.g. ``……``, ``?!``) stay with their sentence.
+# Split only after the LAST char of a run (lookbehind on an end char + negative
+# lookahead so we never break *between* consecutive markers).
 _SENTENCE_END_CHARS = "。！？；…!?;"
-_SENTENCE_SPLIT_RE = re.compile(r"(?<=[" + re.escape(_SENTENCE_END_CHARS) + r"])")
+_SENTENCE_SPLIT_RE = re.compile(
+    r"(?<=[" + re.escape(_SENTENCE_END_CHARS) + r"])(?![" + re.escape(_SENTENCE_END_CHARS) + r"])"
+)
 _WHITESPACE_RE = re.compile(r"\s+")
 
 

@@ -29,7 +29,12 @@ from packages.core.contracts.artifacts import NarrationUnit
 from packages.planning.editing import packing
 from packages.planning.editing import _util as util
 from packages.planning.editing.constants import BOUNDARY_BEAM_WIDTH
-from packages.planning.editing.frame_grid import TIMELINE_FPS, slice_source_window, slice_windows
+from packages.planning.editing.frame_grid import (
+    TIMELINE_FPS,
+    FrameWindow,
+    frame_index,
+    slice_source_window,
+)
 
 
 @dataclass(frozen=True)
@@ -150,22 +155,42 @@ def _quantize_plan(
 
     The plan's contiguous timeline boundaries (each segment's start == previous
     segment's end) are collected into a single sorted boundary list and quantized in
-    one pass by slice_windows, so adjacent timeline windows share a frame index and
-    never overlap. Source spans are then sliced to exactly the timeline window length.
+    one pass via frame_index; each segment is then paired with its own
+    ``[frame(b_i), frame(b_{i+1}))`` window, so adjacent windows share a frame index
+    and never overlap. A segment whose span quantizes to < 1 frame is dropped (and
+    recorded in the trace). Source spans are then sliced to exactly the timeline
+    window length.
     """
     boundaries_seconds = [util.as_float(ordered[0].get("timeline_start"), 0.0)]
     for seg in ordered:
         boundaries_seconds.append(util.as_float(seg.get("timeline_end"), 0.0))
-    windows = slice_windows(boundaries_seconds)
 
-    # slice_windows may drop a degenerate (<1 frame) window; align segments to the
-    # surviving windows by walking both in order (boundary order is identical).
+    # Quantize every timeline boundary ONCE onto the single 30fps grid, then pair each
+    # segment with its OWN window [frame(b_i), frame(b_{i+1})). Adjacent windows are
+    # contiguous (segment i's end frame == segment i+1's start frame). A segment whose
+    # span quantizes to < 1 frame is degenerate (zero-length on the grid): it is
+    # dropped here (and recorded in the trace) rather than (a) silently shifting later
+    # segments onto the wrong window -- the old next(window_iter)+break bug -- or
+    # (b) hard-crashing the render. The chunk builder's >0.08s (>=~3 frame) floor means
+    # this never fires on the real pipeline; the guard stays correct under `python -O`
+    # (no assert) if a future change loosens that floor.
+    boundary_frames = [frame_index(b) for b in boundaries_seconds]
     segments: list[PlannedSegment] = []
-    window_iter = iter(windows)
-    for seg in ordered:
-        window = next(window_iter, None)
-        if window is None:
-            break
+    for seg_index, seg in enumerate(ordered):
+        start_frame = boundary_frames[seg_index]
+        end_frame = max(start_frame, boundary_frames[seg_index + 1])
+        if end_frame - start_frame < 1:
+            trace.append(
+                {
+                    "event": "degenerate_segment_dropped",
+                    "timeline_start": seg.get("timeline_start"),
+                    "timeline_end": seg.get("timeline_end"),
+                    "start_frame": start_frame,
+                    "end_frame": end_frame,
+                }
+            )
+            continue
+        window = FrameWindow(start_frame=start_frame, end_frame=end_frame)
         source_window, pad_end_frames = slice_source_window(
             source_start_seconds=util.as_float(seg.get("source_start"), 0.0),
             length_frames=window.length_frames,

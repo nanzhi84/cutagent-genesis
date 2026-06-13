@@ -123,8 +123,10 @@ class EphemeralObjectStoreSettings(BaseModel):
     """Ephemeral (scratch) tier of the tiered object store.
 
     Defaults match ``object_store_env._ephemeral_store_from_env``. The ephemeral
-    bucket name is a fixed constant in both the local and s3 paths
-    (``cutagent-ephemeral``) so it lives here as the single source of truth."""
+    bucket defaults to ``cutagent-ephemeral`` and is honored for BOTH the local and
+    s3 backends (overridable via ``CUTAGENT_EPHEMERAL_OBJECTSTORE_BUCKET``); this is
+    the single source of truth for it. For the local backend the bucket is not part
+    of the on-disk path, so the default behavior is unchanged."""
 
     model_config = ConfigDict(frozen=True)
 

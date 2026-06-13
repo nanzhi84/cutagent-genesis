@@ -27,6 +27,11 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest>=9",
+  # Required by the OceanEngine offline-import connector tests (xlsx fixtures).
+  # The connector treats openpyxl as optional at runtime, but CI must install it
+  # so tests/connectors/test_oceanengine_import.py actually runs instead of being
+  # silently skipped by pytest.importorskip.
+  "openpyxl>=3.1",
 ]
 
 [tool.pytest.ini_options]

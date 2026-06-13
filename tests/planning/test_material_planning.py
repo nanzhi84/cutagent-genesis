@@ -28,6 +28,7 @@ from packages.planning.material import (
     rank_broll_candidates,
     score_portrait_candidate,
 )
+from packages.planning.material.broll_pack import BrollCandidate
 from packages.planning.material.keywords import ScriptSegment
 
 
@@ -144,6 +145,54 @@ def test_insertion_points_land_in_real_narration_windows():
         assert ins.timeline_end <= max(u.end for u in units)
     starts = [ins.timeline_start for ins in insertions]
     assert starts != [0.0, 3.0][: len(starts)]
+
+
+def test_broll_candidate_and_insert_carry_diversity_key_for_recency():
+    # The diversity cluster (scene_type / narrative_role) must be carried from the
+    # ranked candidate through to the insertion so the selection ledger can persist
+    # it and cluster-level recency demotion stops being dead in practice.
+    units = _units()
+    segments = _narration_segments(units)
+    annotations = {
+        "asset_a": _annotation(
+            "asset_a", [_clip("a1", 0.0, 4.0, ["补漆", "效果"], scene_type="补漆台")]
+        ),
+    }
+    candidates = rank_broll_candidates(annotations=annotations, segments=segments)
+    assert candidates
+    assert candidates[0].diversity_key == "补漆台"
+    insertions = plan_insertions(candidates=candidates, units=units, max_inserts=2)
+    assert insertions
+    assert insertions[0].diversity_key == "补漆台"
+
+
+def test_broll_insert_never_spills_past_a_short_narration_beat():
+    # A timeline whose middle beat [4.0, 4.8] is shorter than _MIN_INSERT_SECONDS.
+    units = [
+        NarrationUnit(unit_id="u1", text="先讲解打磨工艺的细节。", start=0.0, end=4.0, confidence=1.0),
+        NarrationUnit(unit_id="u2", text="补漆。", start=4.0, end=4.8, confidence=1.0),
+        NarrationUnit(unit_id="u3", text="再展示补漆效果对比的整体呈现。", start=4.8, end=8.0, confidence=1.0),
+    ]
+    # A candidate matched to the short 0.8s beat. A real per-clause TTS unit is
+    # frequently sub-1.5s, so this path is hit in practice.
+    short_beat = ScriptSegment(text="补漆。", start=4.0, end=4.8, keywords=("补漆",))
+    candidate = BrollCandidate(
+        asset_id="asset_a", clip_id="a1", score=50.0, base_score=50.0,
+        recency_penalty=0.0, matched_keywords=("补漆",), scene_name="补漆",
+        source_start=0.0, source_end=4.0, best_segment=short_beat,
+    )
+    insertions = plan_insertions(candidates=[candidate], units=units, max_inserts=2)
+
+    # Invariant: an insert must never extend past the narration beat it is anchored
+    # to (no overlay bleeding into the next spoken window).
+    for ins in insertions:
+        host = next(u for u in units if u.start <= ins.timeline_start < u.end)
+        assert ins.timeline_end <= host.end, (
+            f"insert {ins.timeline_start}-{ins.timeline_end} spills past beat {host.start}-{host.end}"
+        )
+    # The sole candidate's beat is too short to host a minimum-length insert, so it
+    # is honestly dropped rather than clamped up and spilled.
+    assert insertions == []
 
 
 # --------------------------------------------------------------------------- (b)

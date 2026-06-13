@@ -31,8 +31,10 @@ SILENCEDETECT_TIMEOUT_SEC = 90
 _SILENCE_START_RE = re.compile(r"silence_start:\s*([0-9.]+)")
 _SILENCE_END_RE = re.compile(r"silence_end:\s*([0-9.]+)\s*\|\s*silence_duration:\s*([0-9.]+)")
 
-# Process-local cache keyed by normalized path: detection is deterministic for a
-# given file, so re-running ffmpeg on the same artifact within a run is wasteful.
+# Process-local cache keyed by normalized path + thresholds + a content signature
+# (mtime, size): detection is deterministic for a given file, so re-running ffmpeg on
+# the same unchanged artifact within a run is wasteful; the signature ensures an
+# overwritten/regenerated file at the same path is re-detected, not served stale.
 _DETECTION_CACHE: Dict[str, List[Dict[str, float]]] = {}
 
 
@@ -55,13 +57,18 @@ def detect_silence_windows(
     normalized = str(audio_path or "").strip()
     if not normalized:
         return []
-    cache_key = f"{normalized}|{noise_db}|{min_duration}"
+    try:
+        stat = Path(normalized).stat()
+    except OSError:
+        # Missing/unreadable file -> honest "no pauses". Not cached, so a later
+        # write at this path re-detects.
+        return []
+    # Key on a content signature (mtime + size), not just the path, so an
+    # overwritten/regenerated file at the same path never serves stale windows.
+    cache_key = f"{normalized}|{noise_db}|{min_duration}|{stat.st_mtime_ns}:{stat.st_size}"
     cached = _DETECTION_CACHE.get(cache_key)
     if cached is not None:
         return [dict(window) for window in cached]
-    if not Path(normalized).exists():
-        _DETECTION_CACHE[cache_key] = []
-        return []
 
     cmd = [
         ffmpeg_bin(),

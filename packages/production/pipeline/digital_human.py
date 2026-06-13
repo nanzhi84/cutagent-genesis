@@ -126,7 +126,11 @@ def _is_lipsync_content_policy_error(message: str | None) -> bool:
 
 
 def digital_human_template() -> WorkflowTemplate:
-    provider_side_effect_nodes = {"TTS", "ResolveCreativeIntent", "LipSync"}
+    # ExportFinishedVideo makes a PAID image.generate call on the gated AI-cover
+    # path, so it is declared here too: this gives it a non-None idempotency_key so
+    # the reuse planner accounts for the side effect and can safely replay it,
+    # instead of treating the node as pure and silently re-firing the paid call.
+    provider_side_effect_nodes = {"TTS", "ResolveCreativeIntent", "LipSync", "ExportFinishedVideo"}
     nodes = [
         NodeSpec(
             node_id=node_id,

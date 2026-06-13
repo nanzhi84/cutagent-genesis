@@ -122,6 +122,7 @@ def run(ctx: NodeContext) -> NodeOutput:
             "confidence": ins.confidence,
             "matched_keywords": list(ins.matched_keywords),
             "scene_name": ins.scene_name,
+            "diversity_key": ins.diversity_key,
         }
         for ins in insertions
     ]
@@ -137,6 +138,7 @@ def run(ctx: NodeContext) -> NodeOutput:
             confidence=ins.confidence,
             matched_keywords=list(ins.matched_keywords),
             scene_name=ins.scene_name,
+            diversity_key=ins.diversity_key or None,
         )
         for index, ins in enumerate(insertions)
     ]

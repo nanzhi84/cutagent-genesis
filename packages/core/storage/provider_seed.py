@@ -17,6 +17,16 @@ from packages.core.contracts import (
 
 
 def seed_real_provider_configuration(repository) -> None:
+    """Seed the real provider PROFILES (and prompts/prices), but NEVER secret values.
+
+    SAFETY INVARIANT: every real (paid) provider path is gated on an ACTIVE secret
+    (gateway ``_validate_profile`` / ``_is_real_*_profile``). These seeded profiles
+    carry a ``secret_ref`` but the secret VALUE is intentionally NOT seeded, so the
+    paid paths (TTS / lipsync / VLM / image cover) stay inert until an operator
+    activates a secret out of band. Do NOT seed secret values here, and do NOT remove
+    a profile's ``secret_ref`` -- either would silently arm a paid path from the
+    default seed. (Locked by test_seeded_image_profile_is_gated_without_an_active_secret.)
+    """
     profiles = [
         ProviderProfile(
             id="minimax.tts.prod",

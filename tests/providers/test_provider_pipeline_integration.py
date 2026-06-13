@@ -286,7 +286,11 @@ def test_annotation_rerun_degrades_without_source_video():
         assert canonical["usage_windows"] == []
         assert canonical["quality_report"]["vlm_status"] == "vlm_unconfigured"
         assert editor.json()["projection"]["vlm_configured"] is False
-        assert repository.media_assets[asset_id].annotation_status == "vlm_unconfigured"
+        # The typed MediaAssetRecord.annotation_status must stay inside its public
+        # contract enum (pending/annotated/annotation_failed). The precise
+        # "unconfigured" reason lives in quality_report (asserted above) and the
+        # projection's vlm_configured flag -- not in this typed field.
+        assert repository.media_assets[asset_id].annotation_status == "annotation_failed"
         # A persisted AnnotationV4 artifact must exist for the asset's case.
         assert any(
             art.kind == ArtifactKind.material_annotation

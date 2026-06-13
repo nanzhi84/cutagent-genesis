@@ -30,6 +30,7 @@ class BrollInsertion:
     matched_keywords: tuple[str, ...]
     scene_name: str
     reason: str
+    diversity_key: str = ""
 
 
 def _unit_for_time(units: Sequence[NarrationUnit], t: float) -> NarrationUnit | None:
@@ -81,10 +82,16 @@ def plan_insertions(
 
         clip_span = max(0.0, candidate.source_end - candidate.source_start)
         available = min(host_unit.end, timeline_end) - start
-        desired = clip_span if clip_span > 0 else _MAX_INSERT_SECONDS
-        length = max(_MIN_INSERT_SECONDS, min(desired, _MAX_INSERT_SECONDS, available))
-        if length <= 0:
+        # The matched beat must be long enough to hold a full minimum-length insert.
+        # Otherwise skip this candidate rather than letting max(_MIN_INSERT_SECONDS, ...)
+        # below push the insert past the beat into the next narration window (real
+        # per-clause TTS beats are frequently sub-1.5s). The caller soft-degrades.
+        if available < _MIN_INSERT_SECONDS:
             continue
+        desired = clip_span if clip_span > 0 else _MAX_INSERT_SECONDS
+        # available >= _MIN_INSERT_SECONDS, so length stays in [_MIN, available] and
+        # end never spills past the host beat.
+        length = max(_MIN_INSERT_SECONDS, min(desired, _MAX_INSERT_SECONDS, available))
         end = round(start + length, 3)
         if end > timeline_end:
             continue
@@ -107,6 +114,7 @@ def plan_insertions(
                     if beat is not None
                     else "anchored to narration window"
                 ),
+                diversity_key=candidate.diversity_key,
             )
         )
         used_clips.add(key)

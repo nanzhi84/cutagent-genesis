@@ -261,3 +261,44 @@ def test_frame_cover_default_mode_has_no_degradation(
     assert output.status == NodeStatus.succeeded
     assert not output.degradations
     assert not output.provider_invocation_ids
+
+
+def test_seeded_image_profile_is_gated_without_an_active_secret(tmp_path):
+    # The seeded openai.image.prod profile is enabled and its plugin is registered,
+    # so the ACTIVE SECRET is the only thing keeping the PAID AI-cover path inert.
+    # seed_real_provider_configuration must never ship a secret value (nor drop the
+    # profile's secret_ref). This locks that safety property: gated with no secret,
+    # armed only once a secret is activated.
+    from packages.core.storage.provider_seed import seed_real_provider_configuration
+
+    adapter, gateway, secret_store, _ = _adapter(tmp_path)
+    seed_real_provider_configuration(adapter.repository)
+    gateway.register(_MockImageProvider())  # provider_id "openai.image" now registered
+    request = DigitalHumanVideoRequest(
+        case_id="case_demo",
+        title="封面",
+        publish_content="案例",
+        script="句。",
+        voice={"voice_id": "voice_sandbox"},
+        cover={"mode": "ai"},
+    )
+
+    # Freshly seeded, no secret activated -> paid AI cover path is NOT armed.
+    assert adapter._image_cover_profile_id(request) is None
+
+    # Activating the seeded profile's secret is the decisive switch that arms it.
+    secret_store.put("openai-image-key", secret_ref="openai_image_prod.secret")
+    assert adapter._image_cover_profile_id(request) == "openai.image.prod"
+
+
+def test_export_finished_video_declared_as_provider_side_effect_node():
+    # ExportFinishedVideo can make a PAID image.generate call (gated AI cover), so it
+    # must be declared as a provider side-effect node WITH an idempotency_key -- like
+    # TTS/LipSync -- so reuse/replay accounting is accurate and a rerun cannot silently
+    # re-fire the paid cover call unprotected.
+    from packages.production.pipeline.digital_human import digital_human_template
+
+    template = digital_human_template()
+    node = next(n for n in template.nodes if n.node_id == "ExportFinishedVideo")
+    assert node.side_effects == ["provider_call"]
+    assert node.idempotency_key is not None

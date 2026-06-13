@@ -257,6 +257,10 @@ class BrollOverlay(ContractModel):
     confidence: float
     matched_keywords: list[str] = Field(default_factory=list)
     scene_name: str | None = None
+    # Diversity cluster (scene_type/narrative_role) carried so FinalizeRunReport
+    # can persist it into the selection ledger and cluster-level recency demotion
+    # can fire on the next run. Not part of the public OpenAPI surface.
+    diversity_key: str | None = None
 
 
 class BrollPlanArtifact(ContractModel):

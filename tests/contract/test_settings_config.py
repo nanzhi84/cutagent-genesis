@@ -149,3 +149,20 @@ def test_settings_is_immutable(clean_env) -> None:
     settings = build_settings()
     with pytest.raises(Exception):
         settings.storage.backend = "memory"  # type: ignore[misc]
+
+
+def test_local_ephemeral_store_honors_configured_bucket(clean_env, tmp_path) -> None:
+    # Intentional behavior of the Settings consolidation: the LOCAL ephemeral object
+    # store honors a configured bucket (routed through Settings; previously hard-coded
+    # for the local backend), while the default stays byte-identical. Locked here so
+    # the non-default case is covered rather than being a silent, untested drift.
+    from packages.core.config import EphemeralObjectStoreSettings
+    from packages.core.storage.object_store_env import _ephemeral_store
+
+    assert EphemeralObjectStoreSettings().bucket == "cutagent-ephemeral"
+
+    cfg = EphemeralObjectStoreSettings(
+        backend="local", local_path=str(tmp_path), bucket="custom-ephemeral"
+    )
+    store = _ephemeral_store(cfg, workflow_runtime="local", client_factory=None)
+    assert store.bucket == "custom-ephemeral"

@@ -81,6 +81,9 @@ def _ephemeral_store(
                 "related CUTAGENT_EPHEMERAL_OBJECTSTORE_* endpoint/bucket/credential "
                 "variables)."
             )
+        # Honor the configured bucket for the local backend too (routed through
+        # Settings); defaults to "cutagent-ephemeral" when unset. For LocalObjectStore
+        # the bucket is not part of the on-disk path, so the default is unchanged.
         return LocalObjectStore(root=Path(config.local_path), bucket=config.bucket)
     if backend == "s3":
         return S3ObjectStore(

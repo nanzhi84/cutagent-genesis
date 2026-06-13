@@ -101,6 +101,42 @@ def test_detection_is_cached_per_path(tmp_path, monkeypatch):
     assert calls["count"] == 1, "second detection on the same path must hit the cache"
 
 
+def test_detection_cache_invalidates_when_file_changes_at_same_path(tmp_path, monkeypatch):
+    # A regenerated/overwritten file at the SAME path must re-detect, not serve a
+    # stale cache keyed only by path (latent today: callers use uuid-unique paths,
+    # but the cache must be robust to content-addressed/overwritten paths).
+    silence_mod._DETECTION_CACHE.clear()
+    path = tmp_path / "audio.wav"
+    path.write_bytes(b"\x00" * 1000)
+
+    outputs = [
+        "silence_start: 1.0\nsilence_end: 2.0 | silence_duration: 1.0\n",  # first content: a pause
+        "",  # second content: no pause
+    ]
+    calls = {"count": 0}
+
+    class _Res:
+        def __init__(self, stderr):
+            self.stdout = ""
+            self.stderr = stderr
+
+    def fake_run(self, args, *, timeout_sec=None):
+        out = outputs[min(calls["count"], len(outputs) - 1)]
+        calls["count"] += 1
+        return _Res(out)
+
+    monkeypatch.setattr(FfmpegRunner, "run", fake_run)
+
+    first = detect_silence_windows(path)
+    assert first, "first content has a parsed pause window"
+
+    path.write_bytes(b"\x00" * 2000)  # overwrite at the same path (size + mtime change)
+    second = detect_silence_windows(path)
+
+    assert calls["count"] == 2, "a changed file at the same path must re-run detection, not hit a stale cache"
+    assert second == [], "result must reflect the new (pause-free) content, not the cached windows"
+
+
 def test_parse_handles_silence_lines_without_explicit_start():
     # silence_end carries duration; a missing silence_start is back-computed.
     output = "[silencedetect @ 0x] silence_end: 3.5 | silence_duration: 1.2\n"

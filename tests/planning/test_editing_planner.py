@@ -342,3 +342,32 @@ def _assert_contiguous_frame_exact(plan) -> None:
         assert seg.source_end_frame - seg.source_start_frame == seg.timeline_length_frames
     if plan.segments:
         assert plan.total_frames == plan.segments[-1].timeline_end_frame
+
+
+def test_quantize_plan_drops_degenerate_subframe_segment_without_misaligning():
+    """The single-grid quantizer pairs each segment with its OWN frame window.
+
+    A segment whose timeline span is < 1 frame (here the 2nd: 1.0 -> 1.01s at 30fps,
+    frame 30 -> 30) is degenerate. It must be DROPPED gracefully -- not silently
+    shift later segments onto the wrong window (the old next(window_iter)+break bug),
+    and not hard-crash the render. The surviving segment keeps its correct frame
+    window, and the drop is recorded in the plan trace (loud, not silent). This is
+    unreachable via the real chunk builder's >0.08s (>=~3 frame) floor; the test pins
+    the graceful handling for a future floor change.
+    """
+    from packages.planning.editing.plan import _quantize_plan
+
+    trace: list = []
+    ordered = [
+        {"timeline_start": 0.0, "timeline_end": 1.0, "source_start": 0.0},
+        {"timeline_start": 1.0, "timeline_end": 1.01, "source_start": 0.0},
+    ]
+    plan = _quantize_plan(ordered, used_audio_pauses=False, trace=trace)
+
+    # The degenerate 2nd segment is dropped; the survivor keeps its correct window.
+    assert len(plan.segments) == 1
+    assert plan.segments[0].timeline_start_frame == 0
+    assert plan.segments[0].timeline_end_frame == 30
+    assert plan.total_frames == 30
+    # The drop is recorded loudly in the trace (not silently swallowed).
+    assert any(t.get("event") == "degenerate_segment_dropped" for t in trace)

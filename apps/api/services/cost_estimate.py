@@ -64,10 +64,10 @@ def estimate_lipsync_cost(
         provider_profile_id=payload.provider_profile_id,
     )
     estimate = _line(
-        label="视频时长（分钟）",
+        label="视频时长（秒）",
         capability_id=LIPSYNC_CAPABILITY_ID,
         unit=LIPSYNC_UNIT,
-        quantity=minutes,
+        quantity=duration_sec,
         unit_price=unit_price,
     )
     return c.LipsyncCostEstimateResponse(
@@ -87,7 +87,7 @@ def _resolve_unit_price(
     provider_profile_id: str | None,
 ) -> tuple[c.Money, str]:
     """Prefer a published catalog price; otherwise use the default rate."""
-    preferred_provider = _provider_id_from_profile(provider_profile_id)
+    preferred_provider = _provider_id_from_profile(request, provider_profile_id)
     catalog_item = _catalog_unit_price(
         request,
         capability_id=capability_id,
@@ -139,10 +139,37 @@ def _active_price_items(request: Request) -> list[c.ProviderPriceItem]:
     return [item for item in runtime.price_items.values() if item.catalog_id in published_catalog_ids]
 
 
-def _provider_id_from_profile(profile_id: str | None) -> str:
+def _provider_id_from_profile(request: Request, profile_id: str | None) -> str:
+    """Resolve the catalog provider_id for a requested profile.
+
+    Prefer the STORED ProviderProfile.provider_id (the same value the gateway bills
+    against), so this is correct regardless of the profile-id naming convention:
+    real profiles like ``minimax.tts.prod`` resolve to ``minimax.tts`` while sandbox
+    seeds like ``sandbox.tts.default`` (whose provider_id is just ``sandbox``) resolve
+    to ``sandbox``. Fall back to stripping the trailing env segment only when the
+    profile is not found in the repository.
+    """
     if not profile_id:
         return "default"
-    return profile_id.split(".", 1)[0] or "default"
+    profile = _lookup_profile(request, profile_id)
+    if profile is not None and profile.provider_id:
+        return profile.provider_id
+    return profile_id.rsplit(".", 1)[0] or "default"
+
+
+def _lookup_profile(request: Request, profile_id: str):
+    # Resolve via the gateway's provider_reader (the runtime repo that exposes
+    # get_profile in the DB-backed config -- the same source the gateway bills
+    # against), falling back to the in-memory repository. Mirrors
+    # digital_human._provider_profile_by_id. NOTE: do NOT use provider_repository()
+    # here -- that returns SqlAlchemyProviderRepository, which has no get_profile.
+    gateway = getattr(request.app.state, "provider_gateway", None)
+    reader = getattr(gateway, "provider_reader", None) if gateway is not None else None
+    if reader is not None:
+        profile = reader.get_profile(profile_id)
+        if profile is not None:
+            return profile
+    return repository(request).provider_profiles.get(profile_id)
 
 
 def _line(

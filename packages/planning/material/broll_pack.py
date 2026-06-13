@@ -44,6 +44,7 @@ class BrollCandidate:
     scene_name: str
     source_start: float
     source_end: float
+    diversity_key: str = ""
     best_segment: ScriptSegment | None = field(default=None)
 
 
@@ -123,10 +124,11 @@ def rank_broll_candidates(
                 + quality * _QUALITY_WEIGHT
                 + min(duration, 8.0) * _DURATION_WEIGHT
             )
+            diversity_key = _diversity_key(clip)
             penalty = recency_penalty_for(
                 ledger_entries,
                 asset_id=asset_id,
-                diversity_key=_diversity_key(clip),
+                diversity_key=diversity_key,
                 cfg=recency_cfg,
             )
             final = max(0.0, base - penalty * _RECENCY_WEIGHT)
@@ -141,6 +143,7 @@ def rank_broll_candidates(
                     scene_name=scene.name,
                     source_start=round(scene.start, 3),
                     source_end=round(scene.end, 3),
+                    diversity_key=diversity_key,
                     best_segment=best_segment,
                 )
             )

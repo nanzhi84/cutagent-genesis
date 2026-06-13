@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from datetime import datetime
 
-from fastapi import APIRouter, Request, Response, UploadFile
-from fastapi.responses import JSONResponse, PlainTextResponse
+from fastapi import APIRouter, Request
 
 from apps.api.dependencies import require_role
 from apps.api.services import secrets as service

@@ -38,6 +38,12 @@ class TieredObjectStore(ObjectStore):
     def get_bytes(self, ref: ObjectRef) -> bytes:
         return self._store_for_ref(ref).get_bytes(ref)
 
+    def upload_file(self, local_path: Path, ref: ObjectRef) -> StoredObject:
+        return self._store_for_ref(ref).upload_file(local_path, ref)
+
+    def download_file(self, ref: ObjectRef, local_path: Path) -> Path:
+        return self._store_for_ref(ref).download_file(ref, local_path)
+
     def exists(self, ref: ObjectRef) -> bool:
         return self._store_for_ref(ref).exists(ref)
 

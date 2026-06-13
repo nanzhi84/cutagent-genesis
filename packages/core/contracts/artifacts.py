@@ -24,14 +24,6 @@ from packages.core.contracts import (
 )
 
 
-class ArtifactSchemaRef(ContractModel):
-    kind: ArtifactKind
-    schema_version: str
-    schema_id: str
-    pydantic_model_path: str
-    json_schema: dict[str, Any]
-
-
 class MaterialCandidate(ContractModel):
     asset_id: str
     score: float = 0
@@ -396,16 +388,6 @@ class ArtifactSchemaRegistry:
     def model_for(self, kind: ArtifactKind, schema_version: str) -> type[ContractModel]:
         version = "v1" if schema_version.endswith(".v1") else schema_version
         return self._models[(kind, version)]
-
-    def schema_ref(self, kind: ArtifactKind, schema_version: str = "v1") -> ArtifactSchemaRef:
-        model = self.model_for(kind, schema_version)
-        return ArtifactSchemaRef(
-            kind=kind,
-            schema_version=schema_version,
-            schema_id=model.__name__,
-            pydantic_model_path=f"{model.__module__}.{model.__name__}",
-            json_schema=model.model_json_schema(),
-        )
 
     def validate_artifact(self, artifact: Artifact) -> Artifact:
         if artifact.kind in self.uri_only_kinds:

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import mimetypes
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
@@ -31,6 +33,7 @@ from packages.core.contracts import (
     JobDetailResponse,
     JobStatus,
     JobType,
+    MediaInfo,
     MetricsImportRequest,
     NodeRun,
     NodeStatus,
@@ -42,7 +45,6 @@ from packages.core.contracts import (
     PerformanceObservation,
     PromptInvocation,
     ProviderInvocation,
-    ProviderStatus,
     PublishBatchRequest,
     PublishDefaults,
     PublishPackage,
@@ -54,6 +56,7 @@ from packages.core.contracts import (
     RunPublicReportArtifact,
     RunReportResponse,
     RunStatus,
+    ScriptVersion,
     SelectionLedgerEntry,
     UsageMeterRecord,
     VideoVersion,
@@ -94,6 +97,7 @@ from packages.core.storage.repository import new_id
 from packages.core.workflow import NodeExecutionError
 from packages.media.assets import local_object_path
 from packages.media.sqlalchemy_repository import media_asset_row_to_contract, voice_row_to_contract
+from packages.media.video.ffmpeg import probe_media
 from packages.production.editor_handoff import EditorHandoffAsset, EditorHandoffBuilder, EditorHandoffInput
 from packages.production.jianying_draft import JianyingDraftBuilder, JianyingDraftInput
 
@@ -435,6 +439,70 @@ def _report_row(report: ImportBatchReport) -> ImportBatchReportRow:
         results=[item.model_dump(mode="json") for item in report.results],
         mapping_artifact_id=report.mapping_artifact_id,
     )
+
+
+def _media_info_from_import_metadata(
+    *,
+    uri: str,
+    kind: str,
+    content_type: str,
+    duration_sec: float | None,
+    width: int | None,
+    height: int | None,
+) -> MediaInfo | None:
+    media_type = _media_type_from_metadata(kind, content_type)
+    if media_type is None:
+        return None
+    suffix = Path(urlsplit(uri).path).suffix.lstrip(".")
+    return MediaInfo(
+        media_type=media_type,
+        codec="unknown",
+        format=suffix or content_type.split("/")[-1] or "unknown",
+        mime_type=content_type,
+        duration_sec=None if media_type == "image" else duration_sec,
+        width=width,
+        height=height,
+    )
+
+
+def _media_type_from_metadata(kind: str, content_type: str) -> str | None:
+    if content_type.startswith("video/") or kind in {"portrait", "broll", "video"}:
+        return "video"
+    if content_type.startswith("audio/") or kind in {"bgm", "voice", "voice_reference"}:
+        return "audio"
+    if content_type.startswith("image/") or kind in {"image", "cover_template"}:
+        return "image"
+    return None
+
+
+def _filename_from_uri(uri: str, *, fallback: str) -> str:
+    filename = Path(unquote(urlsplit(uri).path)).name
+    return filename or fallback or "imported-media"
+
+
+def _optional_str(value) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def _optional_float(value) -> float | None:
+    if value is None or value == "":
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _optional_int(value) -> int | None:
+    if value is None or value == "":
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
 
 
 class SqlAlchemyProductionRepository:
@@ -1034,6 +1102,7 @@ class SqlAlchemyProductionRepository:
             return None
         results: list[ImportRowResult] = []
         created = 0
+        skipped = 0
         failed = 0
         with self.session_factory() as session:
             for index, row in enumerate(payload.rows or []):
@@ -1042,15 +1111,25 @@ class SqlAlchemyProductionRepository:
                     results.append(self._failed_row(index, "Import row must be an object."))
                     continue
                 internal_id = new_id(payload.import_type)
+                row_status = "created"
+                result_internal_id = internal_id
                 if not payload.dry_run:
-                    self._create_import_row(session, payload.import_type, internal_id, row)
-                created += 1
+                    row_status, result_internal_id = self._create_import_row(
+                        session,
+                        payload.import_type,
+                        internal_id,
+                        row,
+                    )
+                if row_status == "skipped":
+                    skipped += 1
+                else:
+                    created += 1
                 results.append(
                     ImportRowResult(
                         row_index=index,
-                        status="created",
+                        status=row_status,
                         external_id=str(row.get("external_id")) if row.get("external_id") else None,
-                        internal_id=internal_id,
+                        internal_id=result_internal_id,
                     )
                 )
             report = ImportBatchReport(
@@ -1058,7 +1137,7 @@ class SqlAlchemyProductionRepository:
                 import_type=payload.import_type,
                 status=ImportBatchStatus.completed if failed == 0 else ImportBatchStatus.partially_failed,
                 created_count=created,
-                skipped_count=0,
+                skipped_count=skipped,
                 failed_count=failed,
                 results=results,
                 request_id=request_id,
@@ -1073,7 +1152,7 @@ class SqlAlchemyProductionRepository:
             row = session.get(ImportBatchReportRow, batch_id)
             return import_report_row_to_contract(row) if row else None
 
-    def _create_import_row(self, session: Session, import_type: str, internal_id: str, row: dict) -> None:
+    def _create_import_row(self, session: Session, import_type: str, internal_id: str, row: dict) -> tuple[str, str]:
         if import_type == "case":
             session.add(
                 CaseRow(
@@ -1106,15 +1185,40 @@ class SqlAlchemyProductionRepository:
             )
         elif import_type == "media":
             tags = row.get("tags", [])
+            case_id = str(row.get("case_id")) if row.get("case_id") else None
+            title = str(row.get("title", "Imported media"))
+            kind = str(row.get("kind", "other"))
+            uri = _optional_str(row.get("uri"))
+            sha256 = _optional_str(row.get("sha256"))
+            source_artifact_id = _optional_str(row.get("source_artifact_id"))
+            if uri and source_artifact_id is None:
+                existing_asset = self._find_existing_imported_media_asset(
+                    session,
+                    case_id=case_id,
+                    kind=kind,
+                    sha256=sha256,
+                    uri=uri,
+                )
+                if existing_asset is not None:
+                    return "skipped", existing_asset.id
+                artifact = self._create_imported_media_source_artifact(
+                    row=row,
+                    case_id=case_id,
+                    title=title,
+                    kind=kind,
+                    uri=uri,
+                    sha256=sha256,
+                )
+                session.add(artifact)
+                session.flush()
+                source_artifact_id = artifact.id
             session.add(
                 MediaAssetRow(
                     id=internal_id,
-                    case_id=str(row.get("case_id")) if row.get("case_id") else None,
-                    title=str(row.get("title", "Imported media")),
-                    kind=str(row.get("kind", "other")),
-                    source_artifact_id=str(row.get("source_artifact_id"))
-                    if row.get("source_artifact_id")
-                    else None,
+                    case_id=case_id,
+                    title=title,
+                    kind=kind,
+                    source_artifact_id=source_artifact_id,
                     tags=[str(item) for item in tags] if isinstance(tags, list) else [],
                     annotation_status=str(row.get("annotation_status", "pending")),
                     usable=bool(row.get("usable", True)),
@@ -1234,6 +1338,101 @@ class SqlAlchemyProductionRepository:
                         active_to=None,
                     )
                 )
+        return "created", internal_id
+
+    def _find_existing_imported_media_asset(
+        self,
+        session: Session,
+        *,
+        case_id: str | None,
+        kind: str,
+        sha256: str | None,
+        uri: str,
+    ) -> MediaAssetRow | None:
+        statement = (
+            select(MediaAssetRow)
+            .join(ArtifactRow, MediaAssetRow.source_artifact_id == ArtifactRow.id)
+            .where(
+                MediaAssetRow.case_id == case_id,
+                MediaAssetRow.kind == kind,
+                ArtifactRow.kind == ArtifactKind.uploaded_file.value,
+            )
+            .order_by(MediaAssetRow.created_at.asc())
+            .limit(1)
+        )
+        if sha256:
+            statement = statement.where(ArtifactRow.sha256 == sha256)
+        else:
+            statement = statement.where(ArtifactRow.uri == uri)
+        return session.scalar(statement)
+
+    def _create_imported_media_source_artifact(
+        self,
+        *,
+        row: dict,
+        case_id: str | None,
+        title: str,
+        kind: str,
+        uri: str,
+        sha256: str | None,
+    ) -> ArtifactRow:
+        probed = self._probe_import_media_if_local(uri)
+        content_type = (
+            _optional_str(row.get("mime"))
+            or (probed.mime_type if probed is not None else None)
+            or mimetypes.guess_type(uri)[0]
+            or "application/octet-stream"
+        )
+        duration_sec = (
+            probed.duration_sec
+            if probed is not None and probed.duration_sec is not None
+            else _optional_float(row.get("duration_sec"))
+        )
+        width = probed.width if probed is not None and probed.width is not None else _optional_int(row.get("width"))
+        height = probed.height if probed is not None and probed.height is not None else _optional_int(row.get("height"))
+        media_info = probed or _media_info_from_import_metadata(
+            uri=uri,
+            kind=kind,
+            content_type=content_type,
+            duration_sec=duration_sec,
+            width=width,
+            height=height,
+        )
+        payload = {
+            "upload_session_id": None,
+            "filename": _filename_from_uri(uri, fallback=title),
+            "content_type": content_type,
+            "size_bytes": _optional_int(row.get("size_bytes")) or 0,
+            "object_uri": uri,
+            "sha256": sha256,
+            "metadata": {
+                "case_id": case_id,
+                "title": title,
+                "kind": kind,
+                "duration_sec": duration_sec if duration_sec is not None else 0,
+                "width": width,
+                "height": height,
+            },
+        }
+        return ArtifactRow(
+            id=new_id("art"),
+            case_id=case_id,
+            kind=ArtifactKind.uploaded_file.value,
+            uri=uri,
+            size_bytes=payload["size_bytes"],
+            sha256=sha256,
+            media_info=media_info.model_dump(mode="json") if media_info is not None else None,
+            payload_schema="UploadedFileArtifact.v1",
+            payload=payload,
+        )
+
+    def _probe_import_media_if_local(self, uri: str) -> MediaInfo | None:
+        if uri.startswith("s3://"):
+            return None
+        try:
+            return probe_media(local_object_path(self.object_store, uri))
+        except Exception:
+            return None
 
     def _job_row(self, job: Job) -> JobRow:
         return JobRow(

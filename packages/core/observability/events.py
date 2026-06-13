@@ -139,15 +139,20 @@ class SqlAlchemyOutboxDispatcher:
         now = utcnow()
         published = 0
         with self.session_factory() as session:
-            rows = list(
-                session.scalars(
-                    select(OutboxEventRow)
-                    .where(OutboxEventRow.status == "pending")
-                    .where(OutboxEventRow.available_at <= now)
-                    .order_by(OutboxEventRow.created_at, OutboxEventRow.id)
-                    .limit(self.batch_size)
-                )
+            # Claim pending rows. On Postgres use FOR UPDATE SKIP LOCKED so that with
+            # N dispatcher replicas each pending row is claimed by exactly one worker
+            # (no double-publish / lost websocket tail). SQLite lacks SKIP LOCKED, so we
+            # fall back to a plain SELECT there (single-process tests only).
+            claim = (
+                select(OutboxEventRow)
+                .where(OutboxEventRow.status == "pending")
+                .where(OutboxEventRow.available_at <= now)
+                .order_by(OutboxEventRow.created_at, OutboxEventRow.id)
+                .limit(self.batch_size)
             )
+            if session.get_bind().dialect.name == "postgresql":
+                claim = claim.with_for_update(skip_locked=True)
+            rows = list(session.scalars(claim))
             for row in rows:
                 try:
                     payload = row.payload if isinstance(row.payload, dict) else {"payload": row.payload}

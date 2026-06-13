@@ -84,10 +84,6 @@ TEMPORAL_ACTIVITY_FAILURES = Counter(
 )
 
 
-def span_name(kind: str, *parts: str) -> str:
-    return ".".join([kind, *[part for part in parts if part]])
-
-
 def record_api_request(duration_seconds: float, status_code: int) -> None:
     API_REQUEST_DURATION.observe(duration_seconds)
     if status_code >= 500:

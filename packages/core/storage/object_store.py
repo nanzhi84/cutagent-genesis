@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import shutil
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import timedelta
@@ -10,6 +11,15 @@ from typing import Any
 from uuid import uuid4
 
 from packages.core.contracts import SignedUrlResponse, utcnow
+
+
+def sha256_file(path: Path, *, chunk_size: int = 1024 * 1024) -> str:
+    """Compute the sha256 of a file by streaming it, without buffering it in RAM."""
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(chunk_size), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def _is_bucket_absent_error(exc: Exception) -> bool:
@@ -56,6 +66,19 @@ class ObjectStore:
 
     def get_bytes(self, ref: ObjectRef) -> bytes:
         raise NotImplementedError
+
+    def upload_file(self, local_path: Path, ref: ObjectRef) -> StoredObject:
+        """Store a file by path. Default falls back to a full read; streaming
+        backends (S3) override this to avoid buffering whole objects in RAM."""
+        return self.put_bytes(ref, Path(local_path).read_bytes())
+
+    def download_file(self, ref: ObjectRef, local_path: Path) -> Path:
+        """Fetch an object to a local path. Default falls back to a full read;
+        streaming backends (S3) override this to avoid buffering in RAM."""
+        target = Path(local_path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(self.get_bytes(ref))
+        return target
 
     def exists(self, ref: ObjectRef) -> bool:
         raise NotImplementedError
@@ -211,6 +234,40 @@ class S3ObjectStore(ObjectStore):
         self._client.download_fileobj(ref.bucket, ref.key, buf, Config=self._transfer_config)
         return buf.getvalue()
 
+    def upload_file(self, local_path: Path, ref: ObjectRef) -> StoredObject:
+        # Streaming, multipart upload by path: boto3's upload_file never reads the
+        # whole object into RAM (it streams from disk in multipart chunks).
+        self._validate_ref(ref)
+        source = Path(local_path)
+        self._client.upload_file(
+            str(source),
+            ref.bucket,
+            ref.key,
+            Config=self._transfer_config,
+        )
+        cache_path = self._cache_path(ref)
+        if source.resolve() != cache_path.resolve():
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(source, cache_path)
+        return StoredObject(
+            ref=ref,
+            size_bytes=source.stat().st_size,
+            sha256=sha256_file(source),
+        )
+
+    def download_file(self, ref: ObjectRef, local_path: Path) -> Path:
+        # Streaming download by path into the on-disk cache; no full BytesIO buffer.
+        self._validate_ref(ref)
+        target = Path(local_path)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        self._client.download_file(
+            ref.bucket,
+            ref.key,
+            str(target),
+            Config=self._transfer_config,
+        )
+        return target
+
     def exists(self, ref: ObjectRef) -> bool:
         self._validate_ref(ref)
         try:
@@ -244,8 +301,7 @@ class S3ObjectStore(ObjectStore):
         self._validate_ref(ref)
         path = self._cache_path(ref)
         if not path.exists():
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes(self.get_bytes(ref))
+            self.download_file(ref, path)
         return path
 
     def _cache_path(self, ref: ObjectRef) -> Path:
@@ -340,7 +396,7 @@ def _is_not_found_error(exc: Exception) -> bool:
     return False
 
 
-from packages.core.storage.tiered_object_store import TieredObjectStore  # noqa: E402
+from packages.core.storage.tiered_object_store import TieredObjectStore  # noqa: F401, E402  (re-export)
 from packages.core.storage.object_store_env import object_store_from_env  # noqa: E402
 
 

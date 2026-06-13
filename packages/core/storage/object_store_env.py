@@ -14,11 +14,16 @@ from packages.core.config import (
 def object_store_from_env(*, client_factory: Callable[..., Any] | None = None):
     from packages.core.storage.tiered_object_store import TieredObjectStore
 
-    config = build_settings().object_store
+    settings = build_settings()
+    config = settings.object_store
     durable = _durable_store(config, client_factory=client_factory)
     if not config.tiered:
         return durable
-    ephemeral = _ephemeral_store(config.ephemeral, client_factory=client_factory)
+    ephemeral = _ephemeral_store(
+        config.ephemeral,
+        workflow_runtime=settings.workflow.runtime,
+        client_factory=client_factory,
+    )
     return TieredObjectStore(durable=durable, ephemeral=ephemeral)
 
 
@@ -52,12 +57,30 @@ def _durable_store(
 
 
 def _ephemeral_store(
-    config: EphemeralObjectStoreSettings, *, client_factory: Callable[..., Any] | None
+    config: EphemeralObjectStoreSettings,
+    *,
+    workflow_runtime: str,
+    client_factory: Callable[..., Any] | None,
 ):
     from packages.core.storage.object_store import LocalObjectStore, S3ObjectStore
 
     backend = config.backend
     if backend == "local":
+        # Fail fast under Temporal: a node-local ephemeral tier is invisible to
+        # activities running on other workers, causing silent mid-pipeline
+        # failures. The operator must point the ephemeral tier at shared
+        # MinIO/S3. Local runtime keeps the local default.
+        if workflow_runtime == "temporal":
+            raise RuntimeError(
+                "Invalid ObjectStore configuration: ephemeral tier resolves to a "
+                "node-local 'local' backend while CUTAGENT_WORKFLOW_RUNTIME=temporal. "
+                "Under multi-worker Temporal, ephemeral artifacts written by one "
+                "worker are unreadable by activities on another worker, causing "
+                "silent mid-pipeline failures. Point the ephemeral tier at shared "
+                "MinIO/S3: set CUTAGENT_EPHEMERAL_OBJECTSTORE_BACKEND=s3 (and the "
+                "related CUTAGENT_EPHEMERAL_OBJECTSTORE_* endpoint/bucket/credential "
+                "variables)."
+            )
         return LocalObjectStore(root=Path(config.local_path), bucket=config.bucket)
     if backend == "s3":
         return S3ObjectStore(

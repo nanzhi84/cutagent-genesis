@@ -61,11 +61,6 @@ export function platformLabel(value: string) {
   return PLATFORM_OPTIONS.find((item) => item.value === value)?.label ?? value;
 }
 
-export function platformPending(value: string) {
-  const option = PLATFORM_OPTIONS.find((item) => item.value === value);
-  return Boolean(option && "pending" in option && option.pending);
-}
-
 export function titleLimitForPlatforms(platforms: string[]) {
   const limits = platforms.map((platform) => TITLE_LIMITS[platform] ?? 16);
   return Math.min(...(limits.length > 0 ? limits : [16]));

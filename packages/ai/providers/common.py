@@ -22,11 +22,6 @@ def option(context: ProviderInvocationContext, name: str, default: Any = None) -
     return context.profile.default_options.get(name, default)
 
 
-def merged_options(context: ProviderInvocationContext, call_input: dict[str, Any]) -> dict[str, Any]:
-    merged = dict(context.profile.default_options)
-    merged.update({key: value for key, value in call_input.items() if value is not None})
-    return merged
-
 
 def money_cny(amount: Decimal | int | str) -> Money:
     return Money(amount=Decimal(str(amount)), currency="CNY")

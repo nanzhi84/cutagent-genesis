@@ -16,7 +16,7 @@ from packages.core.contracts import (
     UserRole,
     utcnow,
 )
-from packages.core.storage import Repository, get_repository
+from packages.core.storage import Repository
 from packages.core.storage.repository import new_id
 from packages.core.workflow import NodeExecutionError
 from packages.core.registration_codes import hash_registration_code
@@ -150,10 +150,3 @@ class AuthService:
         request_id = "req_local"
         session = SessionInfo(user=user, session_id=token, expires_at=expires_at, request_id=request_id)
         return AuthResponse(user=user, session=session, request_id=request_id), token
-
-
-_AUTH_SERVICE = AuthService(get_repository(), create_password_hasher())
-
-
-def get_auth_service() -> AuthService:
-    return _AUTH_SERVICE

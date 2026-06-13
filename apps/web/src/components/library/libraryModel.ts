@@ -2,7 +2,6 @@ import { FileAudio, Library, Mic2, Music4 } from "lucide-react";
 import type { MediaAssetCard, MediaAssetRecord, VoiceProfile } from "../../api/client";
 import { toDisplayUrl as sanitizeDisplayUrl } from "../../lib/url";
 
-export const PAGE_SIZE = 12;
 export const VOICE_UPLOAD_ACCEPT = ".mp3,.wav,.m4a,.aac,.ogg,.flac";
 
 export type LibraryTab = "voices" | "templates" | "fonts" | "bgm";

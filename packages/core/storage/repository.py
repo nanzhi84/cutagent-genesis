@@ -136,7 +136,6 @@ class Repository:
         self.audit_events: dict[str, object] = {}
         self.import_reports: dict[str, ImportBatchReport] = {}
         self.outbox: dict[str, OutboxEvent] = {}
-        self.outbox_writer = None
         self.creative_patterns: dict[str, CreativePattern] = {}
         self.idempotency_records: dict[str, dict] = {}
         self.seed()
@@ -304,19 +303,12 @@ class Repository:
             severity="info",
         )
 
-    def put(self, table: dict[str, TModel], model: TModel) -> TModel:
-        table[getattr(model, "id")] = model
-        return model
-
     def patch(self, table: dict[str, TModel], item_id: str, updates: dict) -> TModel:
         item = table[item_id]
         updates["updated_at"] = utcnow()
         patched = item.model_copy(update=updates)
         table[item_id] = patched
         return patched
-
-    def page(self, values: Iterable[TModel], limit: int = 50) -> list[TModel]:
-        return list(values)[:limit]
 
     def record_selection_ledger_entries(
         self, entries: Iterable[SelectionLedgerEntry]
@@ -537,10 +529,3 @@ class Repository:
             message=f"Yield funnel event {event_type}.",
         )
         return event
-
-
-_REPOSITORY = Repository()
-
-
-def get_repository() -> Repository:
-    return _REPOSITORY

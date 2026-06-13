@@ -118,10 +118,6 @@ class SandboxProvider:
                 output={"video_uri": f"sandbox://video/lipsync/{uuid4().hex}.mp4", "report": "pass"},
                 video_seconds=float(call.input.get("duration_sec", 0) or 0),
             )
-        if call.capability_id == "vlm.annotation":
-            return ProviderResult(output={"labels": ["sandbox"], "quality": "usable"})
-        if call.capability_id == "image.generate":
-            return ProviderResult(output={"image_uri": f"sandbox://cover/{uuid4().hex}.png"})
         return ProviderResult(output={"ok": True, "capability": call.capability_id})
 
 

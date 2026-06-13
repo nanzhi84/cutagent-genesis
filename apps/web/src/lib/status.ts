@@ -77,15 +77,6 @@ export const toneClassNames: Record<Tone, string> = {
   processing: "border-accent/20 bg-accent/10 text-accent",
 };
 
-export const toneDotClassNames: Record<Tone, string> = {
-  success: "bg-status-success",
-  warning: "bg-status-warning",
-  error: "bg-status-error",
-  info: "bg-status-info",
-  muted: "bg-text-tertiary",
-  processing: "bg-accent",
-};
-
 export function labelForStatus(status?: string | null) {
   return getStatusPresentation(status).label;
 }

@@ -31,8 +31,14 @@ class FakeOss:
 
 
 class FakeImportApi:
-    def __init__(self):
+    def __init__(self, cases: list[dict] | None = None):
         self.calls: list[tuple[str, list[dict], str | None]] = []
+        self.cases = cases or []
+        self.list_cases_calls = 0
+
+    def list_cases(self) -> list[dict]:
+        self.list_cases_calls += 1
+        return self.cases
 
     def import_batch(self, import_type: str, rows: list[dict], *, idempotency_key: str | None = None):
         self.calls.append((import_type, rows, idempotency_key))
@@ -191,6 +197,57 @@ def test_apply_imports_cases_first_and_maps_legacy_case_ids_into_script_and_medi
     assert next(row for row in media_rows if row["kind"] == "cover_template")["case_id"] == "gen_case_0"
 
 
+def test_apply_broll_and_portrait_map_to_existing_case_without_reimporting_case(tmp_path):
+    _write_case_meta(tmp_path)
+    prefix = "digital-human-platform/dev/uploads/"
+    oss = FakeOss(
+        _oss_payload(prefix),
+        {
+            f"{prefix}cases/case-1/broll/videos/clip.mp4",
+            f"{prefix}video_templates/portrait.mp4",
+        },
+    )
+    api = FakeImportApi(cases=[{"id": "gen_existing_case", "name": "Case One"}])
+
+    result = migrate.run_migration(
+        case_meta_dir=tmp_path,
+        oss_client=oss,
+        import_client=api,
+        apply=True,
+        kinds={"broll", "portrait"},
+        out=None,
+    )
+
+    assert result.failed_count == 0
+    assert result.case_id_map == {"case-1": "gen_existing_case"}
+    assert api.list_cases_calls == 1
+    assert [call[0] for call in api.calls] == ["media"]
+    media_rows = api.calls[0][1]
+    assert {row["kind"] for row in media_rows} == {"broll", "portrait"}
+    assert {row["case_id"] for row in media_rows} == {"gen_existing_case"}
+
+
+def test_apply_case_reuses_existing_same_name_case_without_reimporting(tmp_path):
+    _write_case_meta(tmp_path)
+    prefix = "digital-human-platform/dev/uploads/"
+    oss = FakeOss(_oss_payload(prefix), set())
+    api = FakeImportApi(cases=[{"id": "gen_existing_case", "name": "Case One"}])
+
+    result = migrate.run_migration(
+        case_meta_dir=tmp_path,
+        oss_client=oss,
+        import_client=api,
+        apply=True,
+        kinds={"case"},
+        out=None,
+    )
+
+    assert result.failed_count == 0
+    assert result.case_id_map == {"case-1": "gen_existing_case"}
+    assert api.calls == []
+    assert result.case_rows == []
+
+
 def test_missing_oss_key_is_skipped_and_reported_as_warning(tmp_path):
     _write_case_meta(tmp_path)
     prefix = "digital-human-platform/dev/uploads/"
@@ -210,7 +267,11 @@ def test_missing_oss_key_is_skipped_and_reported_as_warning(tmp_path):
 
 
 def test_portrait_with_unmapped_case_id_warns_and_skips_without_failing_batch(tmp_path):
-    _write_case_meta(tmp_path)
+    (tmp_path / "cases.json").write_text(
+        json.dumps([{"id": "unknown-case", "name": "Missing Case"}]),
+        encoding="utf-8",
+    )
+    (tmp_path / "candidate_scripts.json").write_text("[]", encoding="utf-8")
     prefix = "digital-human-platform/dev/uploads/"
     oss = FakeOss(
         {
@@ -226,19 +287,23 @@ def test_portrait_with_unmapped_case_id_warns_and_skips_without_failing_batch(tm
         },
         {f"{prefix}video_templates/unknown.mp4"},
     )
-    api = FakeImportApi()
+    api = FakeImportApi(cases=[{"id": "gen_other_case", "name": "Other Case"}])
 
     result = migrate.run_migration(
         case_meta_dir=tmp_path,
         oss_client=oss,
         import_client=api,
         apply=True,
-        kinds={"case", "portrait"},
+        kinds={"portrait"},
         out=None,
     )
 
     assert result.failed_count == 0
-    assert [call[0] for call in api.calls] == ["case"]
+    assert api.calls == []
+    assert any(
+        warning == "WARN no existing genesis case named Missing Case for legacy case unknown-case"
+        for warning in result.warnings
+    )
     assert any(
         warning == "WARN media tpl-unknown has no mapped case_id for unknown-case; skipped"
         for warning in result.warnings

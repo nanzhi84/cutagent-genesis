@@ -32,6 +32,48 @@ def as_list(value: Any) -> list:
     return value if isinstance(value, list) else []
 
 
+def map_legacy_cases_by_name(
+    legacy_cases: Any,
+    existing_cases: Any,
+    *,
+    warn_missing: bool,
+) -> tuple[dict[str, str], set[str], list[str]]:
+    by_name: dict[str, str] = {}
+    duplicate_names: set[str] = set()
+    for item in as_list(existing_cases):
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("name") or "").strip()
+        case_id = item.get("id")
+        if not name or not case_id:
+            continue
+        if name in by_name:
+            duplicate_names.add(name)
+        else:
+            by_name[name] = str(case_id)
+    for name in duplicate_names:
+        by_name.pop(name, None)
+
+    mapped: dict[str, str] = {}
+    blocked: set[str] = set()
+    warnings: list[str] = []
+    for item in as_list(legacy_cases):
+        if not isinstance(item, dict) or not item.get("id"):
+            continue
+        legacy_id = str(item["id"])
+        name = str(item.get("name") or item.get("case_name") or item["id"]).strip()
+        if name in duplicate_names:
+            warnings.append(f"WARN multiple existing genesis cases named {name} for legacy case {legacy_id}")
+            blocked.add(legacy_id)
+            continue
+        case_id = by_name.get(name)
+        if case_id:
+            mapped[legacy_id] = case_id
+        elif warn_missing:
+            warnings.append(f"WARN no existing genesis case named {name} for legacy case {legacy_id}")
+    return mapped, blocked, warnings
+
+
 def optional_float(value: Any) -> float | None:
     if value in (None, ""):
         return None

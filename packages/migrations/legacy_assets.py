@@ -14,6 +14,7 @@ from packages.migrations.legacy_asset_utils import (
     as_list,
     guess_mime,
     idempotency_key,
+    map_legacy_cases_by_name,
     optional_float,
     read_json_file,
     template_kind,
@@ -65,7 +66,7 @@ class LegacyAssetMigrator:
         cases = read_json_file(case_meta_dir / "cases.json")
         scripts = read_json_file(case_meta_dir / "candidate_scripts.json")
         needs_case_map = bool(selected.intersection({"script", "broll", "portrait", "cover"}))
-        if "case" in selected or (apply and needs_case_map):
+        if "case" in selected:
             result.case_rows = [self._case_row(item) for item in cases]
         if "script" in selected:
             result.script_specs = [item for item in scripts if isinstance(item, dict)]
@@ -83,12 +84,26 @@ class LegacyAssetMigrator:
         self._collect_fonts(result, selected)
         self._collect_covers(result, selected)
 
+        blocked_case_ids: set[str] = set()
+        if self.import_client is not None and ("case" in selected or needs_case_map):
+            blocked_case_ids = self._map_existing_cases(
+                cases,
+                result,
+                warn_missing=needs_case_map and "case" not in selected,
+            )
+            if "case" in selected:
+                result.case_rows = [
+                    row
+                    for row in result.case_rows
+                    if row.get("external_id") not in result.case_id_map
+                    and row.get("external_id") not in blocked_case_ids
+                ]
         if not apply:
             self._print_summary(result, out)
             return result
         if self.import_client is None:
             raise ValueError("import_client is required when apply=True.")
-        if result.case_rows:
+        if "case" in selected and result.case_rows:
             report = self._post("case", result.case_rows, result)
             self._record_case_mapping(report, result.case_rows, result)
         if result.script_specs:
@@ -258,7 +273,7 @@ class LegacyAssetMigrator:
                 mapped = case_id_map.get(legacy_case_id)
                 if not mapped:
                     message = f"media {row.get('external_id')} has no mapped case_id for {legacy_case_id}"
-                    if row.get("kind") == "portrait":
+                    if row.get("kind") in {"broll", "portrait"}:
                         result.warnings.append(f"WARN {message}; skipped")
                     else:
                         result.failures.append(message)
@@ -313,6 +328,22 @@ class LegacyAssetMigrator:
                 result.case_id_map[str(external_id)] = str(internal_id)
             else:
                 result.failures.append(f"case {external_id} import returned no internal_id")
+
+    def _map_existing_cases(
+        self,
+        cases: Any,
+        result: MigrationResult,
+        *,
+        warn_missing: bool,
+    ) -> set[str]:
+        list_cases = getattr(self.import_client, "list_cases", None)
+        if list_cases is None:
+            return set()
+        mapped, blocked, warnings = map_legacy_cases_by_name(cases, list_cases(), warn_missing=warn_missing)
+        for legacy_id, case_id in mapped.items():
+            result.case_id_map.setdefault(legacy_id, case_id)
+        result.warnings.extend(warnings)
+        return blocked
 
     def _print_summary(self, result: MigrationResult, out: TextIO | None) -> None:
         if out is None:

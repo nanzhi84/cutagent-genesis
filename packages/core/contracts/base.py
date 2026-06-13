@@ -174,6 +174,7 @@ class ArtifactKind(str, Enum):
     provider_raw_request = "provider.raw_request"
     provider_raw_response = "provider.raw_response"
     import_mapping = "import.mapping"
+    material_annotation = "material.annotation"
 
 
 class Money(ContractModel):

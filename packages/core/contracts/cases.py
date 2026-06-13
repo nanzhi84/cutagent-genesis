@@ -240,6 +240,50 @@ class ReferenceExtractResult(ContractModel):
     resolved_url: str
 
 
+class ReferenceCookieImportRequest(ContractModel):
+    cookie_text: str = Field(min_length=1)
+    format: Literal["auto", "header", "netscape", "json"] = "auto"
+    source: str | None = None
+
+
+class ReferenceCookieStatus(ContractModel):
+    cookie_present: bool
+    cookie_count: int = 0
+    earliest_expiry: datetime | None = None
+    expired: bool = False
+    updated_at: datetime | None = None
+    source: str | None = None
+
+
+class ReferenceCookieImportResponse(ContractModel):
+    success: bool
+    message: str
+    status: ReferenceCookieStatus
+    request_id: str
+
+
+class ReferenceCookieTestRequest(ContractModel):
+    url: str | None = None
+
+
+class ReferenceCookieTestResponse(ContractModel):
+    success: bool
+    message: str
+    test_url: str | None = None
+    title: str | None = None
+    status: ReferenceCookieStatus
+    request_id: str
+
+
+class ReferenceExtractorStatusResponse(ContractModel):
+    cookie: ReferenceCookieStatus
+    chrome_available: bool = False
+    chrome_path: str | None = None
+    playwright_available: bool = False
+    auto_refresh_supported: bool = False
+    request_id: str
+
+
 class PerformanceAttributionResponse(ContractModel):
     video_version_id: str
     feature_vector: CreativeFeatureVector | None = None

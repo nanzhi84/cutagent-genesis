@@ -62,6 +62,8 @@ class ErrorCode(str, Enum):
     reference_unreachable = "reference.unreachable"
     reference_unsupported_platform = "reference.unsupported_platform"
     reference_asr_failed = "reference.asr_failed"
+    reference_cookie_invalid = "reference.cookie_invalid"
+    reference_cookie_missing = "reference.cookie_missing"
     idempotency_conflict = "idempotency.conflict"
 
 

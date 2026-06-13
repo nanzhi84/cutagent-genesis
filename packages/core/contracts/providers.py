@@ -221,6 +221,33 @@ class DigitalHumanVideoCostEstimateResponse(ContractModel):
     request_id: str
 
 
+class TtsCostEstimateRequest(ContractModel):
+    text: str = Field(min_length=1)
+    provider_profile_id: str | None = None
+
+
+class TtsCostEstimateResponse(ContractModel):
+    text_length: int
+    estimated_chars: int
+    estimated_duration_sec: float
+    estimate: CostEstimateLine
+    pricing_source: Literal["catalog", "default"]
+    request_id: str
+
+
+class LipsyncCostEstimateRequest(ContractModel):
+    video_duration_sec: float = Field(gt=0)
+    provider_profile_id: str | None = None
+
+
+class LipsyncCostEstimateResponse(ContractModel):
+    video_duration_sec: float
+    video_duration_min: float
+    estimate: CostEstimateLine
+    pricing_source: Literal["catalog", "default"]
+    request_id: str
+
+
 class GovernedActionRequest(ContractModel):
     reason: str
 

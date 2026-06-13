@@ -16,25 +16,39 @@ def test_motion_guard_windows_only_portrait_edges():
     assert "head" in labels and "tail" in labels
 
 
+# Base tail metrics describing a sustained vertical sink whose *step* motion is
+# below the high_step gate (hard_ratio < 0.55), so the camera_drop verdict is
+# driven solely by the vertical_drop gate. This isolates origin's calibrated
+# y-thresholds (tail_y_range_hard_px=70, tail_net_y_hard_px=65) instead of letting
+# the alternate "high_step_motion and y_range>=55" path mask threshold drift.
+_VERTICAL_SINK_BASE = {
+    "start": 8.0,
+    "end": 10.0,
+    "pairs": 20,
+    "mag_p95_px360": 12.0,
+    "active_ratio": 0.9,
+    "hard_ratio": 0.3,  # below high_step gate (0.55) -> only vertical_drop can fire
+    "max_active_run_pairs": 18,
+    "cum_x_range_px360": 10.0,
+    "straightness_ratio": 0.5,
+    "direction_flip_ratio": 0.1,
+    "jerk_p90_px360": 3.0,
+    "residual_to_p95_ratio": 0.4,
+}
+
+
 def test_build_event_camera_drop_from_metrics():
     mg = MotionGuard()
-    # Synthetic tail metrics describing a sustained vertical sink.
-    metrics = {
-        "start": 8.0,
-        "end": 10.0,
-        "pairs": 20,
-        "mag_p95_px360": 12.0,
-        "active_ratio": 0.9,
-        "hard_ratio": 0.6,
-        "max_active_run_pairs": 18,
-        "cum_x_range_px360": 10.0,
-        "cum_y_range_px360": 60.0,
-        "net_y_px360": 40.0,
-        "straightness_ratio": 0.5,
-        "direction_flip_ratio": 0.1,
-        "jerk_p90_px360": 3.0,
-        "residual_to_p95_ratio": 0.4,
-    }
+    # The vertical cumulative range / net displacement must clear origin's
+    # calibrated vertical_drop gate so this fires camera_drop. If the thresholds
+    # ever drift, the paired below-gate test will catch it.
+    metrics = {**_VERTICAL_SINK_BASE, "cum_y_range_px360": 80.0, "net_y_px360": 72.0}
+    # Pin the inputs to origin's effective calibration: the case clears 70/65 and
+    # the asserted threshold values themselves guard against silent default drift.
+    assert mg.motion_guard_tail_y_range_hard_px == 70.0
+    assert mg.motion_guard_tail_net_y_hard_px == 65.0
+    assert metrics["cum_y_range_px360"] >= mg.motion_guard_tail_y_range_hard_px
+    assert metrics["net_y_px360"] >= mg.motion_guard_tail_net_y_hard_px
     event = mg.build_motion_guard_event_from_metrics(
         metrics, label="tail", total_duration=10.0
     )
@@ -42,6 +56,21 @@ def test_build_event_camera_drop_from_metrics():
     assert event["event_type"] == "camera_drop"
     assert event["risk_tier"] == "hard"
     assert event["source"] == "motion_guard"
+
+
+def test_build_event_camera_drop_below_origin_vertical_gate_returns_none():
+    # The drifted-default inputs the old test used (y_range=60, net_y=40) sit below
+    # origin's calibrated vertical_drop gate (>=70 / >=65). With high_step motion
+    # disabled, the only path to camera_drop is vertical_drop, so this must NOT
+    # fire. If the thresholds drift looser (e.g. back to 40/26), this fails -> the
+    # regression guard that would catch future calibration drift.
+    mg = MotionGuard()
+    metrics = {**_VERTICAL_SINK_BASE, "cum_y_range_px360": 60.0, "net_y_px360": 40.0}
+    assert metrics["cum_y_range_px360"] < mg.motion_guard_tail_y_range_hard_px
+    assert metrics["net_y_px360"] < mg.motion_guard_tail_net_y_hard_px
+    assert mg.build_motion_guard_event_from_metrics(
+        metrics, label="tail", total_duration=10.0
+    ) is None
 
 
 def test_build_event_returns_none_for_calm_metrics():

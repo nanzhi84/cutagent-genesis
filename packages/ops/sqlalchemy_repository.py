@@ -6,7 +6,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from packages.core.contracts import (
-    AcknowledgeAlertRequest,
     ApprovalDecisionRequest,
     ApprovalRequest,
     AuditEvent,
@@ -23,9 +22,7 @@ from packages.core.contracts import (
     ProviderUsageMetricsReport,
     ReconcileBillingRequest,
     ReconcileBillingResponse,
-    ResolveAlertRequest,
     UpsertBudgetRequest,
-    YieldFunnelEvent,
     YieldFunnelResponse,
     utcnow,
 )

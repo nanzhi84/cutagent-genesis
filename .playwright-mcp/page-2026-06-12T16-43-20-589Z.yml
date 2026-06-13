@@ -1,0 +1,209 @@
+- generic [ref=e8]:
+  - complementary [ref=e9]:
+    - link "树影 Cutagent" [ref=e10] [cursor=pointer]:
+      - /url: /
+      - img [ref=e12]
+      - generic [ref=e14]:
+        - generic [ref=e15]: 树影
+        - generic [ref=e16]: Cutagent
+    - navigation "主导航" [ref=e18]:
+      - link "概览" [ref=e19] [cursor=pointer]:
+        - /url: /
+        - img [ref=e21]
+        - generic [ref=e24]: 概览
+      - link "案例中心" [ref=e25] [cursor=pointer]:
+        - /url: /studio
+        - img [ref=e27]
+        - generic [ref=e29]: 案例中心
+      - link "素材库" [ref=e30] [cursor=pointer]:
+        - /url: /library
+        - img [ref=e32]
+        - generic [ref=e34]: 素材库
+      - link "数据统计" [ref=e35] [cursor=pointer]:
+        - /url: /analytics
+        - img [ref=e37]
+        - generic [ref=e39]: 数据统计
+      - link "账户中心" [ref=e40] [cursor=pointer]:
+        - /url: /account
+        - img [ref=e42]
+        - generic [ref=e46]: 账户中心
+      - link "设置" [ref=e47] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e49]
+        - generic [ref=e52]: 设置
+      - link "提示词" [ref=e53] [cursor=pointer]:
+        - /url: /ops/prompts
+        - img [ref=e55]
+        - generic [ref=e57]: 提示词
+    - generic [ref=e58]:
+      - generic "网络在线" [ref=e59]:
+        - img [ref=e60]
+        - generic [ref=e64]: 实时连接待命
+      - generic [ref=e65]:
+        - generic [ref=e66]: L
+        - generic [ref=e67]:
+          - paragraph [ref=e68]: Local Admin
+          - paragraph [ref=e69]: 管理员
+        - button "退出登录" [ref=e70] [cursor=pointer]:
+          - img [ref=e71]
+  - main [ref=e74]:
+    - generic [ref=e76]: 树影 / 数据统计
+    - generic [ref=e77]:
+      - generic [ref=e78]:
+        - generic [ref=e79]:
+          - heading "数据统计" [level=1] [ref=e80]
+          - paragraph [ref=e81]: 成本、用量、成品率与任务状态的运维视图
+        - generic [ref=e82]:
+          - generic [ref=e83]:
+            - button "24 小时" [ref=e84] [cursor=pointer]
+            - button "7 天" [ref=e85] [cursor=pointer]
+            - button "30 天" [ref=e86] [cursor=pointer]
+          - button "刷新" [ref=e87] [cursor=pointer]:
+            - img [ref=e88]
+            - text: 刷新
+      - generic [ref=e93]:
+        - generic [ref=e95]:
+          - generic [ref=e96]:
+            - paragraph [ref=e97]: 任务数
+            - paragraph [ref=e98]: "4"
+            - paragraph [ref=e99]: 当前时间范围内工作流
+          - img [ref=e101]
+        - generic [ref=e104]:
+          - generic [ref=e105]:
+            - paragraph [ref=e106]: 成功率
+            - paragraph [ref=e107]: 50.0%
+            - paragraph [ref=e108]: 后端 true_yield_rate
+          - img [ref=e110]
+        - generic [ref=e115]:
+          - generic [ref=e116]:
+            - paragraph [ref=e117]: 估算成本
+            - paragraph [ref=e118]: ¥0.095285
+            - paragraph [ref=e119]: 31 次供应商调用
+          - img [ref=e121]
+        - generic [ref=e124]:
+          - generic [ref=e125]:
+            - paragraph [ref=e126]: 未定价调用
+            - paragraph [ref=e127]: "2"
+            - paragraph [ref=e128]: 需补价格目录或复核账单
+          - img [ref=e130]
+      - tablist "数据统计分区" [ref=e133]:
+        - tab "成本 & 用量" [ref=e134] [cursor=pointer]
+        - tab "成品率漏斗" [ref=e135] [cursor=pointer]
+        - tab "任务统计" [ref=e136] [cursor=pointer]
+        - tab "余额&配额" [active] [selected] [ref=e137] [cursor=pointer]
+        - tab "API 用量监控" [ref=e138] [cursor=pointer]
+      - generic [ref=e195]:
+        - generic [ref=e196]:
+          - generic [ref=e197]:
+            - heading "余额&配额" [level=2] [ref=e198]:
+              - img [ref=e199]
+              - text: 余额&配额
+            - paragraph [ref=e203]: 来自 provider_balance_snapshots 的最新快照
+          - button "立即刷新" [ref=e204] [cursor=pointer]:
+            - img [ref=e205]
+            - text: 立即刷新
+        - table [ref=e211]:
+          - rowgroup [ref=e212]:
+            - row "Provider Account 余额 配额 状态 检查时间" [ref=e213]:
+              - columnheader "Provider" [ref=e214]
+              - columnheader "Account" [ref=e215]
+              - columnheader "余额" [ref=e216]
+              - columnheader "配额" [ref=e217]
+              - columnheader "状态" [ref=e218]
+              - columnheader "检查时间" [ref=e219]
+          - rowgroup [ref=e220]:
+            - row "dashscope.asr dashscope.asr.prod 暂无 暂无 不支持 DashScope 余额需阿里云 BSS 账户级查询 2分钟前" [ref=e221]:
+              - cell "dashscope.asr" [ref=e222]
+              - cell "dashscope.asr.prod" [ref=e223]
+              - cell "暂无" [ref=e224]
+              - cell "暂无" [ref=e225]
+              - cell "不支持 DashScope 余额需阿里云 BSS 账户级查询" [ref=e226]:
+                - generic [ref=e227]:
+                  - img [ref=e228]
+                  - text: 不支持
+                - paragraph [ref=e231]: DashScope 余额需阿里云 BSS 账户级查询
+              - cell "2分钟前" [ref=e232]:
+                - time [ref=e233]: 2分钟前
+            - row "dashscope.llm dashscope.llm.prod 暂无 暂无 不支持 DashScope 余额需阿里云 BSS 账户级查询 2分钟前" [ref=e234]:
+              - cell "dashscope.llm" [ref=e235]
+              - cell "dashscope.llm.prod" [ref=e236]
+              - cell "暂无" [ref=e237]
+              - cell "暂无" [ref=e238]
+              - cell "不支持 DashScope 余额需阿里云 BSS 账户级查询" [ref=e239]:
+                - generic [ref=e240]:
+                  - img [ref=e241]
+                  - text: 不支持
+                - paragraph [ref=e244]: DashScope 余额需阿里云 BSS 账户级查询
+              - cell "2分钟前" [ref=e245]:
+                - time [ref=e246]: 2分钟前
+            - row "dashscope.vlm dashscope.vlm.prod 暂无 暂无 不支持 DashScope 余额需阿里云 BSS 账户级查询 2分钟前" [ref=e247]:
+              - cell "dashscope.vlm" [ref=e248]
+              - cell "dashscope.vlm.prod" [ref=e249]
+              - cell "暂无" [ref=e250]
+              - cell "暂无" [ref=e251]
+              - cell "不支持 DashScope 余额需阿里云 BSS 账户级查询" [ref=e252]:
+                - generic [ref=e253]:
+                  - img [ref=e254]
+                  - text: 不支持
+                - paragraph [ref=e257]: DashScope 余额需阿里云 BSS 账户级查询
+              - cell "2分钟前" [ref=e258]:
+                - time [ref=e259]: 2分钟前
+            - row "minimax.tts minimax.tts.prod 暂无 暂无 不支持 MiniMax 暂无余额查询 API 2分钟前" [ref=e260]:
+              - cell "minimax.tts" [ref=e261]
+              - cell "minimax.tts.prod" [ref=e262]
+              - cell "暂无" [ref=e263]
+              - cell "暂无" [ref=e264]
+              - cell "不支持 MiniMax 暂无余额查询 API" [ref=e265]:
+                - generic [ref=e266]:
+                  - img [ref=e267]
+                  - text: 不支持
+                - paragraph [ref=e270]: MiniMax 暂无余额查询 API
+              - cell "2分钟前" [ref=e271]:
+                - time [ref=e272]: 2分钟前
+            - row "runninghub.heygem runninghub.heygem.prod ¥2.60 68,080 coins 正常 2分钟前" [ref=e273]:
+              - cell "runninghub.heygem" [ref=e274]
+              - cell "runninghub.heygem.prod" [ref=e275]
+              - cell "¥2.60" [ref=e276]
+              - cell "68,080 coins" [ref=e277]
+              - cell "正常" [ref=e278]:
+                - generic [ref=e279]:
+                  - img [ref=e280]
+                  - text: 正常
+              - cell "2分钟前" [ref=e283]:
+                - time [ref=e284]: 2分钟前
+            - row "sandbox runninghub.heygem.default 暂无 暂无 未配置 未配置或无法读取 provider secret 2分钟前" [ref=e285]:
+              - cell "sandbox" [ref=e286]
+              - cell "runninghub.heygem.default" [ref=e287]
+              - cell "暂无" [ref=e288]
+              - cell "暂无" [ref=e289]
+              - cell "未配置 未配置或无法读取 provider secret" [ref=e290]:
+                - generic [ref=e291]:
+                  - img [ref=e292]
+                  - text: 未配置
+                - paragraph [ref=e295]: 未配置或无法读取 provider secret
+              - cell "2分钟前" [ref=e296]:
+                - time [ref=e297]: 2分钟前
+            - row "sandbox sandbox.llm.default 暂无 暂无 未配置 未配置或无法读取 provider secret 2分钟前" [ref=e298]:
+              - cell "sandbox" [ref=e299]
+              - cell "sandbox.llm.default" [ref=e300]
+              - cell "暂无" [ref=e301]
+              - cell "暂无" [ref=e302]
+              - cell "未配置 未配置或无法读取 provider secret" [ref=e303]:
+                - generic [ref=e304]:
+                  - img [ref=e305]
+                  - text: 未配置
+                - paragraph [ref=e308]: 未配置或无法读取 provider secret
+              - cell "2分钟前" [ref=e309]:
+                - time [ref=e310]: 2分钟前
+            - row "sandbox sandbox.tts.default 暂无 暂无 未配置 未配置或无法读取 provider secret 2分钟前" [ref=e311]:
+              - cell "sandbox" [ref=e312]
+              - cell "sandbox.tts.default" [ref=e313]
+              - cell "暂无" [ref=e314]
+              - cell "暂无" [ref=e315]
+              - cell "未配置 未配置或无法读取 provider secret" [ref=e316]:
+                - generic [ref=e317]:
+                  - img [ref=e318]
+                  - text: 未配置
+                - paragraph [ref=e321]: 未配置或无法读取 provider secret
+              - cell "2分钟前" [ref=e322]:
+                - time [ref=e323]: 2分钟前

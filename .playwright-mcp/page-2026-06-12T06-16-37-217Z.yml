@@ -1,0 +1,81 @@
+- generic [ref=e8]:
+  - complementary [ref=e9]:
+    - link "树影 Cutagent" [ref=e10] [cursor=pointer]:
+      - /url: /
+      - img [ref=e12]
+      - generic [ref=e14]:
+        - generic [ref=e15]: 树影
+        - generic [ref=e16]: Cutagent
+    - navigation "主导航" [ref=e18]:
+      - link "概览" [ref=e19] [cursor=pointer]:
+        - /url: /
+        - img [ref=e21]
+        - generic [ref=e24]: 概览
+      - link "案例中心" [ref=e25] [cursor=pointer]:
+        - /url: /studio
+        - img [ref=e27]
+        - generic [ref=e29]: 案例中心
+      - link "素材库" [ref=e30] [cursor=pointer]:
+        - /url: /library
+        - img [ref=e32]
+        - generic [ref=e34]: 素材库
+      - link "数据统计" [ref=e35] [cursor=pointer]:
+        - /url: /analytics
+        - img [ref=e37]
+        - generic [ref=e39]: 数据统计
+      - link "账户中心" [ref=e40] [cursor=pointer]:
+        - /url: /account
+        - img [ref=e42]
+        - generic [ref=e46]: 账户中心
+      - link "设置" [ref=e47] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e49]
+        - generic [ref=e52]: 设置
+      - link "提示词" [ref=e53] [cursor=pointer]:
+        - /url: /ops/prompts
+        - img [ref=e55]
+        - generic [ref=e57]: 提示词
+    - generic [ref=e58]:
+      - generic "网络在线" [ref=e59]:
+        - img [ref=e60]
+        - generic [ref=e64]: 实时连接待命
+      - generic [ref=e65]:
+        - generic [ref=e66]: L
+        - generic [ref=e67]:
+          - paragraph [ref=e68]: Local Admin
+          - paragraph [ref=e69]: 管理员
+        - button "退出登录" [ref=e70] [cursor=pointer]:
+          - img [ref=e71]
+  - main [ref=e74]:
+    - generic [ref=e76]: 树影 / 案例中心
+    - generic [ref=e77]:
+      - generic [ref=e78]:
+        - generic [ref=e79]:
+          - heading "案例中心" [level=1] [ref=e80]
+          - paragraph [ref=e81]: 1 个案例工作空间，统一管理创作、成片和发布准备。
+        - button "新建案例" [ref=e82] [cursor=pointer]:
+          - img [ref=e83]
+          - generic [ref=e84]: 新建案例
+      - generic [ref=e86]:
+        - img
+        - textbox "搜索案例名称" [ref=e87]
+      - article [ref=e89]:
+        - generic [ref=e90]:
+          - generic [ref=e91]:
+            - img [ref=e93]
+            - heading "Demo Case" [level=2] [ref=e95]
+            - paragraph [ref=e96]:
+              - text: 最近更新
+              - time [ref=e97]: 3小时前
+          - link "进入 Demo Case" [ref=e98] [cursor=pointer]:
+            - /url: /studio/case_demo
+            - img [ref=e99]
+        - paragraph [ref=e101]: 0 条活跃记忆 · v1 · 已分配负责人
+        - generic [ref=e102]:
+          - link "进入工作台" [ref=e103] [cursor=pointer]:
+            - /url: /studio/case_demo
+            - img [ref=e104]
+            - generic [ref=e106]: 进入工作台
+          - button "删除" [ref=e107] [cursor=pointer]:
+            - img [ref=e108]
+            - generic [ref=e111]: 删除

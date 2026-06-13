@@ -340,7 +340,7 @@ def _is_not_found_error(exc: Exception) -> bool:
     return False
 
 
-from packages.core.storage.tiered_object_store import TieredObjectStore  # noqa: E402
+from packages.core.storage.tiered_object_store import TieredObjectStore  # noqa: F401, E402  (re-export)
 from packages.core.storage.object_store_env import object_store_from_env  # noqa: E402
 
 

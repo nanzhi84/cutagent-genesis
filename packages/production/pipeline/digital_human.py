@@ -10,7 +10,6 @@ from packages.ai.gateway import ProviderCall, ProviderGateway
 from packages.ai.prompts import PromptRegistry
 from packages.core.contracts import (
     Artifact,
-    ArtifactRef,
     ArtifactKind,
     DegradationNotice,
     DigitalHumanVideoRequest,

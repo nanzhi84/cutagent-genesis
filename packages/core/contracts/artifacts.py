@@ -196,6 +196,17 @@ class NarrationUnit(ContractModel):
     start: float
     end: float
     confidence: float
+    # Boundary-planning fields (additive, all defaulted so existing callers are
+    # unaffected). The editing-agent boundary planner reads these to decide where
+    # portrait cuts may land; the narration splitter populates them.
+    duration: float | None = None
+    intent: str = "explain"
+    pause_after_ms: int = 0
+    hard_end: bool = False
+    boundary_score: float = 0.0
+    portrait_cut_allowed: bool = False
+    broll_overlay_allowed: bool = False
+    boundary_reason: str = ""
 
 
 class NarrationUnitsArtifact(ContractModel):

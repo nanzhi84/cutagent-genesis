@@ -790,6 +790,8 @@ class OutboxEventRow(TimestampMixin, Base):
 
 
 Index("idx_artifacts_case_run", ArtifactRow.case_id, ArtifactRow.run_id)
+Index("idx_artifacts_run", ArtifactRow.run_id)
+Index("idx_artifacts_run_kind", ArtifactRow.run_id, ArtifactRow.kind)
 Index("idx_node_runs_run", NodeRunRow.run_id)
 Index(
     "idx_provider_balance_snapshots_provider",

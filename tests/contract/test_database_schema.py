@@ -174,6 +174,29 @@ def test_metadata_compiles_for_postgresql():
             assert "CREATE INDEX" in sql
 
 
+def test_artifacts_run_id_indexes_exist():
+    artifacts = Base.metadata.tables["artifacts"]
+    index_columns = {idx.name: [col.name for col in idx.columns] for idx in artifacts.indexes}
+    assert "idx_artifacts_run" in index_columns
+    assert index_columns["idx_artifacts_run"] == ["run_id"]
+    assert "idx_artifacts_run_kind" in index_columns
+    assert index_columns["idx_artifacts_run_kind"] == ["run_id", "kind"]
+
+
+def test_alembic_artifacts_run_index_revision_exists():
+    migration = Path(
+        "packages/core/storage/alembic/versions/0004_artifacts_run_index.py"
+    )
+    assert migration.exists()
+    text = migration.read_text(encoding="utf-8")
+    assert 'down_revision = "0003_selection_ledger"' in text
+    assert 'op.create_index("idx_artifacts_run", "artifacts", ["run_id"])' in text
+    assert (
+        'op.create_index("idx_artifacts_run_kind", "artifacts", ["run_id", "kind"])'
+        in text
+    )
+
+
 def test_alembic_initial_revision_exists():
     migration = Path("packages/core/storage/alembic/versions/0001_initial_schema.py")
     assert migration.exists()

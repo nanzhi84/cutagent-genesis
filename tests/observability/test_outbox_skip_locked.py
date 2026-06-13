@@ -1,0 +1,108 @@
+from __future__ import annotations
+
+import json
+import sqlite3
+
+import anyio
+from sqlalchemy import create_engine, select
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
+from sqlalchemy.ext.compiler import compiles
+from sqlalchemy.orm import sessionmaker
+
+from packages.core.contracts import utcnow
+from packages.core.observability.events import (
+    InProcessFanoutHub,
+    SqlAlchemyOutboxDispatcher,
+)
+from packages.core.storage.database import OutboxEventRow
+
+sqlite3.register_adapter(list, json.dumps)
+
+
+@compiles(JSONB, "sqlite")
+def _compile_jsonb_sqlite(_type, _compiler, **_kw):  # pragma: no cover - registration side effect.
+    return "JSON"
+
+
+@compiles(ARRAY, "sqlite")
+def _compile_array_sqlite(_type, _compiler, **_kw):  # pragma: no cover - registration side effect.
+    return "JSON"
+
+
+def _sqlite_session_factory() -> sessionmaker:
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    OutboxEventRow.__table__.create(engine)
+    return sessionmaker(bind=engine, expire_on_commit=False)
+
+
+def _make_row(event_id: str, run_id: str, created_at) -> OutboxEventRow:
+    return OutboxEventRow(
+        id=event_id,
+        topic="workflow.run.updated",
+        aggregate_type="run",
+        aggregate_id=run_id,
+        dedupe_key=event_id,
+        payload_schema="RunEvent.v1",
+        payload={"event_id": event_id, "run_id": run_id, "job_id": "job_sl", "event_type": "run_update"},
+        status="pending",
+        attempts=0,
+        available_at=created_at,
+        created_at=created_at,
+        updated_at=created_at,
+    )
+
+
+def test_claim_runs_under_sqlite_without_skip_locked_error() -> None:
+    """SQLite lacks SKIP LOCKED: the dispatcher must still claim+publish without error."""
+    session_factory = _sqlite_session_factory()
+    run_id = "run_skip_locked"
+    created_at = utcnow()
+    with session_factory() as session:
+        session.add(_make_row("evt_sl_a", run_id, created_at))
+        session.add(_make_row("evt_sl_b", run_id, created_at))
+        session.commit()
+
+    hub = InProcessFanoutHub()
+    subscriber = hub.subscribe(run_id)
+    dispatcher = SqlAlchemyOutboxDispatcher(session_factory=session_factory, hub=hub)
+
+    published = anyio.run(dispatcher.dispatch_once)
+
+    assert published == 2
+    assert hub.get_nowait(subscriber)["event_id"] == "evt_sl_a"
+    assert hub.get_nowait(subscriber)["event_id"] == "evt_sl_b"
+    with session_factory() as session:
+        statuses = list(
+            session.scalars(
+                select(OutboxEventRow.status)
+                .where(OutboxEventRow.aggregate_id == run_id)
+                .order_by(OutboxEventRow.created_at, OutboxEventRow.id)
+            )
+        )
+    assert statuses == ["published", "published"]
+
+
+def test_claim_query_branches_on_dialect() -> None:
+    """The claim is plain on sqlite and FOR UPDATE SKIP LOCKED on postgres."""
+    base = (
+        select(OutboxEventRow)
+        .where(OutboxEventRow.status == "pending")
+        .order_by(OutboxEventRow.created_at, OutboxEventRow.id)
+    )
+
+    from sqlalchemy.dialects import postgresql, sqlite
+
+    sqlite_sql = str(base.compile(dialect=sqlite.dialect()))
+    assert "FOR UPDATE" not in sqlite_sql.upper()
+
+    postgres_claim = base.with_for_update(skip_locked=True)
+    postgres_sql = str(postgres_claim.compile(dialect=postgresql.dialect()))
+    assert "FOR UPDATE" in postgres_sql.upper()
+    assert "SKIP LOCKED" in postgres_sql.upper()
+
+
+def test_dispatcher_does_not_add_for_update_on_sqlite_bind() -> None:
+    """Guard: the dispatcher detects sqlite and does NOT request FOR UPDATE."""
+    session_factory = _sqlite_session_factory()
+    with session_factory() as session:
+        assert session.get_bind().dialect.name == "sqlite"

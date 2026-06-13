@@ -2076,7 +2076,6 @@ class OutboxEvent(EntityMeta):
     available_at: datetime = Field(default_factory=utcnow)
     published_at: datetime | None = None
     last_error: str | None = None
-    dedupe_key: str | None = None
 
 
 def signed_local_url(path: str, minutes: int = 15) -> SignedUrlResponse:

@@ -29,6 +29,7 @@ from packages.core.storage import Repository
 from packages.core.storage.repository import new_id
 from packages.core.storage.secret_store import SecretStore
 from packages.ai.gateway.provider_context import ProviderInvocationContext
+from packages.ai.gateway.provider_limiter import provider_slot
 
 
 class ProviderCall(BaseModel):
@@ -190,10 +191,15 @@ class ProviderGateway:
                 object_store=self.object_store,
             )
             contextual_invoke = getattr(plugin, "invoke_with_context", None)
-            if callable(contextual_invoke):
-                result = contextual_invoke(call, context)
-            else:
-                result = plugin.invoke(call)
+            # Bound concurrent in-flight provider calls per ProviderProfile
+            # concurrency_key (fallback provider_id) so concurrent durable runs
+            # do not fan out unbounded requests at vendor quotas. Per-process;
+            # cluster-wide limiting needs a shared limiter (see provider_limiter).
+            with provider_slot(profile.concurrency_key, profile.provider_id):
+                if callable(contextual_invoke):
+                    result = contextual_invoke(call, context)
+                else:
+                    result = plugin.invoke(call)
             duration_ms = int((perf_counter() - started) * 1000)
             price_items = self._matching_price_items(
                 provider_id=profile.provider_id,

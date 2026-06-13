@@ -51,6 +51,21 @@ def _ephemeral_store_from_env(*, client_factory: Callable[..., Any] | None):
 
     backend = os.getenv("CUTAGENT_EPHEMERAL_OBJECTSTORE_BACKEND", "local").lower()
     if backend == "local":
+        # Fail fast under Temporal: a node-local ephemeral tier is invisible to
+        # activities running on other workers, causing silent mid-pipeline
+        # failures. The operator must point the ephemeral tier at shared
+        # MinIO/S3. Local runtime keeps the local default.
+        if os.getenv("CUTAGENT_WORKFLOW_RUNTIME", "local").lower() == "temporal":
+            raise RuntimeError(
+                "Invalid ObjectStore configuration: ephemeral tier resolves to a "
+                "node-local 'local' backend while CUTAGENT_WORKFLOW_RUNTIME=temporal. "
+                "Under multi-worker Temporal, ephemeral artifacts written by one "
+                "worker are unreadable by activities on another worker, causing "
+                "silent mid-pipeline failures. Point the ephemeral tier at shared "
+                "MinIO/S3: set CUTAGENT_EPHEMERAL_OBJECTSTORE_BACKEND=s3 (and the "
+                "related CUTAGENT_EPHEMERAL_OBJECTSTORE_* endpoint/bucket/credential "
+                "variables)."
+            )
         root = Path(
             os.getenv(
                 "CUTAGENT_OBJECTSTORE_EPHEMERAL_PATH",

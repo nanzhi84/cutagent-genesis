@@ -105,6 +105,12 @@ class NodeContext:
     def tts_provider_profile_id(self, request: DigitalHumanVideoRequest) -> str:
         return self.adapter._tts_provider_profile_id(request)
 
+    def resolve_lipsync_profile(self, request: DigitalHumanVideoRequest):
+        return self.adapter._resolve_lipsync_profile(request)
+
+    def select_lipsync_fallback_profile(self, current_profile, error_message: str):
+        return self.adapter._select_lipsync_fallback_profile(current_profile, error_message)
+
     def narration_units_from_segments(self, segments, fallback_duration: float) -> list[NarrationUnit]:
         return self.adapter._narration_units_from_segments(segments, fallback_duration)
 

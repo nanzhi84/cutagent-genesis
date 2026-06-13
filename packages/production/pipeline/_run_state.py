@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 from packages.core.contracts import (
     Artifact,
@@ -22,6 +23,10 @@ class RunState:
     provider_invocation_ids: list[str] = field(default_factory=list)
     warnings: list[WarningCode] = field(default_factory=list)
     degradations: list[DegradationNotice] = field(default_factory=list)
+    # Ephemeral per-run scratch space for cross-node data that is NOT an
+    # artifact (e.g. MiniMax TTS-native subtitle segments handed from the TTS
+    # node to NarrationAlignment as the primary precise-timing source).
+    scratch: dict[str, Any] = field(default_factory=dict)
 
     def require(self, kind: ArtifactKind) -> Artifact:
         if kind not in self.artifacts:

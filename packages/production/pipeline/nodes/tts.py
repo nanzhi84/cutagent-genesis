@@ -20,6 +20,21 @@ def run(ctx: NodeContext) -> NodeOutput:
     node_run = ctx.node_run
     voice_id = state.request.voice.voice_id or "voice_sandbox"
     provider_profile_id = ctx.tts_provider_profile_id(state.request)
+    # ``tts_provider_profile_id`` only returns a real profile id when an enabled
+    # real ProviderProfile + active secret exist; otherwise it returns
+    # ``sandbox.tts.default``. So a non-sandbox id here means the real path is
+    # active — request TTS-native subtitles to feed precise forced alignment.
+    is_real_profile = provider_profile_id != "sandbox.tts.default"
+    call_input: dict = {"text": state.request.script, "voice_id": voice_id}
+    if is_real_profile:
+        call_input.update(
+            {
+                "speed": state.request.voice.speed,
+                "volume": state.request.voice.volume,
+                "emotion": state.request.voice.emotion,
+                "subtitle": True,
+            }
+        )
     invocation, result = ctx.provider_gateway.invoke(
         ProviderCall(
             case_id=run.case_id,
@@ -27,7 +42,7 @@ def run(ctx: NodeContext) -> NodeOutput:
             node_run_id=node_run.id,
             provider_profile_id=provider_profile_id,
             capability_id="tts.speech",
-            input={"text": state.request.script, "voice_id": voice_id},
+            input=call_input,
         )
     )
     if result is None or invocation.error:
@@ -38,6 +53,10 @@ def run(ctx: NodeContext) -> NodeOutput:
         )
     provider_artifact_id = result.output.get("audio_artifact_id")
     if isinstance(provider_artifact_id, str) and provider_artifact_id in ctx.repository.artifacts:
+        subtitle_segments = result.output.get("subtitle_segments")
+        if isinstance(subtitle_segments, list) and subtitle_segments:
+            state.scratch["tts_subtitle_segments"] = subtitle_segments
+            state.scratch["tts_subtitle_invocation_id"] = invocation.id
         return NodeOutput(
             artifacts=[ctx.repository.artifacts[provider_artifact_id]],
             provider_invocation_ids=[invocation.id],

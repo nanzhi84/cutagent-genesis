@@ -306,6 +306,9 @@ class LipSyncReportArtifact(ContractModel):
     input_video_artifact_id: str
     input_audio_artifact_id: str
     output_video_artifact_id: str
+    fallback_from: str | None = None
+    fallback_to: str | None = None
+    fallback_reason: str | None = None
     warnings: list[str] = Field(default_factory=list)
 
 

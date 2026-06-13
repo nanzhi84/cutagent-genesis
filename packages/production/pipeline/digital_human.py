@@ -109,6 +109,21 @@ NODE_HANDLERS = {
 
 logger = logging.getLogger(__name__)
 
+_LIPSYNC_CONTENT_POLICY_MARKERS = (
+    "input data may contain inappropriate content",
+    "inappropriate content",
+    "content policy",
+    "sensitive content",
+    "unsafe content",
+)
+
+
+def _is_lipsync_content_policy_error(message: str | None) -> bool:
+    text = str(message or "").strip().lower()
+    if not text:
+        return False
+    return any(marker in text for marker in _LIPSYNC_CONTENT_POLICY_MARKERS)
+
 
 def digital_human_template() -> WorkflowTemplate:
     provider_side_effect_nodes = {"TTS", "ResolveCreativeIntent", "LipSync"}
@@ -762,6 +777,50 @@ class LocalRuntimeAdapter(WorkflowRuntimeAdapter):
             if profile is not None:
                 return profile
         return self.repository.provider_profiles.get(profile_id)
+
+    def _is_real_lipsync_profile(self, profile) -> bool:
+        """A real lipsync path is active only when the profile is enabled, its
+        provider plugin is registered, it is NOT the sandbox provider, and its
+        secret (if any) is active. Without a secret this returns False, so the
+        sandbox pass-through path runs — byte-identical to today."""
+        if profile is None or profile.capability != "lipsync.video" or not profile.enabled:
+            return False
+        if profile.provider_id == "sandbox":
+            return False
+        if profile.provider_id not in self.provider_gateway.plugins:
+            return False
+        if profile.secret_ref and not self.provider_gateway._secret_is_active(profile.secret_ref):
+            return False
+        return True
+
+    def _resolve_lipsync_profile(self, request: DigitalHumanVideoRequest):
+        """Return ``(profile, is_real)`` for the requested lipsync profile.
+
+        ``is_real`` is True only when a real enabled profile + active secret
+        exist. Otherwise the caller uses the requested profile as-is (the gateway
+        routes the seeded sandbox provider for ``runninghub.heygem.default``)."""
+        profile = self._provider_profile_by_id(request.lipsync.provider_profile_id)
+        return profile, self._is_real_lipsync_profile(profile)
+
+    def _select_lipsync_fallback_profile(self, current_profile, error_message: str):
+        """Mirror the origin asymmetry: HeyGem -> VideoReTalk always; VideoReTalk
+        -> HeyGem only on a content-policy error. Returns the first registered,
+        enabled, secret-active real profile of the fallback provider, or None."""
+        if current_profile is None:
+            return None
+        provider_id = current_profile.provider_id
+        if provider_id == "runninghub.heygem":
+            target_provider = "dashscope.videoretalk"
+        elif provider_id == "dashscope.videoretalk" and _is_lipsync_content_policy_error(error_message):
+            target_provider = "runninghub.heygem"
+        else:
+            return None
+        for profile in self.repository.provider_profiles.values():
+            if profile.provider_id != target_provider:
+                continue
+            if self._is_real_lipsync_profile(profile):
+                return profile
+        return None
 
     def _narration_units_from_segments(self, segments, fallback_duration: float) -> list[NarrationUnit]:
         units: list[NarrationUnit] = []

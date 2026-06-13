@@ -87,6 +87,23 @@ def seed_real_provider_configuration(repository) -> None:
                 "poll_max_attempts": 120,
             },
         ),
+        ProviderProfile(
+            id="dashscope.videoretalk.prod",
+            provider_id="dashscope.videoretalk",
+            model_id="videoretalk",
+            capability="lipsync.video",
+            display_name="DashScope VideoReTalk Production",
+            environment="prod",
+            secret_ref="dashscope_prod.secret",
+            concurrency_key="dashscope:lipsync.video",
+            timeout_sec=180,
+            options_schema_ref=ProviderOptionsSchemaRef(schema_id="provider.lipsync.options"),
+            default_options={
+                "base_url": "https://dashscope.aliyuncs.com/api/v1",
+                "poll_interval": 8,
+                "poll_max_attempts": 180,
+            },
+        ),
     ]
     for profile in profiles:
         repository.provider_profiles[profile.id] = profile

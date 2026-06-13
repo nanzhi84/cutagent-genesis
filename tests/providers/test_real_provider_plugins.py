@@ -126,6 +126,232 @@ def test_minimax_tts_reads_secret_and_stores_real_audio_artifact(tmp_path, media
     assert object_path.read_bytes() == audio_bytes
 
 
+def test_minimax_tts_subtitle_enabled_returns_asr_shaped_segments(tmp_path, media_fixture_factory):
+    audio_bytes = media_fixture_factory.audio(duration_sec=1.0).read_bytes()
+    requests: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(f"{request.method} {request.url.path}")
+        if request.url.path == "/v1/t2a_v2":
+            body = __import__("json").loads(request.content)
+            # subtitle text is split one sentence per NEWLINE; spoken audio unchanged
+            assert body["subtitle_enable"] is True
+            assert body["text"] == "第一句。\n第二句。"
+            return httpx.Response(
+                200,
+                json={
+                    "base_resp": {"status_code": 0},
+                    "data": {
+                        "audio": audio_bytes.hex(),
+                        "duration": 1000,
+                        "subtitle_file": "https://files.example/subtitle.json",
+                    },
+                },
+            )
+        if str(request.url) == "https://files.example/subtitle.json":
+            # served as octet-stream; provider reads text then json.loads
+            return httpx.Response(
+                200,
+                content=__import__("json")
+                .dumps(
+                    [
+                        {"time_begin": 0, "time_end": 500, "text": "第一句。"},
+                        {"time_begin": 500, "time_end": 1000, "text": "第二句。"},
+                    ]
+                )
+                .encode("utf-8"),
+            )
+        return httpx.Response(404, text=str(request.url))
+
+    repository, gateway = _gateway(tmp_path, httpx.MockTransport(handler))
+    secret_ref = gateway.secret_store.put("minimax-key")  # type: ignore[union-attr]
+    profile = _profile(
+        repository,
+        provider_id="minimax.tts",
+        capability="tts.speech",
+        model_id="speech-02-hd",
+        secret_ref=secret_ref,
+        default_options={"group_id": "group-1"},
+    )
+
+    invocation, result = gateway.invoke(
+        ProviderCall(
+            provider_profile_id=profile.id,
+            capability_id="tts.speech",
+            input={"text": "第一句。第二句。", "voice_id": "voice-1", "subtitle": True},
+        )
+    )
+
+    assert invocation.status == ProviderStatus.succeeded
+    assert result is not None
+    assert result.output["subtitle_segments"] == [
+        {"start": 0.0, "end": 0.5, "text": "第一句。"},
+        {"start": 0.5, "end": 1.0, "text": "第二句。"},
+    ]
+    assert requests == ["POST /v1/t2a_v2", "GET /subtitle.json"]
+
+
+def test_minimax_tts_subtitle_fetch_failure_does_not_break_audio(tmp_path, media_fixture_factory):
+    audio_bytes = media_fixture_factory.audio(duration_sec=1.0).read_bytes()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/v1/t2a_v2":
+            return httpx.Response(
+                200,
+                json={
+                    "base_resp": {"status_code": 0},
+                    "data": {
+                        "audio": audio_bytes.hex(),
+                        "duration": 1000,
+                        "subtitle_file": "https://files.example/subtitle.json",
+                    },
+                },
+            )
+        return httpx.Response(500, text="subtitle server down")
+
+    repository, gateway = _gateway(tmp_path, httpx.MockTransport(handler))
+    secret_ref = gateway.secret_store.put("minimax-key")  # type: ignore[union-attr]
+    profile = _profile(
+        repository,
+        provider_id="minimax.tts",
+        capability="tts.speech",
+        model_id="speech-02-hd",
+        secret_ref=secret_ref,
+        default_options={"group_id": "group-1"},
+    )
+
+    invocation, result = gateway.invoke(
+        ProviderCall(
+            provider_profile_id=profile.id,
+            capability_id="tts.speech",
+            input={"text": "第一句。", "voice_id": "voice-1", "subtitle": True},
+        )
+    )
+
+    # audio synthesis succeeded; subtitle failure is swallowed (no segments)
+    assert invocation.status == ProviderStatus.succeeded
+    assert result is not None
+    assert result.output["audio_artifact_id"] in repository.artifacts
+    assert "subtitle_segments" not in result.output
+
+
+def test_videoretalk_submits_async_task_and_stores_polled_video(tmp_path, media_fixture_factory):
+    result_video = media_fixture_factory.video(duration_sec=1.0, filename="videoretalk-result.mp4")
+    requests: list[str] = []
+    poll_count = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal poll_count
+        requests.append(f"{request.method} {request.url.path}")
+        if request.url.path == "/api/v1/services/aigc/image2video/video-synthesis/":
+            assert request.method == "POST"
+            assert request.headers["x-dashscope-async"] == "enable"
+            assert request.headers["authorization"] == "Bearer dashscope-key"
+            body = __import__("json").loads(request.content)
+            assert body["input"]["video_url"] == "https://media.example/portrait.mp4"
+            assert body["input"]["audio_url"] == "https://media.example/speech.wav"
+            return httpx.Response(200, json={"output": {"task_id": "vrt-1", "task_status": "PENDING"}})
+        if request.url.path == "/api/v1/tasks/vrt-1":
+            poll_count += 1
+            if poll_count == 1:
+                return httpx.Response(200, json={"output": {"task_id": "vrt-1", "task_status": "RUNNING"}})
+            return httpx.Response(
+                200,
+                json={
+                    "output": {
+                        "task_id": "vrt-1",
+                        "task_status": "SUCCEEDED",
+                        "video_url": "https://files.example/videoretalk-result.mp4",
+                    }
+                },
+            )
+        if str(request.url) == "https://files.example/videoretalk-result.mp4":
+            return httpx.Response(200, content=result_video.read_bytes())
+        return httpx.Response(404, text=str(request.url))
+
+    repository, gateway = _gateway(tmp_path, httpx.MockTransport(handler))
+    secret_ref = gateway.secret_store.put("dashscope-key")  # type: ignore[union-attr]
+    profile = _profile(
+        repository,
+        provider_id="dashscope.videoretalk",
+        capability="lipsync.video",
+        model_id="videoretalk",
+        secret_ref=secret_ref,
+        default_options={
+            "base_url": "https://dashscope.aliyuncs.com/api/v1",
+            "poll_interval": 0,
+            "poll_max_attempts": 2,
+        },
+    )
+
+    invocation, result = gateway.invoke(
+        ProviderCall(
+            case_id="case_demo",
+            provider_profile_id=profile.id,
+            capability_id="lipsync.video",
+            input={
+                "video_url": "https://media.example/portrait.mp4",
+                "audio_url": "https://media.example/speech.wav",
+                "duration_sec": 1.0,
+            },
+        )
+    )
+
+    assert invocation.status == ProviderStatus.succeeded
+    assert invocation.external_job_id == "vrt-1"
+    assert result is not None
+    assert result.output["external_job_id"] == "vrt-1"
+    artifact = repository.artifacts[result.output["video_artifact_id"]]
+    assert artifact.media_info
+    assert artifact.media_info.media_type == "video"
+    assert "POST /api/v1/services/aigc/image2video/video-synthesis/" in requests
+
+
+def test_videoretalk_failed_task_surfaces_content_policy_message(tmp_path):
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path == "/api/v1/services/aigc/image2video/video-synthesis/":
+            return httpx.Response(200, json={"output": {"task_id": "vrt-9", "task_status": "PENDING"}})
+        if request.url.path == "/api/v1/tasks/vrt-9":
+            return httpx.Response(
+                200,
+                json={
+                    "output": {
+                        "task_id": "vrt-9",
+                        "task_status": "FAILED",
+                        "message": "Input data may contain inappropriate content.",
+                    }
+                },
+            )
+        return httpx.Response(404, text=str(request.url))
+
+    repository, gateway = _gateway(tmp_path, httpx.MockTransport(handler))
+    secret_ref = gateway.secret_store.put("dashscope-key")  # type: ignore[union-attr]
+    profile = _profile(
+        repository,
+        provider_id="dashscope.videoretalk",
+        capability="lipsync.video",
+        model_id="videoretalk",
+        secret_ref=secret_ref,
+        default_options={"base_url": "https://dashscope.aliyuncs.com/api/v1", "poll_interval": 0, "poll_max_attempts": 1},
+    )
+
+    invocation, result = gateway.invoke(
+        ProviderCall(
+            provider_profile_id=profile.id,
+            capability_id="lipsync.video",
+            input={
+                "video_url": "https://media.example/portrait.mp4",
+                "audio_url": "https://media.example/speech.wav",
+            },
+        )
+    )
+
+    assert result is None
+    assert invocation.error
+    assert invocation.error.code == ErrorCode.provider_remote_failed
+    assert "inappropriate content" in invocation.error.message.lower()
+
+
 def test_minimax_tts_http_errors_map_to_spec_codes(tmp_path):
     cases = [
         (httpx.Response(401, text="bad key"), ErrorCode.provider_auth_failed),

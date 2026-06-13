@@ -92,6 +92,56 @@ def run(ctx: NodeContext) -> NodeOutput:
             provider_invocation_ids=provider_invocation_ids or [],
         )
 
+    def alignment_output(
+        units: list[NarrationUnit],
+        *,
+        source: str,
+        strict: bool,
+        provider_invocation_ids: list[str] | None = None,
+    ) -> NodeOutput:
+        alignment = AlignmentArtifact(
+            audio_artifact_id=tts.id,
+            segments=[
+                AlignmentSegment(
+                    text=unit.text,
+                    start_sec=unit.start,
+                    end_sec=unit.end,
+                    word_confidence=unit.confidence,
+                )
+                for unit in units
+            ],
+        )
+        narration = NarrationUnitsArtifact(source=source, units=units, strict=strict, warnings=[])
+        return NodeOutput(
+            artifacts=[
+                ctx.artifact(
+                    ArtifactKind.audio_alignment,
+                    alignment.model_dump(mode="json"),
+                    "AlignmentArtifact.v1",
+                ),
+                ctx.artifact(
+                    ArtifactKind.narration_units,
+                    narration.model_dump(mode="json"),
+                    "NarrationUnitsArtifact.v1",
+                ),
+            ],
+            provider_invocation_ids=provider_invocation_ids or [],
+        )
+
+    # PRIMARY source: MiniMax TTS-native subtitle segments (precise per-sentence
+    # timing produced alongside the real TTS audio). Only present when the real
+    # TTS path ran; with no secret the scratch is empty and we fall through.
+    subtitle_segments = state.scratch.get("tts_subtitle_segments")
+    if isinstance(subtitle_segments, list) and subtitle_segments:
+        units = ctx.narration_units_from_segments(subtitle_segments, duration)
+        invocation_id = state.scratch.get("tts_subtitle_invocation_id")
+        return alignment_output(
+            units,
+            source="tts_subtitle",
+            strict=True,
+            provider_invocation_ids=[invocation_id] if isinstance(invocation_id, str) else None,
+        )
+
     asr_profile = ctx.first_available_provider_profile("asr.transcribe")
     if asr_profile is not None and tts.uri:
         audio_url = ctx.object_store().signed_url(tts.uri).url
@@ -133,37 +183,10 @@ def run(ctx: NodeContext) -> NodeOutput:
                 retryable=True,
             )
         units = ctx.narration_units_from_segments(result.output.get("segments", []), duration)
-        alignment = AlignmentArtifact(
-            audio_artifact_id=tts.id,
-            segments=[
-                AlignmentSegment(
-                    text=unit.text,
-                    start_sec=unit.start,
-                    end_sec=unit.end,
-                    word_confidence=unit.confidence,
-                )
-                for unit in units
-            ],
-        )
-        narration = NarrationUnitsArtifact(
+        return alignment_output(
+            units,
             source="asr",
-            units=units,
             strict=True,
-            warnings=[],
-        )
-        return NodeOutput(
-            artifacts=[
-                ctx.artifact(
-                    ArtifactKind.audio_alignment,
-                    alignment.model_dump(mode="json"),
-                    "AlignmentArtifact.v1",
-                ),
-                ctx.artifact(
-                    ArtifactKind.narration_units,
-                    narration.model_dump(mode="json"),
-                    "NarrationUnitsArtifact.v1",
-                ),
-            ],
             provider_invocation_ids=[invocation.id],
         )
     if state.request.strictness.strict_timestamps:

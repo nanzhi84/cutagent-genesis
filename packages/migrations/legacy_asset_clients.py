@@ -106,3 +106,24 @@ class ImportApiClient:
         )
         response.raise_for_status()
         return response.json()
+
+    def list_cases(self, *, limit: int = 200) -> list[dict]:
+        cases: list[dict] = []
+        cursor: str | None = None
+        while True:
+            params: dict[str, Any] = {"limit": limit}
+            if cursor:
+                params["cursor"] = cursor
+            response = self.client.get("/api/cases", params=params)
+            response.raise_for_status()
+            payload = response.json()
+            if isinstance(payload, list):
+                cases.extend(item for item in payload if isinstance(item, dict))
+                return cases
+            if not isinstance(payload, dict):
+                return cases
+            cases.extend(item for item in payload.get("items", []) if isinstance(item, dict))
+            next_cursor = payload.get("next_cursor")
+            if not next_cursor or next_cursor == cursor:
+                return cases
+            cursor = str(next_cursor)

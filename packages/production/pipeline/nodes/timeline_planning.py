@@ -23,7 +23,7 @@ def run(ctx: NodeContext) -> NodeOutput:
     duration = float(portrait.get("duration_sec", 0))
     if duration <= 0:
         raise NodeExecutionError(ErrorCode.render_invalid_timeline, "Timeline duration is invalid.")
-    fps = 30
+    fps = int(portrait.get("fps") or 30)
     total_frames = max(1, round(duration * fps))
 
     def to_frame(seconds: float) -> int:
@@ -31,6 +31,12 @@ def run(ctx: NodeContext) -> NodeOutput:
 
     raw_segments: list[dict] = []
     for index, segment in enumerate(portrait.get("segments", [])):
+        # The portrait planner emits exact frame indices; trust them verbatim so the
+        # contiguous frame grid survives untouched (fall back to seconds otherwise).
+        start_frame = segment.get("timeline_start_frame")
+        end_frame = segment.get("timeline_end_frame")
+        source_start_frame = segment.get("source_start_frame")
+        source_end_frame = segment.get("source_end_frame")
         raw_segments.append(
             {
                 "track_id": "portrait",
@@ -40,6 +46,10 @@ def run(ctx: NodeContext) -> NodeOutput:
                 "end_sec": float(segment.get("end_sec", duration)),
                 "source_start_sec": float(segment.get("source_start", 0)),
                 "source_end_sec": float(segment.get("source_end", segment.get("end_sec", duration))),
+                "timeline_start_frame": int(start_frame) if start_frame is not None else None,
+                "timeline_end_frame": int(end_frame) if end_frame is not None else None,
+                "source_start_frame": int(source_start_frame) if source_start_frame is not None else None,
+                "source_end_frame": int(source_end_frame) if source_end_frame is not None else None,
             }
         )
     for index, segment in enumerate(broll.get("segments", [])):
@@ -52,12 +62,36 @@ def run(ctx: NodeContext) -> NodeOutput:
                 "end_sec": float(segment.get("end_sec", 0)),
                 "source_start_sec": float(segment.get("source_start", 0)),
                 "source_end_sec": float(segment.get("source_end", segment.get("end_sec", 0))),
+                "timeline_start_frame": None,
+                "timeline_end_frame": None,
+                "source_start_frame": None,
+                "source_end_frame": None,
             }
         )
 
-    negative_duration = any(segment["end_sec"] <= segment["start_sec"] for segment in raw_segments)
+    def timeline_start(segment: dict) -> int:
+        if segment["timeline_start_frame"] is not None:
+            return segment["timeline_start_frame"]
+        return to_frame(segment["start_sec"])
+
+    def timeline_end(segment: dict) -> int:
+        if segment["timeline_end_frame"] is not None:
+            return segment["timeline_end_frame"]
+        return to_frame(segment["end_sec"])
+
+    def source_start(segment: dict) -> int:
+        if segment["source_start_frame"] is not None:
+            return segment["source_start_frame"]
+        return to_frame(segment.get("source_start_sec", segment["start_sec"]))
+
+    def source_end(segment: dict) -> int:
+        if segment["source_end_frame"] is not None:
+            return segment["source_end_frame"]
+        return to_frame(segment.get("source_end_sec", segment["end_sec"]))
+
+    negative_duration = any(timeline_end(segment) <= timeline_start(segment) for segment in raw_segments)
     out_of_bounds = any(
-        segment["start_sec"] < 0 or to_frame(segment["end_sec"]) > total_frames
+        timeline_start(segment) < 0 or timeline_end(segment) > total_frames
         for segment in raw_segments
     )
     overlap = False
@@ -65,12 +99,12 @@ def run(ctx: NodeContext) -> NodeOutput:
     for segment in raw_segments:
         by_track.setdefault(segment["track_id"], []).append(segment)
     for segments in by_track.values():
-        ordered = sorted(segments, key=lambda item: item["start_sec"])
+        ordered = sorted(segments, key=timeline_start)
         previous_end = None
         for segment in ordered:
-            if previous_end is not None and segment["start_sec"] < previous_end:
+            if previous_end is not None and timeline_start(segment) < previous_end:
                 overlap = True
-            previous_end = max(previous_end or segment["end_sec"], segment["end_sec"])
+            previous_end = max(previous_end or timeline_end(segment), timeline_end(segment))
     if negative_duration or out_of_bounds or overlap:
         raise NodeExecutionError(ErrorCode.render_invalid_timeline, "Timeline validation failed.")
 
@@ -79,10 +113,10 @@ def run(ctx: NodeContext) -> NodeOutput:
             track_id=segment["track_id"],
             segment_id=segment["segment_id"],
             asset_ref=segment["asset_ref"],
-            timeline_start_frame=to_frame(segment["start_sec"]),
-            timeline_end_frame=to_frame(segment["end_sec"]),
-            source_start_frame=to_frame(segment.get("source_start_sec", segment["start_sec"])),
-            source_end_frame=to_frame(segment.get("source_end_sec", segment["end_sec"])),
+            timeline_start_frame=timeline_start(segment),
+            timeline_end_frame=timeline_end(segment),
+            source_start_frame=source_start(segment),
+            source_end_frame=source_end(segment),
         )
         for segment in raw_segments
     ]

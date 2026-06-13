@@ -385,23 +385,6 @@ export interface paths {
         patch: operations["patch_case_api_cases__case_id__patch"];
         trace?: never;
     };
-    "/api/cases/{case_id}/runs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Case Run Cards */
-        get: operations["case_run_cards_api_cases__case_id__runs_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/creative/reference-extract": {
         parameters: {
             query?: never;
@@ -413,6 +396,23 @@ export interface paths {
         put?: never;
         /** Reference Extract */
         post: operations["reference_extract_api_creative_reference_extract_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cases/{case_id}/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Case Run Cards */
+        get: operations["case_run_cards_api_cases__case_id__runs_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -5172,15 +5172,6 @@ export interface components {
                 [key: string]: components["schemas"]["JsonValue"];
             };
         };
-        /** ProviderUsageReport */
-        ProviderUsageReport: {
-            /** Invocations */
-            invocations: number;
-            estimated_cost: components["schemas"]["Money-Output"];
-            actual_cost?: components["schemas"]["Money-Output"] | null;
-            /** Unpriced Invocation Count */
-            unpriced_invocation_count: number;
-        };
         /** ProviderUsageMetricsItem */
         ProviderUsageMetricsItem: {
             /** Provider Id */
@@ -5214,6 +5205,15 @@ export interface components {
             generated_at: string;
             /** Request Id */
             request_id: string;
+        };
+        /** ProviderUsageReport */
+        ProviderUsageReport: {
+            /** Invocations */
+            invocations: number;
+            estimated_cost: components["schemas"]["Money-Output"];
+            actual_cost?: components["schemas"]["Money-Output"] | null;
+            /** Unpriced Invocation Count */
+            unpriced_invocation_count: number;
         };
         /** PublishAttempt */
         PublishAttempt: {
@@ -5514,7 +5514,7 @@ export interface components {
              * Language
              * @default zh
              */
-            language?: string;
+            language: string;
         };
         /** ReferenceExtractResult */
         ReferenceExtractResult: {
@@ -7331,39 +7331,6 @@ export interface operations {
             };
         };
     };
-    case_run_cards_api_cases__case_id__runs_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                case_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PageResponse_RunCard_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     reference_extract_api_creative_reference_extract_post: {
         parameters: {
             query?: never;
@@ -7384,6 +7351,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReferenceExtractResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    case_run_cards_api_cases__case_id__runs_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageResponse_RunCard_"];
                 };
             };
             /** @description Validation Error */
@@ -7823,6 +7823,39 @@ export interface operations {
             };
         };
     };
+    create_media_asset_api_media_assets_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMediaAssetFromUploadRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MediaAssetRecord"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     material_usage_ranking_api_library_assets__kind__usage_ranking_get: {
         parameters: {
             query?: {
@@ -7844,39 +7877,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MaterialUsageRankingReport"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_media_asset_api_media_assets_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateMediaAssetFromUploadRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MediaAssetRecord"];
                 };
             };
             /** @description Validation Error */

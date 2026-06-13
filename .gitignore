@@ -30,3 +30,8 @@ Thumbs.db
 
 # Claude worktrees
 .claude/worktrees/
+
+# Playwright MCP tool output (transient)
+.playwright-mcp/
+# stray UI screenshots
+/m6j-*.png

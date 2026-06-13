@@ -1486,7 +1486,7 @@ class LocalRuntimeAdapter(WorkflowRuntimeAdapter):
                     )
                 ]
             )
-        if state.request.broll.enabled and not broll:
+        if not broll:
             artifact = self._artifact(
                 run,
                 node_run,

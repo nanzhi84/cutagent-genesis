@@ -134,6 +134,8 @@ from .cases import (
     CreativePattern,
     CaseInsightCard,
     MetricsImportRequest,
+    OceanEngineSourcePage,
+    OceanEngineMetricRow,
 )
 from .prompts import (
     PromptSchemaRef,
@@ -554,6 +556,8 @@ __all__ = [
     "CreativePattern",
     "CaseInsightCard",
     "MetricsImportRequest",
+    "OceanEngineSourcePage",
+    "OceanEngineMetricRow",
     "FinishedVideo",
     "FinishedVideoQuery",
     "FinishedVideoDetail",

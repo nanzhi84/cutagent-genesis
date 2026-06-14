@@ -103,6 +103,11 @@ def import_batch(payload: c.CreateImportBatchRequest, request: Request) -> c.Imp
                     kind=kind,
                     source_artifact_id=source_artifact_id,
                     annotation_status="pending",
+                    thumbnail_url=_optional_str(row.get("thumbnail_uri"))
+                    or _optional_str(row.get("thumbnail")),
+                    duration_sec=_optional_float(row.get("duration_sec")),
+                    width=_optional_int(row.get("width")),
+                    height=_optional_int(row.get("height")),
                 )
                 repository(request).media_assets[asset.id] = asset
             elif payload.import_type == "finished_video":

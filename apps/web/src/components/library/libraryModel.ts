@@ -1,5 +1,5 @@
 import { FileAudio, Library, Mic2, Music4 } from "lucide-react";
-import type { MediaAssetCard, MediaAssetRecord, VoiceProfile } from "../../api/client";
+import type { MediaAssetCard, MediaAssetRecord, SignedUrlResponse, VoiceProfile } from "../../api/client";
 import { toDisplayUrl as sanitizeDisplayUrl } from "../../lib/url";
 
 export const VOICE_UPLOAD_ACCEPT = ".mp3,.wav,.m4a,.aac,.ogg,.flac";
@@ -101,4 +101,45 @@ export function uploadStageLabel(status: string) {
 /** 仅 http(s) 或站内相对路径可直接作为浏览器资源 URL；内部 scheme（local:// 等）回退占位。 */
 export function toDisplayUrl(url: string | null | undefined): string | null {
   return sanitizeDisplayUrl(url);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Media/preview metadata accessors backed by the generated OpenAPI types:
+//   - MediaAssetRecord.thumbnail_url / duration_sec
+//   - SignedUrlResponse.content_type / playable (from the preview-url endpoint)
+// These wrap the raw fields with sanitization / narrowing for UI consumption.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Browser-displayable poster/thumbnail for an asset (sanitized), or null. */
+export function readAssetThumbnailUrl(asset: MediaAssetRecord): string | null {
+  return toDisplayUrl(asset.thumbnail_url);
+}
+
+/** Asset media duration in seconds (available even for un-annotated assets), or undefined. */
+export function readAssetDurationSec(asset: MediaAssetRecord): number | undefined {
+  const raw = asset.duration_sec;
+  return typeof raw === "number" && Number.isFinite(raw) ? raw : undefined;
+}
+
+/** Preview-url metadata projected from SignedUrlResponse for UI consumption. */
+export type PreviewUrlMeta = {
+  contentType?: string;
+  /**
+   * Whether the resolved URL is browser-playable. Tri-state:
+   *   true  => backend asserts playable;
+   *   false => backend asserts not playable (degrade to placeholder/download);
+   *   undefined => backend didn't say (older payload) — fall back to URL heuristic.
+   */
+  playable?: boolean;
+};
+
+/**
+ * Read content_type / playable from a preview-url (SignedUrlResponse) payload.
+ * `playable` is a non-optional boolean in the schema, but we narrow defensively so
+ * older payloads (without the field) collapse to `undefined` → URL heuristic.
+ */
+export function readPreviewUrlMeta(response: SignedUrlResponse): PreviewUrlMeta {
+  const contentType = typeof response.content_type === "string" ? response.content_type : undefined;
+  const playable = typeof response.playable === "boolean" ? response.playable : undefined;
+  return { contentType, playable };
 }

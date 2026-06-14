@@ -2241,7 +2241,7 @@ export interface components {
             /** Etag */
             etag: string;
             /** Canonical */
-            canonical: {
+            canonical: components["schemas"]["AnnotationV4"] | {
                 [key: string]: components["schemas"]["JsonValue"];
             };
             /** Projection */
@@ -2250,6 +2250,29 @@ export interface components {
             };
             /** Editable Paths */
             editable_paths?: string[];
+        };
+        /**
+         * AnnotationMetaV4
+         * @description V4 meta layer.
+         */
+        AnnotationMetaV4: {
+            /** @default annotation_v4 */
+            annotation_version: components["schemas"]["AnnotationVersion"];
+            /** Asset Id */
+            asset_id: string;
+            /** Case Id */
+            case_id: string;
+            /** Material Type */
+            material_type: string;
+            /**
+             * Duration
+             * @default 0
+             */
+            duration: number;
+            /** Generated At */
+            generated_at?: string | null;
+            /** @default completed */
+            annotation_status: components["schemas"]["AnnotationStatus"];
         };
         /** AnnotationPatch */
         AnnotationPatch: {
@@ -2270,6 +2293,44 @@ export interface components {
              */
             status: "queued" | "running" | "completed" | "failed";
         };
+        /**
+         * AnnotationStatus
+         * @description Annotation lifecycle. V4 terminal states are only completed / failed.
+         * @enum {string}
+         */
+        AnnotationStatus: "pending" | "analyzing" | "completed" | "failed";
+        /**
+         * AnnotationV4
+         * @description V4 unified annotation (seven-layer clean view).
+         *
+         *     The editing agent consumes only this interface; portrait and b-roll share
+         *     one structure. All time-bearing layers must fall inside [0, duration] (out
+         *     of bounds raises, the quality-gate safety net). duration<=0 skips the upper
+         *     bound check (unknown duration / empty annotation is legal).
+         */
+        AnnotationV4: {
+            meta: components["schemas"]["AnnotationMetaV4"];
+            /** Clips */
+            clips?: components["schemas"]["ClipV4"][];
+            /** Quality Events */
+            quality_events?: components["schemas"]["QualityEventV4"][];
+            /** Quality Report */
+            quality_report?: {
+                [key: string]: unknown;
+            };
+            /** Usage Windows */
+            usage_windows?: components["schemas"]["UsageWindowV4"][];
+            /** Evidence Frames */
+            evidence_frames?: number[];
+            /** Evidence Frame Images */
+            evidence_frame_images?: components["schemas"]["EvidenceFrameImage"][];
+        };
+        /**
+         * AnnotationVersion
+         * @description Structured annotation protocol version. V4 is the only protocol in use.
+         * @enum {string}
+         */
+        AnnotationVersion: "annotation_v4";
         /** ApprovalDecisionRequest */
         ApprovalDecisionRequest: {
             /** Reason */
@@ -2983,6 +3044,168 @@ export interface components {
             /** New Password */
             new_password: string;
         };
+        /**
+         * ClipRetrievalV4
+         * @description Clip retrieval view (the single canonical summary).
+         */
+        ClipRetrievalV4: {
+            /**
+             * Summary
+             * @default
+             */
+            summary: string;
+            /** Keywords */
+            keywords?: string[];
+            /**
+             * Retrieval Sentence
+             * @default
+             */
+            retrieval_sentence: string;
+        };
+        /**
+         * ClipSemanticsV4
+         * @description Clip semantics (unified superset).
+         *
+         *     Portrait and b-roll semantic fields coexist and are each optional; fill the
+         *     side matching material_type and leave the other at its default so downstream
+         *     faces a single schema without branching.
+         */
+        ClipSemanticsV4: {
+            /**
+             * Subject Type
+             * @default
+             */
+            subject_type: string;
+            /**
+             * Scene Type
+             * @default
+             */
+            scene_type: string;
+            /** Gaze To Camera */
+            gaze_to_camera?: boolean | null;
+            /** Mouth Visible */
+            mouth_visible?: boolean | null;
+            /** Mouth Moving */
+            mouth_moving?: boolean | null;
+            /**
+             * Gesture Type
+             * @default
+             */
+            gesture_type: string;
+            /**
+             * Body Orientation
+             * @default
+             */
+            body_orientation: string;
+            /**
+             * Emotion State
+             * @default
+             */
+            emotion_state: string;
+            /**
+             * Speaker Intent
+             * @default
+             */
+            speaker_intent: string;
+            /**
+             * Speech Action Alignment
+             * @default
+             */
+            speech_action_alignment: string;
+            /**
+             * Retake Cue
+             * @default
+             */
+            retake_cue: string;
+            /**
+             * Action
+             * @default
+             */
+            action: string;
+            /**
+             * Narrative Role
+             * @default
+             */
+            narrative_role: string;
+            /** Contains Face */
+            contains_face?: boolean | null;
+            /**
+             * Face Count Max
+             * @description Max faces in a single frame (incl. mirror/reflection/screen/background); >1 means not lip-sync usable
+             */
+            face_count_max?: number | null;
+            /**
+             * Process Stage
+             * @default
+             */
+            process_stage: string;
+        };
+        /**
+         * ClipUsageV4
+         * @description Clip usability + role.
+         */
+        ClipUsageV4: {
+            /**
+             * Recommended For Lip Sync
+             * @default false
+             */
+            recommended_for_lip_sync: boolean;
+            /**
+             * Recommended For Voiceover
+             * @default false
+             */
+            recommended_for_voiceover: boolean;
+            /**
+             * Voiceover Only
+             * @default false
+             */
+            voiceover_only: boolean;
+            role: components["schemas"]["UsageRole"];
+        };
+        /**
+         * ClipV4
+         * @description V4 editable clip. Time-consistent plus semantic/visual/usage/retrieval sub-layers.
+         */
+        ClipV4: {
+            /** Segment Id */
+            segment_id: string;
+            /** Start */
+            start: number;
+            /** End */
+            end: number;
+            /** Duration */
+            duration: number;
+            semantics?: components["schemas"]["ClipSemanticsV4"];
+            visual?: components["schemas"]["ClipVisualV4"];
+            usage: components["schemas"]["ClipUsageV4"];
+            retrieval?: components["schemas"]["ClipRetrievalV4"];
+            /**
+             * Confidence
+             * @default 0.8
+             */
+            confidence: number;
+        };
+        /**
+         * ClipVisualV4
+         * @description Clip visual layer. Shot scale is a single field.
+         */
+        ClipVisualV4: {
+            /**
+             * Shot Scale
+             * @default
+             */
+            shot_scale: string;
+            /**
+             * Camera Motion
+             * @default
+             */
+            camera_motion: string;
+            /**
+             * Composition
+             * @default
+             */
+            composition: string;
+        };
         /** CloneVoiceRequest */
         CloneVoiceRequest: {
             /** Display Name */
@@ -3587,6 +3810,21 @@ export interface components {
             /** Request Id */
             request_id: string;
         };
+        /**
+         * EvidenceFrameImage
+         * @description A rendered evidence frame: a representative timestamp plus its image URL.
+         *
+         *     Pairs with ``AnnotationV4.evidence_frames`` (the bare timestamps) to give the
+         *     editor a previewable thumbnail for each cited moment. ``time`` is informational
+         *     (frame position in seconds); it is not range-validated against duration so that
+         *     pre-rendered frames at edges remain legal.
+         */
+        EvidenceFrameImage: {
+            /** Time */
+            time: number;
+            /** Image Url */
+            image_url: string;
+        };
         /** FinishedVideo */
         FinishedVideo: {
             /** Id */
@@ -3894,6 +4132,14 @@ export interface components {
             latest_annotation_id?: string | null;
             /** Badges */
             badges?: string[];
+            /** Thumbnail Url */
+            thumbnail_url?: string | null;
+            /** Duration Sec */
+            duration_sec?: number | null;
+            /** Width */
+            width?: number | null;
+            /** Height */
+            height?: number | null;
         };
         /** MediaAssetDetail */
         MediaAssetDetail: {
@@ -3968,6 +4214,14 @@ export interface components {
              * @default true
              */
             usable: boolean;
+            /** Thumbnail Url */
+            thumbnail_url?: string | null;
+            /** Duration Sec */
+            duration_sec?: number | null;
+            /** Width */
+            width?: number | null;
+            /** Height */
+            height?: number | null;
         };
         /** MediaAssetReplaceResponse */
         MediaAssetReplaceResponse: {
@@ -5688,6 +5942,58 @@ export interface components {
             /** Published At */
             published_at?: string | null;
         };
+        /**
+         * QualityEventType
+         * @description Explicit quality-event types.
+         *
+         *     The first eight are detected by sensors/VLM; ``manual_note`` is a free-form
+         *     annotation added in the editor and never participates in automatic scoring.
+         *     Deterministic sensors here emit ``occlusion`` (black/freeze), ``blur``,
+         *     ``shake``, and ``camera_drop``.
+         * @enum {string}
+         */
+        QualityEventType: "blooper_laugh" | "camera_drop" | "shake" | "blur" | "look_off_camera" | "exit_frame" | "retake_pause" | "occlusion" | "manual_note";
+        /**
+         * QualityEventV4
+         * @description V4 quality event (the single authoritative risk source).
+         *
+         *     ``source`` distinguishes 'sensor' (black/freeze/blur/shake/camera_drop) from
+         *     'vlm' (blooper/look-off). Deterministic sensors here set source='sensor' or
+         *     'motion_guard'.
+         */
+        QualityEventV4: {
+            /** Event Id */
+            event_id: string;
+            event_type: components["schemas"]["QualityEventType"];
+            /** Start */
+            start: number;
+            /** End */
+            end: number;
+            /**
+             * Description
+             * @default
+             */
+            description: string;
+            /**
+             * Risk Tier
+             * @default hard
+             */
+            risk_tier: string;
+            /**
+             * Confidence
+             * @default 0
+             */
+            confidence: number;
+            /**
+             * Severity
+             * @default 0
+             */
+            severity: number;
+            /** Source */
+            source?: string | null;
+            /** Segment Id */
+            segment_id?: string | null;
+        };
         /** ReconcileBillingRequest */
         ReconcileBillingRequest: {
             /** Provider Id */
@@ -6257,6 +6563,13 @@ export interface components {
             expires_at: string;
             /** Request Id */
             request_id: string;
+            /** Content Type */
+            content_type?: string | null;
+            /**
+             * Playable
+             * @default false
+             */
+            playable: boolean;
         };
         /** StartCaseAgentRunRequest */
         StartCaseAgentRunRequest: {
@@ -6494,6 +6807,36 @@ export interface components {
             catalog: components["schemas"]["ProviderPriceCatalog"];
             /** Items */
             items: components["schemas"]["ProviderPriceItem-Input"][];
+        };
+        /**
+         * UsageRole
+         * @description Clip role (single choice).
+         *
+         *     hook   = opening hook; main = main talking-head body; backup = spare;
+         *     avoid  = do not use; cover = b-roll used to cover voiceover.
+         * @enum {string}
+         */
+        UsageRole: "hook" | "main" | "backup" | "avoid" | "cover";
+        /**
+         * UsageWindowV4
+         * @description V4 recommended clip window.
+         */
+        UsageWindowV4: {
+            /** Start */
+            start: number;
+            /** End */
+            end: number;
+            role: components["schemas"]["UsageRole"];
+            /**
+             * Reason
+             * @default
+             */
+            reason: string;
+            /**
+             * Confidence
+             * @default 0
+             */
+            confidence: number;
         };
         /**
          * UserRole

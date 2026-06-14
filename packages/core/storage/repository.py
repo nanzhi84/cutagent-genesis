@@ -378,7 +378,15 @@ class Repository:
         if not asset_id:
             return None
         vm = self.annotations.get(asset_id)
-        if vm is None or not isinstance(vm.canonical, dict):
+        if vm is None:
+            return None
+        # AnnotationEditorVm.canonical is now a AnnotationV4 | dict union: a stored
+        # V4 payload is coerced to the model on load, while the minimal editor dict
+        # ({labels, kind}) stays a dict. Accept the already-parsed model directly and
+        # only re-validate when it is still a raw dict.
+        if isinstance(vm.canonical, AnnotationV4):
+            return vm.canonical
+        if not isinstance(vm.canonical, dict):
             return None
         try:
             return AnnotationV4.model_validate(vm.canonical)

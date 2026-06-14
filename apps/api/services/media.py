@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import mimetypes
+from pathlib import Path
+from urllib.parse import urlsplit
 
 from fastapi import Request
 
@@ -15,6 +18,41 @@ from packages.core import contracts as c
 from packages.core.storage.repository import new_id
 from packages.core.workflow import NodeExecutionError
 from apps.api.services import asset_annotation, media_processing
+
+_PLAYABLE_MEDIA_TYPES = {"video", "audio"}
+
+
+def _content_type_for(uri: str | None, media_info: c.MediaInfo | None) -> str | None:
+    # Prefer the probed mime, then fall back to the object extension. Never raise:
+    # an unknown content type is legal (the player just treats it as opaque).
+    if media_info is not None and media_info.mime_type:
+        return media_info.mime_type
+    if uri:
+        guessed = mimetypes.guess_type(Path(urlsplit(uri).path).name)[0]
+        if guessed:
+            return guessed
+    return None
+
+
+def _playable_for(media_info: c.MediaInfo | None, content_type: str | None) -> bool:
+    if media_info is not None:
+        return media_info.media_type in _PLAYABLE_MEDIA_TYPES
+    if content_type:
+        return content_type.split("/", 1)[0] in _PLAYABLE_MEDIA_TYPES
+    return False
+
+
+def _with_preview_playback(
+    response: c.SignedUrlResponse, uri: str | None, media_info: c.MediaInfo | None
+) -> c.SignedUrlResponse:
+    content_type = _content_type_for(uri, media_info)
+    return response.model_copy(
+        update={
+            "request_id": request_id(),
+            "content_type": content_type,
+            "playable": _playable_for(media_info, content_type),
+        }
+    )
 
 def list_media_assets(
     request: Request,
@@ -94,20 +132,25 @@ def media_asset_detail(request: Request, asset_id: str) -> c.MediaAssetDetail:
 def media_asset_preview(request: Request, asset_id: str) -> c.SignedUrlResponse:
 
     if media_repository(request) is not None:
-        uri = media_repository(request).artifact_uri_for_asset(asset_id)
-        if uri is None:
+        source = media_repository(request).media_source_for_asset(asset_id)
+        if source is None:
             raise NodeExecutionError(c.ErrorCode.artifact_missing, "Asset missing.")
+        uri, media_info = source
         if uri:
-            return object_store(request).signed_url(uri).model_copy(update={"request_id": request_id()})
-        return signed(request, f"media/{asset_id}")
+            return _with_preview_playback(
+                object_store(request).signed_url(uri), uri, media_info
+            )
+        return _with_preview_playback(signed(request, f"media/{asset_id}"), None, None)
     if asset_id not in repository(request).media_assets:
         raise NodeExecutionError(c.ErrorCode.artifact_missing, "Asset missing.")
     asset = repository(request).media_assets[asset_id]
     if asset.source_artifact_id and asset.source_artifact_id in repository(request).artifacts:
         artifact = repository(request).artifacts[asset.source_artifact_id]
         if artifact.uri:
-            return object_store(request).signed_url(artifact.uri).model_copy(update={"request_id": request_id()})
-    return signed(request, f"media/{asset_id}")
+            return _with_preview_playback(
+                object_store(request).signed_url(artifact.uri), artifact.uri, artifact.media_info
+            )
+    return _with_preview_playback(signed(request, f"media/{asset_id}"), None, None)
 
 
 def batch_stabilize_assets(
@@ -160,7 +203,13 @@ def patch_annotation(asset_id: str, payload: c.PatchAnnotationRequest, request: 
             raise NodeExecutionError(c.ErrorCode.artifact_missing, "Asset missing.")
         return editor
     editor = get_annotation(request, asset_id)
-    canonical = dict(editor.canonical or {})
+    # canonical may be an AnnotationV4 (coerced on load) or the minimal editor dict;
+    # normalize to a plain mutable dict so the JSON-pointer ops apply uniformly.
+    raw_canonical = editor.canonical
+    if isinstance(raw_canonical, c.AnnotationV4):
+        canonical = raw_canonical.model_dump(mode="json")
+    else:
+        canonical = dict(raw_canonical or {})
     projection = dict(editor.projection or {})
     _apply_annotation_operations(canonical, projection, payload.patch.operations)
     updated = editor.model_copy(update={"etag": new_id("etag"), "canonical": canonical, "projection": projection})

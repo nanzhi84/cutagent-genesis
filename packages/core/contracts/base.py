@@ -224,6 +224,8 @@ class SignedUrlResponse(ContractModel):
     url: str
     expires_at: datetime
     request_id: str
+    content_type: str | None = None
+    playable: bool = False
 
 
 class EventStreamTokenResponse(ContractModel):

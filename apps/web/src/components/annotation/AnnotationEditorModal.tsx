@@ -16,13 +16,16 @@ import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, isApiError, type AnnotationEditorVm, type MediaAssetRecord } from "../../api/client";
 import { formatDuration, shortId } from "../../lib/format";
-import { toDisplayUrl } from "../../components/library/libraryModel";
+import { readAssetThumbnailUrl, readPreviewUrlMeta, toDisplayUrl } from "../../components/library/libraryModel";
 import {
+  canonicalToEvidenceFrames,
   canonicalToQualityEvents,
   canonicalToSegments,
   parseQualityEvents,
   readDuration,
+  readMeta,
   segmentsToClips,
+  type AnnotationEvidenceFrame,
   type AnnotationQualityEvent,
   type AnnotationSegmentQuality,
   type AnnotationTimelineSegment,
@@ -136,6 +139,8 @@ export function AnnotationEditorModal({ assetId, caseId, onClose }: AnnotationEd
   const [activeSegmentId, setActiveSegmentId] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
+  // Playability from the preview-url response (`playable`); `false` => degrade even with a URL.
+  const [previewPlayable, setPreviewPlayable] = useState<boolean | undefined>(undefined);
   const [form, setForm] = useState<AnnotationForm>({ qualityStatus: "usable", usable: true, segments: [], qualityEvents: [] });
 
   const editorQuery = useQuery({
@@ -151,15 +156,19 @@ export function AnnotationEditorModal({ assetId, caseId, onClose }: AnnotationEd
   useEffect(() => {
     if (!assetId) {
       setPreviewUrl(null);
+      setPreviewPlayable(undefined);
       return;
     }
     let cancelled = false;
     setPreviewLoading(true);
     setPreviewUrl(null);
+    setPreviewPlayable(undefined);
     api.mediaAssets
       .previewUrl(assetId)
       .then((response) => {
-        if (!cancelled) setPreviewUrl(toDisplayUrl(response.url));
+        if (cancelled) return;
+        setPreviewUrl(toDisplayUrl(response.url));
+        setPreviewPlayable(readPreviewUrlMeta(response).playable);
       })
       .catch(() => {
         if (!cancelled) setPreviewUrl(null);
@@ -224,6 +233,15 @@ export function AnnotationEditorModal({ assetId, caseId, onClose }: AnnotationEd
     () => displayEvents.map((event, index) => toPlayerEvent(event, index)),
     [displayEvents],
   );
+  const evidenceFrames = useMemo<AnnotationEvidenceFrame[]>(
+    () => (canonical ? canonicalToEvidenceFrames(canonical) : []),
+    [canonical],
+  );
+
+  // Annotation version badge ("annotation_v4" -> "标注 v4"); thumbnail poster; playability gate.
+  const annotationVersionLabel = useMemo(() => formatAnnotationVersion(readMeta(canonical).annotation_version), [canonical]);
+  const thumbnailUrl = editor ? readAssetThumbnailUrl(editor.asset) : null;
+  const canPlay = Boolean(previewUrl) && previewPlayable !== false;
 
   const patchMutation = useMutation({
     mutationFn: async () => {
@@ -294,7 +312,7 @@ export function AnnotationEditorModal({ assetId, caseId, onClose }: AnnotationEd
   });
 
   return (
-    <Modal isOpen={Boolean(assetId)} onClose={onClose} title="标注编辑器" size="2xl">
+    <Modal isOpen={Boolean(assetId)} onClose={onClose} title="标注编辑器" size="3xl">
       {editorQuery.isLoading ? (
         <div className="grid min-h-[360px] place-items-center">
           <LoadingState label="加载标注" />
@@ -310,6 +328,7 @@ export function AnnotationEditorModal({ assetId, caseId, onClose }: AnnotationEd
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="text-lg font-semibold text-text-primary">{editor.asset.title}</h3>
                 <span className="badge bg-surface-hover text-text-secondary">{isPortrait ? "口播 / 数字人" : "B-roll"}</span>
+                {annotationVersionLabel ? <span className="badge bg-accent/12 text-accent">{annotationVersionLabel}</span> : null}
               </div>
               <p className="mt-1 font-mono text-xs text-text-tertiary">
                 {shortId(editor.asset.id, 14)} · 版本标识 {shortId(editor.etag, 14)}
@@ -349,17 +368,19 @@ export function AnnotationEditorModal({ assetId, caseId, onClose }: AnnotationEd
             </div>
           ) : null}
 
-          {/* Two-column: player (left) + structure panel (right) */}
-          <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
-            {/* Left — video player with segment + quality overlays */}
-            <div className="grid content-start gap-3">
+          {/* Two-column: left = video + metrics + hint (no trailing gap); right = structure (scrolls internally). */}
+          <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+            {/* Left — video player + quality metrics + overlay hint */}
+            <div className="grid content-start gap-4">
               <div className="relative">
-                {previewUrl ? (
+                {canPlay && previewUrl ? (
                   <VideoPlayer
                     src={previewUrl}
+                    poster={thumbnailUrl ?? undefined}
                     className="aspect-video w-full"
                     segments={playerSegments}
                     qualityEvents={playerEvents}
+                    evidenceFrames={evidenceFrames}
                     durationHint={totalDuration > 0 ? totalDuration : undefined}
                     activeSegmentId={activeSegmentId}
                     onSegmentClick={(segment) => segment.id && setActiveSegmentId(segment.id)}
@@ -369,29 +390,34 @@ export function AnnotationEditorModal({ assetId, caseId, onClose }: AnnotationEd
                     }}
                   />
                 ) : (
-                  <div className="grid aspect-video w-full place-items-center rounded-2xl border border-dashed border-border bg-[#151913] text-sm text-white/70">
-                    <div className="flex flex-col items-center gap-2">
-                      {previewLoading ? <Loader2 className="h-7 w-7 animate-spin opacity-80" /> : <FileVideo className="h-8 w-8 opacity-70" />}
-                      <span>{previewLoading ? "加载视频预览…" : "素材预览暂不可用（待真实媒体接入）"}</span>
-                    </div>
+                  <div className="grid aspect-video w-full place-items-center overflow-hidden rounded-2xl border border-dashed border-border bg-[#151913] text-sm text-white/70">
+                    {!previewLoading && thumbnailUrl ? (
+                      <img src={thumbnailUrl} alt={editor.asset.title} className="aspect-video w-full object-cover opacity-80" />
+                    ) : (
+                      <div className="flex flex-col items-center gap-2">
+                        {previewLoading ? <Loader2 className="h-7 w-7 animate-spin opacity-80" /> : <FileVideo className="h-8 w-8 opacity-70" />}
+                        <span>{previewLoading ? "加载视频预览…" : "素材预览暂不可用（待真实媒体接入）"}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-              <p className="text-xs text-text-tertiary">
-                {playerSegments.length > 0
-                  ? `时间轴叠加 ${playerSegments.length} 个片段${playerEvents.length > 0 ? ` · ${playerEvents.length} 个质量事件` : ""}，点击可跳转并高亮。`
-                  : "该标注暂无可视化片段。"}
-              </p>
-            </div>
 
-            {/* Right — quality metrics + structured cards / form */}
-            <div className="grid content-start gap-4">
               <div className="grid gap-3 sm:grid-cols-3">
                 <AnnotationMetric label="有效时长" value={formatDuration(validDuration)} tone="ok" />
                 <AnnotationMetric label="无效时长" value={formatDuration(invalidDuration)} tone="warn" />
                 <AnnotationMetric label="总时长" value={formatDuration(totalDuration > 0 ? totalDuration : undefined)} />
               </div>
 
+              <p className="text-xs text-text-tertiary">
+                {playerSegments.length > 0
+                  ? `时间轴叠加 ${playerSegments.length} 个片段${playerEvents.length > 0 ? ` · ${playerEvents.length} 个质量事件` : ""}${evidenceFrames.length > 0 ? ` · ${evidenceFrames.length} 个证据帧` : ""}，点击可跳转并高亮。`
+                  : "该标注暂无可视化片段。"}
+              </p>
+            </div>
+
+            {/* Right — structured cards / edit form (internal scroll, aligned to the left column height). */}
+            <div className="max-h-[72vh] overflow-y-auto pr-1">
               {editing ? (
                 <StructuredAnnotationForm
                   form={form}
@@ -447,7 +473,7 @@ function ReadonlyStructurePanel({
         {segments.length === 0 ? (
           <p className="rounded-2xl border border-border/80 bg-white/65 p-4 text-sm text-text-secondary">暂无结构化片段。</p>
         ) : (
-          <div className="grid max-h-[420px] gap-3 overflow-y-auto pr-1">
+          <div className="grid gap-3">
             {segments.map((segment, index) => (
               <SegmentCard
                 key={segment.segment_id || index}
@@ -700,7 +726,7 @@ function StructuredAnnotationForm({
             <span>新增片段</span>
           </button>
         </div>
-        <div className="grid max-h-[360px] gap-3 overflow-y-auto pr-1">
+        <div className="grid gap-3">
           {form.segments.map((segment, index) => (
             <div key={segment.segment_id || index} className="grid gap-3 rounded-2xl border border-border/80 bg-white/65 p-3">
               <div className="grid gap-2 sm:grid-cols-[1fr_1fr_1fr_auto]">
@@ -933,6 +959,14 @@ function toPlayerEvent(event: AnnotationQualityEvent, index: number): VideoPlaye
     label: event.description || event.event_type || "质量事件",
     risk_tier: event.risk_tier,
   };
+}
+
+/** "annotation_v4" -> "标注 v4"; any other non-empty token -> "标注 <token>"; empty -> null. */
+function formatAnnotationVersion(version?: string): string | null {
+  const token = String(version ?? "").trim();
+  if (!token) return null;
+  const match = /^annotation_(.+)$/i.exec(token);
+  return `标注 ${match ? match[1] : token}`;
 }
 
 function boolLabel(value: boolean | null | undefined, onTrue: string, onFalse: string, unknown: string): string {

@@ -27,6 +27,13 @@ export interface VideoPlayerQualityEvent {
   risk_tier?: string;
 }
 
+export interface VideoPlayerEvidenceFrame {
+  /** Timestamp (seconds) of the sampled evidence frame. */
+  time: number;
+  /** Optional thumbnail shown on hover; absent => render a plain tick only. */
+  image_url?: string;
+}
+
 export interface VideoPlayerProps {
   src: string;
   poster?: string;
@@ -35,6 +42,8 @@ export interface VideoPlayerProps {
   preload?: "none" | "metadata" | "auto";
   segments?: VideoPlayerSegment[];
   qualityEvents?: VideoPlayerQualityEvent[];
+  /** Evidence-frame ticks on the progress track (hover thumbnail when `image_url` present). */
+  evidenceFrames?: VideoPlayerEvidenceFrame[];
   /** When provided, overrides the player's own loadedmetadata duration (e.g. canonical meta.duration). */
   durationHint?: number;
   /** Currently highlighted segment id (controlled selection); the player also auto-highlights the playhead segment. */
@@ -82,6 +91,7 @@ export function VideoPlayer({
   preload = "metadata",
   segments = [],
   qualityEvents = [],
+  evidenceFrames = [],
   durationHint,
   activeSegmentId = null,
   onTimeUpdate,
@@ -99,6 +109,7 @@ export function VideoPlayer({
   const [isMuted, setIsMuted] = useState(false);
   const [isHoveringProgress, setIsHoveringProgress] = useState(false);
   const [hoverTime, setHoverTime] = useState(0);
+  const [hoverFrameIndex, setHoverFrameIndex] = useState<number | null>(null);
 
   const duration = useMemo(() => {
     const hint = durationHint && durationHint > 0 ? durationHint : 0;
@@ -321,6 +332,42 @@ export function VideoPlayer({
                 />
               ))
             : null}
+
+          {/* Evidence-frame ticks (hover => thumbnail when available) */}
+          {duration > 0
+            ? evidenceFrames.map((frame, i) => (
+                <button
+                  key={`ev-frame-${i}`}
+                  type="button"
+                  className="absolute top-1/2 z-[6] h-4 w-0.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/70 transition-transform hover:scale-y-125 hover:bg-white"
+                  title={`证据帧 ${formatClock(frame.time)}`}
+                  onMouseEnter={() => setHoverFrameIndex(i)}
+                  onMouseLeave={() => setHoverFrameIndex((current) => (current === i ? null : current))}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    seekTo(frame.time);
+                  }}
+                  style={{ left: `${pct(frame.time)}%` }}
+                />
+              ))
+            : null}
+
+          {/* Evidence-frame hover thumbnail */}
+          {duration > 0 && hoverFrameIndex !== null && evidenceFrames[hoverFrameIndex]?.image_url ? (
+            <div
+              className="pointer-events-none absolute -top-[88px] z-[8] -translate-x-1/2 overflow-hidden rounded-lg border border-white/20 bg-black/80 shadow-glow"
+              style={{ left: `${pct(evidenceFrames[hoverFrameIndex]!.time)}%` }}
+            >
+              <img
+                src={evidenceFrames[hoverFrameIndex]!.image_url}
+                alt={`证据帧 ${formatClock(evidenceFrames[hoverFrameIndex]!.time)}`}
+                className="h-20 w-auto max-w-[160px] object-cover"
+              />
+              <span className="block bg-black/70 px-1.5 py-0.5 text-center text-[10px] text-white/90">
+                {formatClock(evidenceFrames[hoverFrameIndex]!.time)}
+              </span>
+            </div>
+          ) : null}
 
           {/* Native range overlay (keyboard accessible scrubber) */}
           <input

@@ -10,7 +10,13 @@ import { TemplateUploadModal } from "../../components/library/TemplateUploadModa
 import { UploadPlaceholderCard } from "../../components/library/UploadPlaceholderCard";
 import { VideoPreviewModal } from "../../components/library/VideoPreviewModal";
 import { UsageRankingPanel } from "../../components/library/UsageRankingPanel";
-import { templateKindLabels, type TemplateKind, type UploadPlaceholder, toDisplayUrl } from "../../components/library/libraryModel";
+import {
+  templateKindLabels,
+  type TemplateKind,
+  type UploadPlaceholder,
+  toDisplayUrl,
+  readPreviewUrlMeta,
+} from "../../components/library/libraryModel";
 import { SearchInput } from "../../components/ui/SearchInput";
 import { useToast } from "../../components/ui/Toast";
 import { InfiniteScrollSentinel } from "../../components/ui/InfiniteScrollSentinel";
@@ -39,6 +45,8 @@ export function TemplatesTab() {
   const [replaceTargetAssetId, setReplaceTargetAssetId] = useState<string | null>(null);
   const [placeholders, setPlaceholders] = useState<UploadPlaceholder[]>([]);
   const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({});
+  // Per-asset playability flag from the preview-url response (true/false; absent => unknown).
+  const [previewPlayable, setPreviewPlayable] = useState<Record<string, boolean>>({});
   const [previewAssetId, setPreviewAssetId] = useState<string | null>(null);
   const [previewLoadingId, setPreviewLoadingId] = useState<string | null>(null);
 
@@ -189,6 +197,10 @@ export function TemplatesTab() {
     if (previewUrls[assetId]) return previewUrls[assetId];
     try {
       const response = await api.mediaAssets.previewUrl(assetId);
+      const meta = readPreviewUrlMeta(response);
+      if (meta.playable !== undefined) {
+        setPreviewPlayable((current) => ({ ...current, [assetId]: meta.playable! }));
+      }
       const displayUrl = toDisplayUrl(response.url);
       if (!displayUrl) {
         toast.info("素材预览暂不可用（待真实媒体接入）");
@@ -385,6 +397,7 @@ export function TemplatesTab() {
       <VideoPreviewModal
         card={previewCard}
         previewUrl={previewCard ? toDisplayUrl(previewUrls[previewCard.asset.id] ?? previewCard.preview_url) : null}
+        playable={previewCard ? previewPlayable[previewCard.asset.id] : undefined}
         onClose={() => setPreviewAssetId(null)}
         onOpenAnnotation={
           previewCard

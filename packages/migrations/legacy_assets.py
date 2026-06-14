@@ -256,6 +256,9 @@ class LegacyAssetMigrator:
             "mime": guess_mime(key),
             "external_id": str(external_id or Path(key).name),
         }
+        thumbnail_key = self._oss_key(item.get("thumbnail") or item.get("thumbnail_path"))
+        if thumbnail_key:
+            row["thumbnail_uri"] = f"s3://{self.bucket}/{thumbnail_key}"
         duration_sec = optional_float(duration)
         if duration_sec is not None:
             row["duration_sec"] = duration_sec

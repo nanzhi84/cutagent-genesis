@@ -35,12 +35,15 @@ from packages.core.storage.database import (
     UploadSessionRow,
     VoiceProfileRow,
 )
+from packages.core.storage.object_store import ObjectStore
 from packages.core.storage.repository import new_id
 from packages.core.storage.selection_ledger import material_usage_ranking_from_entries
 from packages.core.workflow import NodeExecutionError
 
 
-def media_asset_row_to_contract(row: MediaAssetRow) -> MediaAssetRecord:
+def media_asset_row_to_contract(
+    row: MediaAssetRow, *, thumbnail_url: str | None = None
+) -> MediaAssetRecord:
     return MediaAssetRecord(
         id=row.id,
         case_id=row.case_id,
@@ -50,6 +53,10 @@ def media_asset_row_to_contract(row: MediaAssetRow) -> MediaAssetRecord:
         tags=list(row.tags or []),
         annotation_status=row.annotation_status,
         usable=row.usable,
+        thumbnail_url=thumbnail_url,
+        duration_sec=row.duration_sec,
+        width=row.width,
+        height=row.height,
         schema_version=row.schema_version,
         created_at=row.created_at,
         updated_at=row.updated_at,
@@ -122,8 +129,21 @@ def _apply_annotation_operations(canonical: dict, projection: dict, operations: 
 
 
 class SqlAlchemyMediaRepository:
-    def __init__(self, session_factory: sessionmaker[Session]) -> None:
+    def __init__(
+        self, session_factory: sessionmaker[Session], object_store: ObjectStore | None = None
+    ) -> None:
         self.session_factory = session_factory
+        self.object_store = object_store
+
+    def _signed_thumbnail_url(self, thumbnail_uri: str | None) -> str | None:
+        # Sign the stored thumbnail object into a fetchable URL for the card.
+        # No object store (unit tests / legacy wiring) or no stored uri => None.
+        if not thumbnail_uri or self.object_store is None:
+            return None
+        try:
+            return self.object_store.signed_url(thumbnail_uri).url
+        except Exception:
+            return None
 
     def list_assets(
         self,
@@ -142,18 +162,29 @@ class SqlAlchemyMediaRepository:
             if annotation_status:
                 statement = statement.where(MediaAssetRow.annotation_status == annotation_status)
             statement = statement.order_by(MediaAssetRow.updated_at.desc()).limit(limit)
-            return [
-                MediaAssetCard(asset=media_asset_row_to_contract(row), preview_url=f"local://media/{row.id}")
-                for row in session.scalars(statement)
-            ]
+            cards: list[MediaAssetCard] = []
+            for row in session.scalars(statement):
+                thumbnail_url = self._signed_thumbnail_url(row.thumbnail_uri)
+                cards.append(
+                    MediaAssetCard(
+                        asset=media_asset_row_to_contract(row, thumbnail_url=thumbnail_url),
+                        preview_url=f"local://media/{row.id}",
+                        thumbnail_url=thumbnail_url,
+                        duration_sec=row.duration_sec,
+                        width=row.width,
+                        height=row.height,
+                    )
+                )
+            return cards
 
     def get_asset_detail(self, asset_id: str) -> MediaAssetDetail | None:
         with self.session_factory() as session:
             row = session.get(MediaAssetRow, asset_id)
             if row is None:
                 return None
+            thumbnail_url = self._signed_thumbnail_url(row.thumbnail_uri)
             return MediaAssetDetail(
-                asset=media_asset_row_to_contract(row),
+                asset=media_asset_row_to_contract(row, thumbnail_url=thumbnail_url),
                 preview_url=f"local://media/{row.id}",
             )
 
@@ -234,6 +265,26 @@ class SqlAlchemyMediaRepository:
                 return ""
             artifact = session.get(ArtifactRow, asset.source_artifact_id)
             return artifact.uri if artifact is not None else ""
+
+    def media_source_for_asset(self, asset_id: str) -> tuple[str, MediaInfo | None] | None:
+        # Returns the source artifact's (uri, media_info) so the preview endpoint can
+        # surface content_type/playable. None => asset missing; ("", None) => asset
+        # exists but has no source artifact yet (caller falls back to a local stub).
+        with self.session_factory() as session:
+            asset = session.get(MediaAssetRow, asset_id)
+            if asset is None:
+                return None
+            if not asset.source_artifact_id:
+                return "", None
+            artifact = session.get(ArtifactRow, asset.source_artifact_id)
+            if artifact is None:
+                return "", None
+            media_info = (
+                MediaInfo.model_validate(artifact.media_info)
+                if isinstance(artifact.media_info, dict)
+                else None
+            )
+            return artifact.uri or "", media_info
 
     def artifact_ref_for_asset(self, asset_id: str) -> ArtifactRef | None:
         with self.session_factory() as session:

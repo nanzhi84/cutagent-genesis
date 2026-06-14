@@ -968,6 +968,11 @@ class SqlAlchemyProductionRepository:
                     tags=[str(item) for item in tags] if isinstance(tags, list) else [],
                     annotation_status=str(row.get("annotation_status", "pending")),
                     usable=bool(row.get("usable", True)),
+                    thumbnail_uri=_optional_str(row.get("thumbnail_uri"))
+                    or _optional_str(row.get("thumbnail")),
+                    duration_sec=_optional_float(row.get("duration_sec")),
+                    width=_optional_int(row.get("width")),
+                    height=_optional_int(row.get("height")),
                 )
             )
         elif import_type == "finished_video":

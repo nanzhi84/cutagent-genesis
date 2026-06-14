@@ -92,6 +92,17 @@ export interface AnnotationUsageWindow {
   confidence?: number;
 }
 
+/**
+ * Evidence frame marker: a timestamp (seconds) optionally paired with a sampled
+ * thumbnail URL. `time` comes from canonical.evidence_frames (flat number[]); the
+ * optional `image_url` is matched from the newer canonical.evidence_frame_images
+ * (added by the backend Regen — read defensively, may be absent for older payloads).
+ */
+export interface AnnotationEvidenceFrame {
+  time: number;
+  image_url?: string;
+}
+
 /** Meta layer (canonical.meta). */
 export interface AnnotationMeta {
   annotation_version?: string;
@@ -389,6 +400,51 @@ export function readEvidenceFrames(canonical?: unknown): number[] {
   return asArray(asRecord(canonical).evidence_frames)
     .map((item) => asOptionalNumber(item))
     .filter((item): item is number => item !== undefined);
+}
+
+/**
+ * Evidence frame thumbnails (canonical.evidence_frame_images — added by the backend
+ * Regen). Each entry may be a plain URL string (positional, matched to the i-th
+ * evidence_frames timestamp) or an object carrying its own `{ time, image_url }`.
+ * Returns a list of `{ time?, image_url }` where `time` is only present for the
+ * object form; the positional fallback is resolved by the caller.
+ */
+export function readEvidenceFrameImages(canonical?: unknown): Array<{ time?: number; image_url: string }> {
+  return asArray(asRecord(canonical).evidence_frame_images)
+    .map((item) => {
+      if (typeof item === "string") {
+        const url = item.trim();
+        return url ? { image_url: url } : null;
+      }
+      const record = asRecord(item);
+      const url = cleanString(record.image_url ?? record.url ?? record.thumbnail_url).trim();
+      if (!url) return null;
+      return { time: asOptionalNumber(record.time ?? record.start ?? record.timestamp), image_url: url };
+    })
+    .filter((item): item is { time?: number; image_url: string } => item !== null);
+}
+
+/**
+ * Evidence-frame markers for the timeline: pairs each canonical.evidence_frames
+ * timestamp with its thumbnail (object-form match by nearest `time`, else positional
+ * fallback). Frames without a thumbnail render as plain ticks (`image_url` undefined).
+ */
+export function canonicalToEvidenceFrames(canonical?: unknown): AnnotationEvidenceFrame[] {
+  const times = readEvidenceFrames(canonical);
+  const images = readEvidenceFrameImages(canonical);
+  if (times.length === 0) {
+    // No timestamps: surface any timestamped thumbnails on their own.
+    return images
+      .filter((img) => img.time !== undefined)
+      .map((img) => ({ time: img.time as number, image_url: img.image_url }));
+  }
+  const positional = images.filter((img) => img.time === undefined).map((img) => img.image_url);
+  const timed = images.filter((img): img is { time: number; image_url: string } => img.time !== undefined);
+  return times.map((time, index) => {
+    const matched = timed.find((img) => Math.abs(img.time - time) < 0.05);
+    const image_url = matched?.image_url ?? positional[index];
+    return image_url ? { time, image_url } : { time };
+  });
 }
 
 export function readMeta(canonical?: unknown): AnnotationMeta {

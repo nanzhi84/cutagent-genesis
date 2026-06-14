@@ -4,21 +4,35 @@ import { useQuery } from "@tanstack/react-query";
 import { api, type MediaAssetCard } from "../../api/client";
 import { formatDuration, shortId } from "../../lib/format";
 import {
+  canonicalToEvidenceFrames,
   canonicalToQualityEvents,
   canonicalToSegments,
   readDuration,
+  type AnnotationEvidenceFrame,
   type AnnotationQualityEvent,
   type AnnotationTimelineSegment,
 } from "../../utils/annotationV4";
 import { Modal } from "../ui/Modal";
 import { VideoPlayer, type VideoPlayerQualityEvent, type VideoPlayerSegment } from "../ui/VideoPlayer";
-import { annotationStatusLabels, annotationTone, templateKindLabels, type TemplateKind } from "./libraryModel";
+import {
+  annotationStatusLabels,
+  annotationTone,
+  readAssetDurationSec,
+  readAssetThumbnailUrl,
+  templateKindLabels,
+  type TemplateKind,
+} from "./libraryModel";
 
 type VideoPreviewModalProps = {
   /** Card to preview; `null` keeps the modal closed (open state is derived from this). */
   card: MediaAssetCard | null;
   /** Browser-playable preview URL (already sanitized via toDisplayUrl); `null` => unavailable. */
   previewUrl: string | null;
+  /**
+   * Playability asserted by the preview-url response (`playable`). When defined it wins over the
+   * URL heuristic; `false` => degrade to placeholder even with a URL; `undefined` => use the URL.
+   */
+  playable?: boolean;
   onClose: () => void;
   /** Optional: open the annotation editor for this asset (footer shortcut). */
   onOpenAnnotation?: () => void;
@@ -48,10 +62,13 @@ function toPlayerQualityEvent(event: AnnotationQualityEvent, index: number): Vid
   };
 }
 
-export function VideoPreviewModal({ card, previewUrl, onClose, onOpenAnnotation }: VideoPreviewModalProps) {
+export function VideoPreviewModal({ card, previewUrl, playable, onClose, onOpenAnnotation }: VideoPreviewModalProps) {
   const asset = card?.asset ?? null;
   const assetId = asset?.id ?? null;
   const isAnnotated = asset?.annotation_status === "annotated";
+  // A playable URL renders the player; `playable === false` degrades to placeholder even with a URL.
+  const canPlay = Boolean(previewUrl) && playable !== false;
+  const thumbnailUrl = asset ? readAssetThumbnailUrl(asset) : null;
 
   // Only pull the canonical annotation when the asset is annotated — drives segment/quality overlays + duration.
   const annotationQuery = useQuery({
@@ -72,6 +89,11 @@ export function VideoPreviewModal({ card, previewUrl, onClose, onOpenAnnotation 
     return canonicalToQualityEvents(canonical).map(toPlayerQualityEvent);
   }, [canonical]);
 
+  const evidenceFrames = useMemo<AnnotationEvidenceFrame[]>(() => {
+    if (!canonical) return [];
+    return canonicalToEvidenceFrames(canonical);
+  }, [canonical]);
+
   const durationHint = useMemo(() => (canonical ? readDuration(canonical) : 0), [canonical]);
 
   if (!asset) return null;
@@ -79,26 +101,35 @@ export function VideoPreviewModal({ card, previewUrl, onClose, onOpenAnnotation 
   const kindLabel = templateKindLabels[asset.kind as TemplateKind] ?? asset.kind;
   const tags = asset.tags ?? [];
   const loadingOverlay = isAnnotated && annotationQuery.isLoading;
+  // Prefer the asset's own duration_sec (available even un-annotated); fall back to the canonical hint.
+  const assetDuration = readAssetDurationSec(asset);
+  const displayDuration = assetDuration ?? (durationHint > 0 ? durationHint : undefined);
 
   return (
     <Modal isOpen={Boolean(card)} onClose={onClose} title={asset.title} size="2xl">
       <div className="grid gap-5">
         <div className="relative">
-          {previewUrl ? (
+          {canPlay && previewUrl ? (
             <VideoPlayer
               src={previewUrl}
+              poster={thumbnailUrl ?? undefined}
               className="aspect-video w-full"
               autoPlay
               segments={segments}
               qualityEvents={qualityEvents}
-              durationHint={durationHint > 0 ? durationHint : undefined}
+              evidenceFrames={evidenceFrames}
+              durationHint={displayDuration}
             />
           ) : (
-            <div className="grid aspect-video w-full place-items-center rounded-2xl border border-dashed border-border bg-[#151913] text-sm text-white/70">
-              <div className="flex flex-col items-center gap-2">
-                <FileVideo className="h-8 w-8 opacity-70" />
-                <span>素材预览暂不可用（待真实媒体接入）</span>
-              </div>
+            <div className="grid aspect-video w-full place-items-center overflow-hidden rounded-2xl border border-dashed border-border bg-[#151913] text-sm text-white/70">
+              {thumbnailUrl ? (
+                <img src={thumbnailUrl} alt={asset.title} className="aspect-video w-full object-cover opacity-80" />
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <FileVideo className="h-8 w-8 opacity-70" />
+                  <span>素材预览暂不可用（待真实媒体接入）</span>
+                </div>
+              )}
             </div>
           )}
           {loadingOverlay ? (
@@ -117,7 +148,7 @@ export function VideoPreviewModal({ card, previewUrl, onClose, onOpenAnnotation 
             </span>
             <span className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-text-tertiary" />
-              <span>时长：{durationHint > 0 ? formatDuration(durationHint) : "未知"}</span>
+              <span>时长：{displayDuration !== undefined ? formatDuration(displayDuration) : "未知"}</span>
             </span>
             <span className="flex items-center gap-2">
               <span className="text-text-tertiary">标注：</span>

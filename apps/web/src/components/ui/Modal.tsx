@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 
-export type ModalSize = "sm" | "md" | "lg" | "xl" | "2xl";
+export type ModalSize = "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
 
 type ModalProps = {
   isOpen: boolean;
@@ -19,6 +19,7 @@ const sizeClasses: Record<ModalSize, string> = {
   lg: "max-w-2xl",
   xl: "max-w-4xl",
   "2xl": "max-w-6xl",
+  "3xl": "max-w-[88rem]",
 };
 
 export function Modal({ isOpen, onClose, title, children, size = "md", showCloseButton = true }: ModalProps) {

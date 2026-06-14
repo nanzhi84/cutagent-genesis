@@ -7122,10 +7122,17 @@
             "title": "Etag"
           },
           "canonical": {
-            "additionalProperties": {
-              "$ref": "#/components/schemas/JsonValue"
-            },
-            "type": "object",
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnnotationV4"
+              },
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JsonValue"
+                },
+                "type": "object"
+              }
+            ],
             "title": "Canonical"
           },
           "projection": {
@@ -7152,6 +7159,56 @@
           "projection"
         ],
         "title": "AnnotationEditorVm"
+      },
+      "AnnotationMetaV4": {
+        "properties": {
+          "annotation_version": {
+            "$ref": "#/components/schemas/AnnotationVersion",
+            "default": "annotation_v4"
+          },
+          "asset_id": {
+            "type": "string",
+            "title": "Asset Id"
+          },
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "material_type": {
+            "type": "string",
+            "title": "Material Type"
+          },
+          "duration": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Duration",
+            "default": 0.0
+          },
+          "generated_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generated At"
+          },
+          "annotation_status": {
+            "$ref": "#/components/schemas/AnnotationStatus",
+            "default": "completed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "asset_id",
+          "case_id",
+          "material_type"
+        ],
+        "title": "AnnotationMetaV4",
+        "description": "V4 meta layer."
       },
       "AnnotationPatch": {
         "properties": {
@@ -7206,6 +7263,79 @@
           "status"
         ],
         "title": "AnnotationRunResponse"
+      },
+      "AnnotationStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "analyzing",
+          "completed",
+          "failed"
+        ],
+        "title": "AnnotationStatus",
+        "description": "Annotation lifecycle. V4 terminal states are only completed / failed."
+      },
+      "AnnotationV4": {
+        "properties": {
+          "meta": {
+            "$ref": "#/components/schemas/AnnotationMetaV4"
+          },
+          "clips": {
+            "items": {
+              "$ref": "#/components/schemas/ClipV4"
+            },
+            "type": "array",
+            "title": "Clips"
+          },
+          "quality_events": {
+            "items": {
+              "$ref": "#/components/schemas/QualityEventV4"
+            },
+            "type": "array",
+            "title": "Quality Events"
+          },
+          "quality_report": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Quality Report"
+          },
+          "usage_windows": {
+            "items": {
+              "$ref": "#/components/schemas/UsageWindowV4"
+            },
+            "type": "array",
+            "title": "Usage Windows"
+          },
+          "evidence_frames": {
+            "items": {
+              "type": "number"
+            },
+            "type": "array",
+            "title": "Evidence Frames"
+          },
+          "evidence_frame_images": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceFrameImage"
+            },
+            "type": "array",
+            "title": "Evidence Frame Images"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "meta"
+        ],
+        "title": "AnnotationV4",
+        "description": "V4 unified annotation (seven-layer clean view).\n\nThe editing agent consumes only this interface; portrait and b-roll share\none structure. All time-bearing layers must fall inside [0, duration] (out\nof bounds raises, the quality-gate safety net). duration<=0 skips the upper\nbound check (unknown duration / empty annotation is legal)."
+      },
+      "AnnotationVersion": {
+        "type": "string",
+        "enum": [
+          "annotation_v4"
+        ],
+        "title": "AnnotationVersion",
+        "description": "Structured annotation protocol version. V4 is the only protocol in use."
       },
       "ApprovalDecisionRequest": {
         "properties": {
@@ -8806,6 +8936,255 @@
           "new_password"
         ],
         "title": "ChangePasswordRequest"
+      },
+      "ClipRetrievalV4": {
+        "properties": {
+          "summary": {
+            "type": "string",
+            "title": "Summary",
+            "default": ""
+          },
+          "keywords": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Keywords"
+          },
+          "retrieval_sentence": {
+            "type": "string",
+            "title": "Retrieval Sentence",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ClipRetrievalV4",
+        "description": "Clip retrieval view (the single canonical summary)."
+      },
+      "ClipSemanticsV4": {
+        "properties": {
+          "subject_type": {
+            "type": "string",
+            "title": "Subject Type",
+            "default": ""
+          },
+          "scene_type": {
+            "type": "string",
+            "title": "Scene Type",
+            "default": ""
+          },
+          "gaze_to_camera": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gaze To Camera"
+          },
+          "mouth_visible": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mouth Visible"
+          },
+          "mouth_moving": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mouth Moving"
+          },
+          "gesture_type": {
+            "type": "string",
+            "title": "Gesture Type",
+            "default": ""
+          },
+          "body_orientation": {
+            "type": "string",
+            "title": "Body Orientation",
+            "default": ""
+          },
+          "emotion_state": {
+            "type": "string",
+            "title": "Emotion State",
+            "default": ""
+          },
+          "speaker_intent": {
+            "type": "string",
+            "title": "Speaker Intent",
+            "default": ""
+          },
+          "speech_action_alignment": {
+            "type": "string",
+            "title": "Speech Action Alignment",
+            "default": ""
+          },
+          "retake_cue": {
+            "type": "string",
+            "title": "Retake Cue",
+            "default": ""
+          },
+          "action": {
+            "type": "string",
+            "title": "Action",
+            "default": ""
+          },
+          "narrative_role": {
+            "type": "string",
+            "title": "Narrative Role",
+            "default": ""
+          },
+          "contains_face": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contains Face"
+          },
+          "face_count_max": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Face Count Max",
+            "description": "Max faces in a single frame (incl. mirror/reflection/screen/background); >1 means not lip-sync usable"
+          },
+          "process_stage": {
+            "type": "string",
+            "title": "Process Stage",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ClipSemanticsV4",
+        "description": "Clip semantics (unified superset).\n\nPortrait and b-roll semantic fields coexist and are each optional; fill the\nside matching material_type and leave the other at its default so downstream\nfaces a single schema without branching."
+      },
+      "ClipUsageV4": {
+        "properties": {
+          "recommended_for_lip_sync": {
+            "type": "boolean",
+            "title": "Recommended For Lip Sync",
+            "default": false
+          },
+          "recommended_for_voiceover": {
+            "type": "boolean",
+            "title": "Recommended For Voiceover",
+            "default": false
+          },
+          "voiceover_only": {
+            "type": "boolean",
+            "title": "Voiceover Only",
+            "default": false
+          },
+          "role": {
+            "$ref": "#/components/schemas/UsageRole"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "role"
+        ],
+        "title": "ClipUsageV4",
+        "description": "Clip usability + role."
+      },
+      "ClipV4": {
+        "properties": {
+          "segment_id": {
+            "type": "string",
+            "title": "Segment Id"
+          },
+          "start": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Start"
+          },
+          "end": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "End"
+          },
+          "duration": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Duration"
+          },
+          "semantics": {
+            "$ref": "#/components/schemas/ClipSemanticsV4"
+          },
+          "visual": {
+            "$ref": "#/components/schemas/ClipVisualV4"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/ClipUsageV4"
+          },
+          "retrieval": {
+            "$ref": "#/components/schemas/ClipRetrievalV4"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "default": 0.8
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "segment_id",
+          "start",
+          "end",
+          "duration",
+          "usage"
+        ],
+        "title": "ClipV4",
+        "description": "V4 editable clip. Time-consistent plus semantic/visual/usage/retrieval sub-layers."
+      },
+      "ClipVisualV4": {
+        "properties": {
+          "shot_scale": {
+            "type": "string",
+            "title": "Shot Scale",
+            "default": ""
+          },
+          "camera_motion": {
+            "type": "string",
+            "title": "Camera Motion",
+            "default": ""
+          },
+          "composition": {
+            "type": "string",
+            "title": "Composition",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ClipVisualV4",
+        "description": "Clip visual layer. Shot scale is a single field."
       },
       "CloneVoiceRequest": {
         "properties": {
@@ -10555,6 +10934,26 @@
         ],
         "title": "EventStreamTokenResponse"
       },
+      "EvidenceFrameImage": {
+        "properties": {
+          "time": {
+            "type": "number",
+            "title": "Time"
+          },
+          "image_url": {
+            "type": "string",
+            "title": "Image Url"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "time",
+          "image_url"
+        ],
+        "title": "EvidenceFrameImage",
+        "description": "A rendered evidence frame: a representative timestamp plus its image URL.\n\nPairs with ``AnnotationV4.evidence_frames`` (the bare timestamps) to give the\neditor a previewable thumbnail for each cited moment. ``time`` is informational\n(frame position in seconds); it is not range-validated against duration so that\npre-rendered frames at edges remain legal."
+      },
       "FinishedVideo": {
         "properties": {
           "id": {
@@ -11390,6 +11789,50 @@
             },
             "type": "array",
             "title": "Badges"
+          },
+          "thumbnail_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thumbnail Url"
+          },
+          "duration_sec": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Sec"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width"
+          },
+          "height": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height"
           }
         },
         "additionalProperties": false,
@@ -11589,6 +12032,50 @@
             "type": "boolean",
             "title": "Usable",
             "default": true
+          },
+          "thumbnail_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Thumbnail Url"
+          },
+          "duration_sec": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Sec"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width"
+          },
+          "height": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height"
           }
         },
         "additionalProperties": false,
@@ -16334,6 +16821,99 @@
         ],
         "title": "PublishRecord"
       },
+      "QualityEventType": {
+        "type": "string",
+        "enum": [
+          "blooper_laugh",
+          "camera_drop",
+          "shake",
+          "blur",
+          "look_off_camera",
+          "exit_frame",
+          "retake_pause",
+          "occlusion",
+          "manual_note"
+        ],
+        "title": "QualityEventType",
+        "description": "Explicit quality-event types.\n\nThe first eight are detected by sensors/VLM; ``manual_note`` is a free-form\nannotation added in the editor and never participates in automatic scoring.\nDeterministic sensors here emit ``occlusion`` (black/freeze), ``blur``,\n``shake``, and ``camera_drop``."
+      },
+      "QualityEventV4": {
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "title": "Event Id"
+          },
+          "event_type": {
+            "$ref": "#/components/schemas/QualityEventType"
+          },
+          "start": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Start"
+          },
+          "end": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "End"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "risk_tier": {
+            "type": "string",
+            "title": "Risk Tier",
+            "default": "hard"
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "default": 0.0
+          },
+          "severity": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Severity",
+            "default": 0.0
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "segment_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Segment Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "event_id",
+          "event_type",
+          "start",
+          "end"
+        ],
+        "title": "QualityEventV4",
+        "description": "V4 quality event (the single authoritative risk source).\n\n``source`` distinguishes 'sensor' (black/freeze/blur/shake/camera_drop) from\n'vlm' (blooper/look-off). Deterministic sensors here set source='sensor' or\n'motion_guard'."
+      },
       "ReconcileBillingRequest": {
         "properties": {
           "provider_id": {
@@ -17752,6 +18332,22 @@
           "request_id": {
             "type": "string",
             "title": "Request Id"
+          },
+          "content_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Type"
+          },
+          "playable": {
+            "type": "boolean",
+            "title": "Playable",
+            "default": false
           }
         },
         "additionalProperties": false,
@@ -18329,6 +18925,56 @@
           "items"
         ],
         "title": "UpsertPriceCatalogRequest"
+      },
+      "UsageRole": {
+        "type": "string",
+        "enum": [
+          "hook",
+          "main",
+          "backup",
+          "avoid",
+          "cover"
+        ],
+        "title": "UsageRole",
+        "description": "Clip role (single choice).\n\nhook   = opening hook; main = main talking-head body; backup = spare;\navoid  = do not use; cover = b-roll used to cover voiceover."
+      },
+      "UsageWindowV4": {
+        "properties": {
+          "start": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Start"
+          },
+          "end": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "End"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UsageRole"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "default": ""
+          },
+          "confidence": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "default": 0.0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "role"
+        ],
+        "title": "UsageWindowV4",
+        "description": "V4 recommended clip window."
       },
       "UserRole": {
         "type": "string",

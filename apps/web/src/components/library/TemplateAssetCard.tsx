@@ -1,7 +1,7 @@
-import { Download, Eye, Loader2, Maximize2, Play, RefreshCw, Upload } from "lucide-react";
+import { Clock, Download, Eye, Loader2, Maximize2, Play, RefreshCw, Upload } from "lucide-react";
 import type { MaterialUsageRankingItem, MediaAssetCard } from "../../api/client";
-import { formatRelativeTime, shortId } from "../../lib/format";
-import { annotationStatusLabels, annotationTone } from "./libraryModel";
+import { formatDuration, formatRelativeTime, shortId } from "../../lib/format";
+import { annotationStatusLabels, annotationTone, readAssetDurationSec, readAssetThumbnailUrl } from "./libraryModel";
 
 type TemplateAssetCardProps = {
   card: MediaAssetCard;
@@ -35,6 +35,8 @@ export function TemplateAssetCard({
   onOpenAnnotation,
 }: TemplateAssetCardProps) {
   const asset = card.asset;
+  const thumbnailUrl = readAssetThumbnailUrl(asset);
+  const durationSec = readAssetDurationSec(asset);
   return (
     <article
       className={`group rounded-[24px] border bg-white/65 p-3 shadow-glow transition-all hover:-translate-y-0.5 ${
@@ -50,6 +52,7 @@ export function TemplateAssetCard({
         {previewUrl ? (
           <video
             src={previewUrl}
+            poster={thumbnailUrl ?? undefined}
             muted
             loop
             playsInline
@@ -58,11 +61,24 @@ export function TemplateAssetCard({
             onMouseEnter={(event) => void event.currentTarget.play().catch(() => undefined)}
             onMouseLeave={(event) => event.currentTarget.pause()}
           />
+        ) : thumbnailUrl ? (
+          <button type="button" onClick={onPreview} className="relative flex aspect-video w-full items-center justify-center" aria-label="放大预览">
+            <img src={thumbnailUrl} alt={asset.title} className="aspect-video w-full object-cover opacity-90 transition-opacity group-hover:opacity-100" />
+            <span className="absolute grid h-12 w-12 place-items-center rounded-full bg-black/45 text-white/90">
+              <Play className="h-6 w-6 translate-x-0.5" />
+            </span>
+          </button>
         ) : (
           <button type="button" onClick={onPreview} className="flex aspect-video w-full items-center justify-center text-white/75" aria-label="放大预览">
             <Play className="h-9 w-9" />
           </button>
         )}
+        {durationSec !== undefined ? (
+          <span className="absolute left-2 bottom-2 inline-flex items-center gap-1 rounded-full bg-black/70 px-2 py-1 text-[11px] font-medium text-white">
+            <Clock className="h-3 w-3" />
+            {formatDuration(durationSec)}
+          </span>
+        ) : null}
         <button
           type="button"
           onClick={onPreview}

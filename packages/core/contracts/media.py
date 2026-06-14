@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Literal
 from uuid import uuid4
-from pydantic import Field, JsonValue, model_validator
+from pydantic import Field, JsonValue, field_serializer, field_validator, model_validator
 
 from .base import ArtifactRef, BaseListQuery, ContractModel, EntityMeta, ErrorCode, utcnow
 from .publishing import PublishPackage
@@ -95,6 +95,10 @@ class MediaAssetRecord(EntityMeta):
     tags: list[str] = Field(default_factory=list)
     annotation_status: Literal["pending", "annotated", "annotation_failed"] = "pending"
     usable: bool = True
+    thumbnail_url: str | None = None
+    duration_sec: float | None = None
+    width: int | None = None
+    height: int | None = None
 
 
 SelectionMedium = Literal["portrait", "broll", "bgm", "font"]
@@ -158,6 +162,10 @@ class MediaAssetCard(ContractModel):
     preview_url: str | None = None
     latest_annotation_id: str | None = None
     badges: list[str] = Field(default_factory=list)
+    thumbnail_url: str | None = None
+    duration_sec: float | None = None
+    width: int | None = None
+    height: int | None = None
 
 
 class MediaAssetDetail(ContractModel):
@@ -253,9 +261,38 @@ class AnnotationRunResponse(ContractModel):
 class AnnotationEditorVm(ContractModel):
     asset: MediaAssetRecord
     etag: str
-    canonical: dict[str, JsonValue]
+    canonical: "AnnotationV4 | dict[str, JsonValue]"
     projection: dict[str, JsonValue]
     editable_paths: list[str] = Field(default_factory=list)
+
+    @field_validator("canonical", mode="before")
+    @classmethod
+    def _coerce_canonical(cls, value: Any) -> Any:
+        # Prefer the structured AnnotationV4 view when the stored canonical is a
+        # full V4 annotation; never reject the existing minimal {labels, kind}
+        # editor payloads, so fall back to the raw dict on any mismatch.
+        if isinstance(value, AnnotationV4):
+            return value
+        if isinstance(value, dict):
+            try:
+                return AnnotationV4.model_validate(value)
+            except Exception:
+                return value
+        return value
+
+    @field_serializer("canonical", when_used="always", return_type="AnnotationV4 | dict[str, JsonValue]")
+    def _serialize_canonical(self, value: Any) -> Any:
+        # Serialize both union arms to a plain JSON dict. This keeps the wire shape
+        # identical to the legacy bare-dict contract and avoids the smart-union
+        # serializer probing the dict arm for an AnnotationV4 instance (which emits
+        # spurious PydanticSerializationUnexpectedValue warnings).
+        #
+        # ``return_type`` is annotated as the union (not the runtime ``dict``) so
+        # FastAPI's serialization-mode response schema keeps the AnnotationV4
+        # $ref; without it Pydantic would collapse canonical to a bare object.
+        if isinstance(value, AnnotationV4):
+            return value.model_dump(mode="json")
+        return value
 
 
 class VoiceProfile(EntityMeta):
@@ -502,6 +539,19 @@ class AnnotationMetaV4(ContractModel):
     annotation_status: AnnotationStatus = AnnotationStatus.completed
 
 
+class EvidenceFrameImage(ContractModel):
+    """A rendered evidence frame: a representative timestamp plus its image URL.
+
+    Pairs with ``AnnotationV4.evidence_frames`` (the bare timestamps) to give the
+    editor a previewable thumbnail for each cited moment. ``time`` is informational
+    (frame position in seconds); it is not range-validated against duration so that
+    pre-rendered frames at edges remain legal.
+    """
+
+    time: float
+    image_url: str
+
+
 class AnnotationV4(ContractModel):
     """V4 unified annotation (seven-layer clean view).
 
@@ -517,6 +567,7 @@ class AnnotationV4(ContractModel):
     quality_report: dict[str, Any] = Field(default_factory=dict)
     usage_windows: list[UsageWindowV4] = Field(default_factory=list)
     evidence_frames: list[float] = Field(default_factory=list)
+    evidence_frame_images: list[EvidenceFrameImage] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _validate_time_bounds(self) -> "AnnotationV4":
@@ -608,3 +659,8 @@ class BrollQualityReport(ContractModel):
     soft_quality_count: int = Field(ge=0)
     dominant_scene_types: list[str] = Field(default_factory=list)
     dominant_shot_scales: list[str] = Field(default_factory=list)
+
+
+# AnnotationEditorVm.canonical forward-references AnnotationV4 (defined later in
+# this module); rebuild now that the target is in scope so the union resolves.
+AnnotationEditorVm.model_rebuild()

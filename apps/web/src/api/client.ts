@@ -708,6 +708,7 @@ export type UploadSession = components["schemas"]["UploadSession"];
 export type CompleteUploadResponse = components["schemas"]["CompleteUploadResponse"];
 export type MediaAssetCard = components["schemas"]["MediaAssetCard"];
 export type MediaAssetRecord = components["schemas"]["MediaAssetRecord"];
+export type SignedUrlResponse = components["schemas"]["SignedUrlResponse"];
 export type AnnotationEditorVm = components["schemas"]["AnnotationEditorVm"];
 export type FinishedVideo = components["schemas"]["FinishedVideo"];
 export type PublishAttempt = components["schemas"]["PublishAttempt"];

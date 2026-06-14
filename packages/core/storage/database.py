@@ -248,6 +248,10 @@ class MediaAssetRow(TimestampMixin, Base):
     tags: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False, default=list)
     annotation_status: Mapped[str] = mapped_column(String, nullable=False)
     usable: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    thumbnail_uri: Mapped[str | None] = mapped_column(Text)
+    duration_sec: Mapped[float | None] = mapped_column(Float)
+    width: Mapped[int | None] = mapped_column(Integer)
+    height: Mapped[int | None] = mapped_column(Integer)
 
 
 class SelectionLedgerRow(Base):

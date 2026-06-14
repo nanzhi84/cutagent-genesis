@@ -2,7 +2,18 @@ import { Check, Loader2, Plus, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { caseAgentApi } from "../../api/r6";
 import { Modal } from "../ui/Modal";
-import { buildGenerationBrief, newScriptToolId, type ScriptToolItem, type ScriptToolMode } from "./scriptToolModel";
+import {
+  DEFAULT_PERSONA_MODE,
+  DEFAULT_SCRIPT_OPERATION,
+  PERSONA_MODE_OPTIONS,
+  SCRIPT_OPERATION_OPTIONS,
+  buildGenerationBrief,
+  newScriptToolId,
+  type PersonaMode,
+  type ScriptOperation,
+  type ScriptToolItem,
+  type ScriptToolMode,
+} from "./scriptToolModel";
 
 type Props = {
   isOpen: boolean;
@@ -27,6 +38,8 @@ export function ScriptGenerateModal({
 }: Props) {
   const [goal, setGoal] = useState(mode === "polish" ? "表达更顺、更有转化力" : "生成可直接拍摄的数字人口播脚本");
   const [topic, setTopic] = useState("");
+  const [personaMode, setPersonaMode] = useState<PersonaMode>(DEFAULT_PERSONA_MODE);
+  const [operation, setOperation] = useState<ScriptOperation>(DEFAULT_SCRIPT_OPERATION);
   const [count, setCount] = useState(3);
   const [results, setResults] = useState<ScriptToolItem[]>([]);
   const [candidateIds, setCandidateIds] = useState<Set<string>>(new Set());
@@ -42,8 +55,11 @@ export function ScriptGenerateModal({
       const drafts = await Promise.all(
         Array.from({ length: count }, (_, index) =>
           caseAgentApi.generateScript(caseId, {
-            brief: buildGenerationBrief({ mode, goal, topic, currentScript, index }),
+            brief: buildGenerationBrief({ mode, personaMode, operation, goal, topic, currentScript, index }),
             memory_ids: [],
+            // persona_mode/operation 同时作为独立结构化字段发送，后端按人设语气与操作类型改写。
+            persona_mode: personaMode,
+            operation,
           }),
         ),
       );
@@ -73,6 +89,28 @@ export function ScriptGenerateModal({
     <Modal isOpen={isOpen} onClose={onClose} title={mode === "polish" ? "AI 润色脚本" : "AI 生成脚本"} size="2xl">
       <div className="grid gap-4">
         <div className="grid gap-3 border-t border-border/60 pt-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label>
+              <span>人设模式</span>
+              <select value={personaMode} onChange={(event) => setPersonaMode(event.target.value as PersonaMode)}>
+                {PERSONA_MODE_OPTIONS.map((option) => (
+                  <option value={option.value} key={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>操作</span>
+              <select value={operation} onChange={(event) => setOperation(event.target.value as ScriptOperation)}>
+                {SCRIPT_OPERATION_OPTIONS.map((option) => (
+                  <option value={option.value} key={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
           <label>
             <span>目标</span>
             <input value={goal} onChange={(event) => setGoal(event.target.value)} placeholder="例如：前三秒给痛点，结尾引导私信" />

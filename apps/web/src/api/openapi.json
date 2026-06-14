@@ -11102,6 +11102,28 @@
             },
             "type": "array",
             "title": "Memory Ids"
+          },
+          "persona_mode": {
+            "type": "string",
+            "enum": [
+              "hard_ad",
+              "ip_persona"
+            ],
+            "title": "Persona Mode",
+            "default": "hard_ad"
+          },
+          "operation": {
+            "type": "string",
+            "enum": [
+              "polish",
+              "fresh",
+              "remix",
+              "clone",
+              "generate",
+              "semantic"
+            ],
+            "title": "Operation",
+            "default": "generate"
           }
         },
         "additionalProperties": false,

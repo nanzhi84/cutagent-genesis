@@ -482,14 +482,30 @@ def generate_script_with_memory(
         get_case(request, case_id)
         knowledge = case_learning_repository(request).knowledge(case_id=case_id)
         memories = [memory.insight for memory in knowledge.memories if memory.id in payload.memory_ids]
-        provider_script = generate_script_with_llm(case_id, payload.brief, payload.memory_ids, memories, request)
+        provider_script = generate_script_with_llm(
+            case_id,
+            payload.brief,
+            payload.memory_ids,
+            memories,
+            request,
+            persona_mode=payload.persona_mode,
+            operation=payload.operation,
+        )
         return case_learning_repository(request).generate_script_with_memory(
             case_id=case_id,
             payload=payload,
             script_override=provider_script,
         )
     memories = [repo.memories[mid].insight for mid in payload.memory_ids if mid in repo.memories]
-    provider_script = generate_script_with_llm(case_id, payload.brief, payload.memory_ids, memories, request)
+    provider_script = generate_script_with_llm(
+        case_id,
+        payload.brief,
+        payload.memory_ids,
+        memories,
+        request,
+        persona_mode=payload.persona_mode,
+        operation=payload.operation,
+    )
     draft = c.ScriptDraft(
         id=new_id("draft"),
         case_id=case_id,

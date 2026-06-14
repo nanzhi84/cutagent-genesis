@@ -26,7 +26,12 @@ async function r6AgentContract(caseId: string, videoId: string) {
     await caseAgentApi.rejectMemory(caseId, proposal.id, { reason: "R6 reject" });
   }
 
-  await caseAgentApi.generateScript(caseId, { brief: "生成一版带案例记忆的脚本。", memory_ids: [] });
+  await caseAgentApi.generateScript(caseId, {
+    brief: "生成一版带案例记忆的脚本。",
+    memory_ids: [],
+    persona_mode: "hard_ad",
+    operation: "generate",
+  });
   const handoff: EditorHandoffResult = await editorHandoffApi.createEditorHandoff(videoId, { format: "zip" });
   await editorHandoffApi.createJianyingDraft(videoId, { template_id: "jianying_default" });
   handoff.package_artifact.uri satisfies string;

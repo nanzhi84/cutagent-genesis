@@ -3885,6 +3885,18 @@ export interface components {
             brief: string;
             /** Memory Ids */
             memory_ids?: string[];
+            /**
+             * Persona Mode
+             * @default hard_ad
+             * @enum {string}
+             */
+            persona_mode: "hard_ad" | "ip_persona";
+            /**
+             * Operation
+             * @default generate
+             * @enum {string}
+             */
+            operation: "polish" | "fresh" | "remix" | "clone" | "generate" | "semantic";
         };
         /** GovernedActionRequest */
         GovernedActionRequest: {

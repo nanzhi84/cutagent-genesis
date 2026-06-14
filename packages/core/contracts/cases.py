@@ -253,6 +253,8 @@ class StartReflectionRunRequest(ContractModel):
 class GenerateScriptWithMemoryRequest(ContractModel):
     brief: str
     memory_ids: list[str] = Field(default_factory=list)
+    persona_mode: Literal["hard_ad", "ip_persona"] = "hard_ad"
+    operation: Literal["polish", "fresh", "remix", "clone", "generate", "semantic"] = "generate"
 
 
 class ReferenceExtractRequest(ContractModel):

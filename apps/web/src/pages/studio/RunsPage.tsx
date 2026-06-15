@@ -131,7 +131,6 @@ export default function RunsPage() {
   });
 
   const items = runs.data?.items ?? [];
-  const nodeRuns = runDetail.data?.node_runs ?? [];
   const hasMoreRuns = Boolean(runs.data && items.length >= runLimit);
   const confirmLoading =
     ((pendingAction?.type === "cancel" || pendingAction?.type === "forceCancel") && cancelRun.isPending) ||
@@ -168,11 +167,11 @@ export default function RunsPage() {
       {items.length === 0 && !runs.isLoading ? <EmptyState title="暂无生成任务" detail="从创作页提交任务后会实时出现在这里。" /> : null}
 
       {items.length > 0 ? (
-        <div className="runsLayout">
+        <div>
           <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(340px,1fr))]">
             {items.map((run) => (
               <article
-                className={`group flex cursor-pointer gap-4 rounded-[24px] border bg-[linear-gradient(180deg,rgba(255,255,252,0.9),rgba(249,250,244,0.96))] p-3 shadow-glow transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/25 ${
+                className={`group flex cursor-pointer gap-4 self-start rounded-[24px] border bg-[linear-gradient(180deg,rgba(255,255,252,0.9),rgba(249,250,244,0.96))] p-3 shadow-glow transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/25 ${
                   run.runId === selectedCard?.runId ? "border-accent/25" : "border-border/80"
                 } ${run.runId === highlightedRunId ? "ring-2 ring-accent/20" : ""}`}
                 onClick={() => openRunDetail(run)}
@@ -221,7 +220,7 @@ export default function RunsPage() {
                     </div>
                   </div>
 
-                  <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-3">
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-3">
                     <span className="badge-info">{run.canPublish ? "可创建发布包" : "等待成片"}</span>
                     <div className="flex items-center gap-1.5" onClick={(event) => event.stopPropagation()}>
                       <button className="rounded-lg p-2 text-text-tertiary hover:bg-surface hover:text-text-primary" type="button" onClick={() => openRunDetail(run)} title="查看详情">
@@ -285,36 +284,6 @@ export default function RunsPage() {
               />
             </div>
           </div>
-
-          <aside className="surface timelinePanel self-start xl:sticky xl:top-6">
-            <div className="sectionHeader">
-              <div>
-                <h2>节点时间线</h2>
-                <p>{selectedCard?.runId ?? "-"}</p>
-              </div>
-              {selectedCard ? <StatusPill status={selectedCard.status} /> : null}
-            </div>
-            {runDetail.isLoading ? <LoadingState label="加载节点" /> : null}
-            {runDetail.error ? <ErrorState error={runDetail.error} /> : null}
-            {nodeRuns.length === 0 && !runDetail.isLoading ? (
-              <EmptyState title="暂无节点" detail="任务入队后会显示节点推进。" />
-            ) : null}
-            <div className="timeline">
-              {nodeRuns.map((node) => (
-                <div className="timelineItem" key={node.id}>
-                  <StatusPill status={node.status} />
-                  <div>
-                    <strong>{node.node_id}</strong>
-                    <span>
-                      <TimeText value={node.started_at} /> - <TimeText value={node.finished_at} />
-                    </span>
-                    {(node.warnings?.length ?? 0) || (node.degradations?.length ?? 0) ? <p>存在警告或降级，详情见运行详情。</p> : null}
-                    {node.error ? <p className="dangerText">{node.error.message}</p> : null}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </aside>
         </div>
       ) : null}
 

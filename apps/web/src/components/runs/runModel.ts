@@ -1,6 +1,56 @@
-import type { RunCard } from "../../api/client";
+import type { NodeRun, RunCard } from "../../api/client";
 
 export type RunAction = "cancel" | "forceCancel" | "retry" | "resume" | "delete";
+
+// 原始流水线节点 → 中文标签（用于折叠的高级节点时间线）。
+export const NODE_LABELS: Record<string, string> = {
+  ValidateRequest: "校验请求",
+  LoadCaseContext: "加载案例上下文",
+  ResolveCreativeIntent: "解析创作意图",
+  TTS: "生成配音",
+  MaterialPackPlanning: "规划素材包",
+  NarrationAlignment: "对齐旁白时间轴",
+  PortraitPlanning: "规划数字人镜头",
+  BrollPlanning: "规划 B-roll 插入",
+  StylePlanning: "规划字幕与包装",
+  TimelinePlanning: "规划时间线",
+  PortraitTrackBuild: "生成数字人轨道",
+  LipSync: "口型同步",
+  RenderFinalTimeline: "渲染主时间线",
+  SubtitleAndBgmMix: "混合字幕与配乐",
+  ExportFinishedVideo: "导出成片",
+  FinalizeRunReport: "生成运行报告",
+};
+
+export function nodeLabel(id: string): string {
+  return NODE_LABELS[id] ?? id;
+}
+
+// 把 16 个原始节点聚合成 5 个用户可理解的生产阶段。
+type StageDef = { key: string; label: string; detail: string; nodes: string[] };
+const STAGE_DEFS: StageDef[] = [
+  { key: "script", label: "脚本与意图", detail: "校验请求、加载案例、解析创作意图", nodes: ["ValidateRequest", "LoadCaseContext", "ResolveCreativeIntent"] },
+  { key: "voice", label: "配音合成", detail: "生成数字人配音并对齐时间轴", nodes: ["TTS", "NarrationAlignment"] },
+  { key: "material", label: "素材匹配与编排", detail: "匹配 B-roll、数字人镜头、字幕样式与时间线", nodes: ["MaterialPackPlanning", "PortraitPlanning", "BrollPlanning", "StylePlanning", "TimelinePlanning"] },
+  { key: "lipsync", label: "口型同步", detail: "生成数字人轨道并做唇形同步", nodes: ["PortraitTrackBuild", "LipSync"] },
+  { key: "compose", label: "合成出片", detail: "渲染时间线、混合字幕配乐、导出成片", nodes: ["RenderFinalTimeline", "SubtitleAndBgmMix", "ExportFinishedVideo", "FinalizeRunReport"] },
+];
+
+export type StageView = { key: string; label: string; detail: string; status: string };
+
+export function buildStages(nodes: NodeRun[]): StageView[] {
+  const byId = new Map(nodes.map((node) => [node.node_id, node.status]));
+  return STAGE_DEFS.map((stage) => {
+    const statuses = stage.nodes.map((id) => byId.get(id)).filter(Boolean) as string[];
+    let status = "pending";
+    if (statuses.some((s) => s === "failed")) status = "failed";
+    else if (statuses.some((s) => s === "running" || s === "admitted")) status = "running";
+    else if (statuses.length > 0 && statuses.every((s) => ["succeeded", "skipped", "degraded"].includes(s))) {
+      status = statuses.some((s) => s === "degraded") ? "degraded" : "succeeded";
+    }
+    return { key: stage.key, label: stage.label, detail: stage.detail, status };
+  });
+}
 
 export type PendingAction = {
   type: RunAction;

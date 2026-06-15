@@ -209,6 +209,7 @@ def _run_card_from_parts(
     job: Job,
     node_runs: list[NodeRun],
     has_finished_video: bool,
+    preview_url: str | None = None,
 ) -> RunCard:
     return RunCard(
         run_id=run.id,
@@ -222,6 +223,7 @@ def _run_card_from_parts(
         can_resume=run.status == RunStatus.succeeded or _run_has_retryable_failure(run, node_runs),
         can_retry=run.status in {RunStatus.failed, RunStatus.cancelled},
         can_publish=run.status == RunStatus.succeeded and has_finished_video,
+        preview_url=preview_url,
         started_at=run.started_at,
         updated_at=run.updated_at,
     )
@@ -331,23 +333,34 @@ class SqlAlchemyProductionRepository:
                         .order_by(NodeRunRow.created_at.asc())
                     )
                 ]
-                has_finished_video = (
-                    session.scalar(
-                        select(FinishedVideoRow.id)
-                        .where(FinishedVideoRow.run_id == run.id)
-                        .limit(1)
-                    )
-                    is not None
+                fv_row = session.scalar(
+                    select(FinishedVideoRow).where(FinishedVideoRow.run_id == run.id).limit(1)
                 )
                 items.append(
                     _run_card_from_parts(
                         run=run,
                         job=job_row_to_contract(job_row),
                         node_runs=node_runs,
-                        has_finished_video=has_finished_video,
+                        has_finished_video=fv_row is not None,
+                        preview_url=self._signed_run_thumbnail(fv_row),
                     )
                 )
             return PageResponse(items=items, total_hint=len(items), request_id=request_id)
+
+    def _signed_run_thumbnail(self, fv_row) -> str | None:
+        """Signed https URL of a run's finished-video cover (image preferred, video
+        fallback) for the Outputs card thumbnail. None when there is no finished
+        video or the uri cannot be signed."""
+        if fv_row is None:
+            return None
+        for art in (fv_row.cover_artifact, fv_row.video_artifact):
+            uri = art.get("uri") if isinstance(art, dict) else None
+            if uri and uri.startswith(("s3://", "local://")):
+                try:
+                    return self.object_store.signed_url(uri).url
+                except Exception:
+                    continue
+        return None
 
     def run_exists(self, run_id: str) -> bool:
         with self.session_factory() as session:

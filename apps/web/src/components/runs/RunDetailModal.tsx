@@ -1,15 +1,25 @@
-import { Ban, Download, OctagonX, Play, RotateCw, Trash2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Ban, ChevronDown, Download, OctagonX, Play, RotateCw, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
-import type { FinishedVideo, NodeRun, RunCard, RunDetailResponse } from "../../api/client";
+import { api, type FinishedVideo, type NodeRun, type RunCard, type RunDetailResponse } from "../../api/client";
 import { EmptyState, ErrorState, LoadingState } from "../State";
 import { StatusPill } from "../Status";
 import { TimeText } from "../TimeText";
 import { EditorHandoffActions } from "../editor-handoff/EditorHandoffActions";
 import { Modal } from "../ui/Modal";
+import { VideoPlayer } from "../ui/VideoPlayer";
 import { BrollTimelinePreview } from "./BrollTimelinePreview";
+import { StageProgress } from "./StageProgress";
 import { shortId } from "../../lib/format";
 import { toDisplayUrl } from "../../lib/url";
-import { artifactLabel, severityLabel, warningLabel, type RunAction } from "./runModel";
+import { artifactLabel, buildStages, nodeLabel, severityLabel, warningLabel, type RunAction } from "./runModel";
+
+function qcLabel(status: string) {
+  if (status === "passed") return "质检通过";
+  if (status === "failed") return "质检未通过";
+  if (status === "warning") return "质检告警";
+  return "待质检";
+}
 
 export function RunDetailModal({
   isOpen,
@@ -32,6 +42,15 @@ export function RunDetailModal({
 }) {
   const nodes = detail?.node_runs ?? [];
   const artifacts = detail?.artifacts ?? [];
+  const stages = buildStages(nodes);
+
+  const videoPreview = useQuery({
+    queryKey: ["finished-video-preview", finishedVideo?.id],
+    queryFn: () => api.finishedVideos.previewUrl(finishedVideo!.id),
+    enabled: Boolean(finishedVideo?.id) && isOpen,
+  });
+  const videoUrl = toDisplayUrl(videoPreview.data?.url);
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={card ? `运行详情 ${shortId(card.runId)}` : "运行详情"} size="2xl">
       {!card ? <EmptyState title="暂无任务" /> : null}
@@ -42,24 +61,14 @@ export function RunDetailModal({
           <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
             <div>
               <h3 className="text-xl font-semibold text-text-primary">{card.title}</h3>
-              <p className="mt-1 text-sm text-text-secondary">当前节点：{card.currentNodeLabel || "等待节点推进"}</p>
+              <p className="mt-1 text-sm text-text-secondary">当前阶段：{card.currentNodeLabel || "等待节点推进"}</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button
-                className="btn-secondary compactButton"
-                type="button"
-                disabled={card.status !== "running" && card.status !== "admitted"}
-                onClick={() => onAction("cancel", card)}
-              >
+              <button className="btn-secondary compactButton" type="button" disabled={card.status !== "running" && card.status !== "admitted"} onClick={() => onAction("cancel", card)}>
                 <Ban className="h-4 w-4" />
                 <span>中断</span>
               </button>
-              <button
-                className="btn-secondary compactButton"
-                type="button"
-                disabled={!isProcessingStatus(card.status)}
-                onClick={() => onAction("forceCancel", card)}
-              >
+              <button className="btn-secondary compactButton" type="button" disabled={!isProcessingStatus(card.status)} onClick={() => onAction("forceCancel", card)}>
                 <OctagonX className="h-4 w-4" />
                 <span>强制</span>
               </button>
@@ -78,6 +87,33 @@ export function RunDetailModal({
             </div>
           </div>
 
+          {/* 成片预览（优先展示） */}
+          {finishedVideo ? (
+            <section className="grid gap-2">
+              {videoUrl ? (
+                <VideoPlayer
+                  src={videoUrl}
+                  poster={toDisplayUrl(card.previewUrl) ?? undefined}
+                  className="mx-auto aspect-[9/16] w-full max-w-[320px]"
+                  durationHint={finishedVideo.duration_sec}
+                />
+              ) : (
+                <div className="mx-auto flex aspect-[9/16] w-full max-w-[320px] items-center justify-center rounded-2xl border border-border/70 bg-surface-hover text-sm text-text-tertiary">
+                  {videoPreview.isLoading ? "加载成片预览…" : "成片暂不可预览"}
+                </div>
+              )}
+              <div className="mx-auto flex w-full max-w-[320px] items-center justify-between gap-2">
+                <span className="badge-info">{qcLabel(finishedVideo.qc_status)}</span>
+                {videoUrl ? (
+                  <a className="btn-secondary text-sm no-underline" href={videoUrl} target="_blank" rel="noopener noreferrer">
+                    <Download className="h-4 w-4" />
+                    <span>下载 / 全屏</span>
+                  </a>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
+
           <div className="grid gap-3 md:grid-cols-4">
             <DetailMetric label="状态" value={<StatusPill status={card.status} />} />
             <DetailMetric label="进度" value={`${Math.round(card.progress * 100)}%`} />
@@ -85,61 +121,76 @@ export function RunDetailModal({
             <DetailMetric label="更新" value={<TimeText value={card.updatedAt} />} />
           </div>
 
+          {/* 生产阶段（友好聚合） */}
+          <section className="grid gap-3">
+            <h4 className="text-base font-semibold text-text-primary">生产阶段</h4>
+            <StageProgress stages={stages} />
+          </section>
+
           <BrollTimelinePreview detail={detail} />
 
-          <section className="grid gap-3">
-            <h4 className="text-base font-semibold text-text-primary">节点时间线</h4>
-            {nodes.length === 0 && !isLoading ? <EmptyState title="暂无节点" /> : null}
-            <div className="grid gap-3">
-              {nodes.map((node) => (
-                <NodeDetail key={node.id} node={node} />
-              ))}
-            </div>
-          </section>
+          {/* 高级（开发者）：原始节点时间线 + 产物清单 + 交接包 */}
+          <details className="overflow-hidden rounded-2xl border border-border/70">
+            <summary className="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm font-semibold text-text-primary transition-colors hover:bg-surface-hover">
+              <ChevronDown className="h-4 w-4 text-accent" />
+              高级（开发者）：节点时间线 · 产物清单 · 交接包
+            </summary>
+            <div className="grid gap-5 border-t border-border/70 p-4">
+              <section className="grid gap-3">
+                <h5 className="text-sm font-semibold text-text-secondary">节点时间线</h5>
+                {nodes.length === 0 && !isLoading ? <EmptyState title="暂无节点" /> : null}
+                <div className="grid gap-3">
+                  {nodes.map((node) => (
+                    <NodeDetail key={node.id} node={node} />
+                  ))}
+                </div>
+              </section>
 
-          <section className="grid gap-3">
-            <h4 className="text-base font-semibold text-text-primary">产物清单</h4>
-            {artifacts.length === 0 ? <EmptyState title="暂无产物" detail="节点完成后会显示可下载产物。" /> : null}
-            <div className="grid gap-2">
-              {artifacts.map((artifact) => {
-                const safeUrl = toDisplayUrl(artifact.uri);
-                const content = (
-                  <>
-                    <div className="min-w-0">
-                      <p className="truncate font-medium text-text-primary">{artifactLabel(artifact.kind)}</p>
-                      <p className="truncate font-mono text-xs text-text-tertiary">
-                        {shortId(artifact.artifact_id, 12)} · {artifact.schema_version}
-                      </p>
-                    </div>
-                    {safeUrl ? <Download className="h-4 w-4 text-accent" /> : <span className="text-xs text-text-tertiary">内部产物 URI</span>}
-                  </>
-                );
-                if (!safeUrl) {
-                  return (
-                    <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-white/60 p-3" key={artifact.artifact_id}>
-                      {content}
-                    </div>
-                  );
-                }
-                return (
-                  <a
-                    className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-white/60 p-3 no-underline hover:bg-white/80"
-                    href={safeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    key={artifact.artifact_id}
-                  >
-                    {content}
-                  </a>
-                );
-              })}
-            </div>
-          </section>
+              <section className="grid gap-3">
+                <h5 className="text-sm font-semibold text-text-secondary">产物清单</h5>
+                {artifacts.length === 0 ? <EmptyState title="暂无产物" detail="节点完成后会显示可下载产物。" /> : null}
+                <div className="grid gap-2">
+                  {artifacts.map((artifact) => {
+                    const safeUrl = toDisplayUrl(artifact.uri);
+                    const content = (
+                      <>
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-text-primary">{artifactLabel(artifact.kind)}</p>
+                          <p className="truncate font-mono text-xs text-text-tertiary">
+                            {shortId(artifact.artifact_id, 12)} · {artifact.schema_version}
+                          </p>
+                        </div>
+                        {safeUrl ? <Download className="h-4 w-4 text-accent" /> : <span className="text-xs text-text-tertiary">内部产物 URI</span>}
+                      </>
+                    );
+                    if (!safeUrl) {
+                      return (
+                        <div className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-white/60 p-3" key={artifact.artifact_id}>
+                          {content}
+                        </div>
+                      );
+                    }
+                    return (
+                      <a
+                        className="flex items-center justify-between gap-3 rounded-2xl border border-border/70 bg-white/60 p-3 no-underline hover:bg-white/80"
+                        href={safeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        key={artifact.artifact_id}
+                      >
+                        {content}
+                      </a>
+                    );
+                  })}
+                </div>
+              </section>
 
-          <section className="grid gap-3">
-            <h4 className="text-base font-semibold text-text-primary">剪映草稿 / 交接包</h4>
-            <EditorHandoffActions finishedVideoId={finishedVideo?.id} />
-          </section>
+              <section className="grid gap-3">
+                <h5 className="text-sm font-semibold text-text-secondary">剪映草稿 / 交接包</h5>
+                <EditorHandoffActions finishedVideoId={finishedVideo?.id} />
+              </section>
+            </div>
+          </details>
         </div>
       ) : null}
     </Modal>
@@ -165,7 +216,8 @@ function NodeDetail({ node }: { node: NodeRun }) {
     <div className="grid gap-3 rounded-[20px] border border-border/70 bg-white/60 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="font-semibold text-text-primary">{node.node_id}</p>
+          <p className="font-semibold text-text-primary">{nodeLabel(node.node_id)}</p>
+          <p className="font-mono text-[11px] text-text-tertiary">{node.node_id}</p>
           <p className="text-xs text-text-secondary">
             <TimeText value={node.started_at} /> - <TimeText value={node.finished_at} />
           </p>

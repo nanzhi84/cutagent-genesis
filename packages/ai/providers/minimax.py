@@ -44,10 +44,46 @@ class MiniMaxTTSProvider:
             return self._clone(call, context)
         if operation == "design":
             return self._design(call, context)
+        if operation == "voice_list":
+            return self._voice_list(call, context)
         raise ProviderRuntimeError(
             ErrorCode.provider_unsupported_option,
             f"MiniMax TTS operation {operation} is not supported by this call.",
         )
+
+    def _voice_list(self, call: ProviderCall, context: ProviderInvocationContext) -> ProviderResult:
+        """List the account's cloned/designed voices via MiniMax ``POST /get_voice``.
+
+        Returns ``output.voices`` = [{voice_id, display_name, source}] for the
+        voice_cloning + voice_generation arrays (the user's own voices). System
+        presets are skipped — those are already seeded."""
+        api_key = require_secret(context)
+        base_url = str(option(context, "base_url", "https://api.minimaxi.com/v1")).rstrip("/")
+        response = request(
+            self.client,
+            "POST",
+            f"{base_url}/get_voice",
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            json_body={"voice_type": "all"},
+            timeout=float(context.profile.timeout_sec),
+        )
+        result = response_json(response)
+        self._raise_for_base_resp(result)
+
+        def _collect(items: Any, source: str) -> list[dict[str, str]]:
+            collected: list[dict[str, str]] = []
+            for item in items if isinstance(items, list) else []:
+                if not isinstance(item, dict):
+                    continue
+                voice_id = str(item.get("voice_id") or "").strip()
+                if not voice_id:
+                    continue
+                name = str(item.get("voice_name") or "").strip()
+                collected.append({"voice_id": voice_id, "display_name": name or voice_id, "source": source})
+            return collected
+
+        voices = _collect(result.get("voice_cloning"), "cloned") + _collect(result.get("voice_generation"), "designed")
+        return ProviderResult(output={"voices": voices})
 
     def _speech(self, call: ProviderCall, context: ProviderInvocationContext) -> ProviderResult:
         api_key = require_secret(context)

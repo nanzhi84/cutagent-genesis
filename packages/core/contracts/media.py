@@ -336,6 +336,20 @@ class PatchVoiceRequest(ContractModel):
     enabled: bool | None = None
 
 
+class SyncVoicesRequest(ContractModel):
+    """Pull the provider account's voices (e.g. MiniMax cloned voices) into the library."""
+
+    provider_profile_id: str | None = None
+
+
+class SyncVoicesResponse(ContractModel):
+    imported: int = 0
+    updated: int = 0
+    total: int = 0
+    voices: list[VoiceProfile] = Field(default_factory=list)
+    request_id: str = "req_local"
+
+
 # ===========================================================================
 # Annotation V4 contracts (seven-layer unified annotation) + sensor artifacts.
 #

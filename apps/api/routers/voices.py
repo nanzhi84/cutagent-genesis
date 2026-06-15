@@ -19,6 +19,12 @@ def list_voices(
     return service.list_voices(request, limit, source, enabled)
 
 
+@router.post("/api/voices/sync", response_model=c.SyncVoicesResponse)
+def sync_voices(payload: c.SyncVoicesRequest, request: Request) -> c.SyncVoicesResponse:
+    require_role(request, c.UserRole.operator)
+    return service.sync_voices(payload, request)
+
+
 @router.post("/api/voices/clone", response_model=c.VoiceProfile, status_code=202)
 def clone_voice(payload: c.CloneVoiceRequest, request: Request) -> c.VoiceProfile:
     require_role(request, c.UserRole.operator)

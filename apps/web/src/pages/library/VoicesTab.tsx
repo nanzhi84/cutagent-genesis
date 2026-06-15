@@ -1,4 +1,4 @@
-import { Mic2, Upload, Wand2 } from "lucide-react";
+import { Mic2, RefreshCw, Upload, Wand2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, type VoiceProfile } from "../../api/client";
@@ -79,6 +79,19 @@ export function VoicesTab() {
     onError: (error) => toast.error("更新失败", error),
   });
 
+  const syncMutation = useMutation({
+    mutationFn: () => api.voices.sync({}),
+    onSuccess: async (response) => {
+      await queryClient.invalidateQueries({ queryKey: ["library", "voices"] });
+      await queryClient.invalidateQueries({ queryKey: ["voices"] });
+      toast.success(
+        "音色已同步",
+        `新增 ${response.imported} 个 · 更新 ${response.updated} 个（共 ${response.total} 个远程音色）`,
+      );
+    },
+    onError: (error) => toast.error("同步失败", error),
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (voiceId: string) => api.voices.delete(voiceId),
     onSuccess: async () => {
@@ -100,6 +113,16 @@ export function VoicesTab() {
               <p className="mt-1 text-sm text-text-secondary">搜索、试听、克隆和设计 TTS 音色。</p>
             </div>
             <div className="flex flex-wrap gap-2">
+              <button
+                className="btn-secondary"
+                type="button"
+                onClick={() => syncMutation.mutate()}
+                disabled={syncMutation.isPending}
+                title="从已配置的 TTS 供应商账号拉取已克隆 / 设计的音色"
+              >
+                <RefreshCw className={`h-4 w-4 ${syncMutation.isPending ? "animate-spin" : ""}`} />
+                <span>{syncMutation.isPending ? "同步中…" : "同步音色"}</span>
+              </button>
               <button className="btn-secondary" type="button" onClick={() => setCloneOpen(true)}>
                 <Upload className="h-4 w-4" />
                 <span>克隆音色</span>

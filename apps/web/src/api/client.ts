@@ -335,6 +335,12 @@ export const api = {
         ...res,
         items: res.items.filter(isRealVoice),
       })),
+    sync: (payload: JsonRequest<operations["sync_voices_api_voices_sync_post"]> = {}) =>
+      fetchJson<JsonResponse<operations["sync_voices_api_voices_sync_post"]>>("/api/voices/sync", {
+        method: "POST",
+        body: payload,
+        idempotencyKey: createIdempotencyKey("voice_sync"),
+      }),
     clone: (payload: JsonRequest<operations["clone_voice_api_voices_clone_post"]>) =>
       fetchJson<JsonResponse<operations["clone_voice_api_voices_clone_post"]>>("/api/voices/clone", {
         method: "POST",

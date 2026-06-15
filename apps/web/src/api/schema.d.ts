@@ -898,6 +898,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/voices/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sync Voices */
+        post: operations["sync_voices_api_voices_sync_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/voices/clone": {
         parameters: {
             query?: never;
@@ -6678,6 +6695,39 @@ export interface components {
                 [key: string]: number;
             } | null;
         };
+        /**
+         * SyncVoicesRequest
+         * @description Pull the provider account's voices (e.g. MiniMax cloned voices) into the library.
+         */
+        SyncVoicesRequest: {
+            /** Provider Profile Id */
+            provider_profile_id?: string | null;
+        };
+        /** SyncVoicesResponse */
+        SyncVoicesResponse: {
+            /**
+             * Imported
+             * @default 0
+             */
+            imported: number;
+            /**
+             * Updated
+             * @default 0
+             */
+            updated: number;
+            /**
+             * Total
+             * @default 0
+             */
+            total: number;
+            /** Voices */
+            voices?: components["schemas"]["VoiceProfile"][];
+            /**
+             * Request Id
+             * @default req_local
+             */
+            request_id: string;
+        };
         /** TestProviderProfileRequest */
         TestProviderProfileRequest: {
             /** Sample Input */
@@ -9067,6 +9117,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PageResponse_VoiceProfile_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sync_voices_api_voices_sync_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SyncVoicesRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncVoicesResponse"];
                 };
             };
             /** @description Validation Error */

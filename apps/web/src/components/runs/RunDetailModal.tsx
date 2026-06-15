@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Ban, ChevronDown, Download, OctagonX, Play, RotateCw, Trash2 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { api, type FinishedVideo, type NodeRun, type RunCard, type RunDetailResponse } from "../../api/client";
 import { EmptyState, ErrorState, LoadingState } from "../State";
 import { StatusPill } from "../Status";
@@ -8,7 +8,7 @@ import { TimeText } from "../TimeText";
 import { EditorHandoffActions } from "../editor-handoff/EditorHandoffActions";
 import { Modal } from "../ui/Modal";
 import { VideoPlayer } from "../ui/VideoPlayer";
-import { BrollTimelinePreview } from "./BrollTimelinePreview";
+import { EditTimelinePreview, buildEditClips } from "./EditTimelinePreview";
 import { StageProgress } from "./StageProgress";
 import { shortId } from "../../lib/format";
 import { toDisplayUrl } from "../../lib/url";
@@ -43,6 +43,8 @@ export function RunDetailModal({
   const nodes = detail?.node_runs ?? [];
   const artifacts = detail?.artifacts ?? [];
   const stages = buildStages(nodes);
+  const editClips = buildEditClips(detail);
+  const [activeClipId, setActiveClipId] = useState<string | null>(null);
 
   const videoPreview = useQuery({
     queryKey: ["finished-video-preview", finishedVideo?.id],
@@ -96,6 +98,9 @@ export function RunDetailModal({
                   poster={toDisplayUrl(card.previewUrl) ?? undefined}
                   className="mx-auto aspect-[9/16] w-full max-w-[320px]"
                   durationHint={finishedVideo.duration_sec}
+                  segments={editClips.map((clip) => ({ id: clip.id, start: clip.start, end: clip.end, label: clip.label, role: clip.playerRole }))}
+                  activeSegmentId={activeClipId}
+                  onSegmentClick={(segment) => setActiveClipId(segment.id ?? null)}
                 />
               ) : (
                 <div className="mx-auto flex aspect-[9/16] w-full max-w-[320px] items-center justify-center rounded-2xl border border-border/70 bg-surface-hover text-sm text-text-tertiary">
@@ -127,7 +132,7 @@ export function RunDetailModal({
             <StageProgress stages={stages} />
           </section>
 
-          <BrollTimelinePreview detail={detail} />
+          <EditTimelinePreview clips={editClips} activeClipId={activeClipId} onSelect={setActiveClipId} />
 
           {/* 高级（开发者）：原始节点时间线 + 产物清单 + 交接包 */}
           <details className="overflow-hidden rounded-2xl border border-border/70">

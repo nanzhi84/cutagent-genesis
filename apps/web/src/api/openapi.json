@@ -2567,6 +2567,44 @@
         }
       }
     },
+    "/api/voices/sync": {
+      "post": {
+        "summary": "Sync Voices",
+        "operationId": "sync_voices_api_voices_sync_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyncVoicesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncVoicesResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/voices/clone": {
       "post": {
         "summary": "Clone Voice",
@@ -18563,6 +18601,59 @@
         "additionalProperties": false,
         "type": "object",
         "title": "SubtitleOptions"
+      },
+      "SyncVoicesRequest": {
+        "properties": {
+          "provider_profile_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider Profile Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SyncVoicesRequest",
+        "description": "Pull the provider account's voices (e.g. MiniMax cloned voices) into the library."
+      },
+      "SyncVoicesResponse": {
+        "properties": {
+          "imported": {
+            "type": "integer",
+            "title": "Imported",
+            "default": 0
+          },
+          "updated": {
+            "type": "integer",
+            "title": "Updated",
+            "default": 0
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total",
+            "default": 0
+          },
+          "voices": {
+            "items": {
+              "$ref": "#/components/schemas/VoiceProfile"
+            },
+            "type": "array",
+            "title": "Voices"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id",
+            "default": "req_local"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "SyncVoicesResponse"
       },
       "TestProviderProfileRequest": {
         "properties": {

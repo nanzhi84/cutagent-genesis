@@ -6,6 +6,7 @@ from fastapi import Request
 from apps.api.common import (
     media_repository,
     page,
+    provider_repository,
     repository,
     request_id,
 )
@@ -47,6 +48,105 @@ def list_voices(
     if enabled is not None:
         values = [voice for voice in values if voice.enabled == enabled]
     return page(values, limit)
+
+
+def _select_tts_profile_for_sync(provider_profile_id: str | None, request: Request) -> c.ProviderProfile:
+    """Resolve the real TTS profile whose account voices we sync.
+
+    Honors an explicit profile id; otherwise picks the first enabled, non-sandbox
+    ``tts.speech`` profile that has a registered plugin and an active secret.
+    """
+    gateway = request.app.state.provider_gateway
+    if provider_profile_id:
+        profile = _tts_provider_profile(provider_profile_id, request, missing_ok=False)
+        if profile is None:
+            raise NodeExecutionError(
+                c.ErrorCode.provider_unsupported_option,
+                "所选 TTS 供应商配置不可用（未启用或缺少有效密钥）。",
+            )
+        return profile
+    provider_repo = provider_repository(request)
+    if provider_repo is not None:
+        candidates = provider_repo.list_profiles(capability="tts.speech", limit=200)
+    else:
+        candidates = [
+            profile
+            for profile in repository(request).provider_profiles.values()
+            if profile.capability == "tts.speech"
+        ]
+    for profile in candidates:
+        if not profile.enabled or profile.provider_id == "sandbox":
+            continue
+        if profile.provider_id not in gateway.plugins:
+            continue
+        if profile.secret_ref and not gateway._secret_is_active(profile.secret_ref):
+            continue
+        return profile
+    raise NodeExecutionError(
+        c.ErrorCode.provider_unsupported_option,
+        "未配置真实 TTS 供应商，无法同步音色。请先在「设置」中配置并启用真实 TTS 供应商及密钥。",
+    )
+
+
+def sync_voices(payload: c.SyncVoicesRequest, request: Request) -> c.SyncVoicesResponse:
+    profile = _select_tts_profile_for_sync(payload.provider_profile_id, request)
+    invocation, result = request.app.state.provider_gateway.invoke(
+        ProviderCall(
+            provider_profile_id=profile.id,
+            capability_id="tts.speech",
+            input={"operation": "voice_list"},
+        )
+    )
+    if result is None or invocation.error:
+        raise NodeExecutionError(
+            invocation.error.code if invocation.error else c.ErrorCode.provider_remote_failed,
+            invocation.error.message if invocation.error else "音色同步失败：供应商未返回音色列表。",
+        )
+    remote = result.output.get("voices")
+    remote = remote if isinstance(remote, list) else []
+
+    media_repo = media_repository(request)
+    imported = 0
+    updated = 0
+    saved: list[c.VoiceProfile] = []
+    for item in remote:
+        if not isinstance(item, dict):
+            continue
+        voice_id = str(item.get("voice_id") or "").strip()
+        if not voice_id:
+            continue
+        source = "cloned" if str(item.get("source")) == "cloned" else "designed"
+        display_name = str(item.get("display_name") or "").strip() or voice_id
+        if media_repo is not None:
+            voice, created = media_repo.upsert_voice(
+                voice_id=voice_id,
+                display_name=display_name,
+                source=source,
+                provider_profile_id=profile.id,
+            )
+        else:
+            repo = repository(request)
+            existing = repo.voices.get(voice_id)
+            created = existing is None
+            voice = c.VoiceProfile(
+                id=voice_id,
+                display_name=display_name,
+                source=source,
+                provider_profile_id=profile.id,
+            )
+            repo.voices[voice_id] = voice
+        saved.append(voice)
+        if created:
+            imported += 1
+        else:
+            updated += 1
+    return c.SyncVoicesResponse(
+        imported=imported,
+        updated=updated,
+        total=len(saved),
+        voices=saved,
+        request_id=request_id(),
+    )
 
 
 def clone_voice(payload: c.CloneVoiceRequest, request: Request) -> c.VoiceProfile:

@@ -481,6 +481,38 @@ class SqlAlchemyMediaRepository:
             session.refresh(row)
             return voice_row_to_contract(row)
 
+    def upsert_voice(
+        self,
+        *,
+        voice_id: str,
+        display_name: str,
+        source: str,
+        provider_profile_id: str,
+    ) -> tuple[VoiceProfile, bool]:
+        """Insert a provider-side voice keyed by its external voice_id.
+
+        Returns (voice, created). On an existing row only the display name is
+        refreshed (when the provider now reports one) so a re-sync stays idempotent.
+        """
+        with self.session_factory() as session:
+            row = session.get(VoiceProfileRow, voice_id)
+            created = row is None
+            if row is None:
+                row = VoiceProfileRow(
+                    id=voice_id,
+                    display_name=display_name,
+                    source=source,
+                    provider_profile_id=provider_profile_id,
+                    enabled=True,
+                )
+                session.add(row)
+            elif display_name and display_name != row.display_name:
+                row.display_name = display_name
+                row.updated_at = utcnow()
+            session.commit()
+            session.refresh(row)
+            return voice_row_to_contract(row), created
+
     def preview_voice(self, voice_id: str, payload: VoicePreviewRequest) -> VoicePreviewResponse | None:
         with self.session_factory() as session:
             voice = session.get(VoiceProfileRow, voice_id)

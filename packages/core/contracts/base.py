@@ -54,6 +54,7 @@ class ErrorCode(str, Enum):
     workflow_invalid_transition = "workflow.invalid_transition"
     workflow_cancelled = "workflow.cancelled"
     workflow_resume_not_allowed = "workflow.resume_not_allowed"
+    workflow_worker_lost = "workflow.worker_lost"
     render_invalid_timeline = "render.invalid_timeline"
     render_failed = "render.failed"
     render_subtitle_failed = "render.subtitle_failed"

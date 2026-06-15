@@ -10928,6 +10928,7 @@
           "workflow.invalid_transition",
           "workflow.cancelled",
           "workflow.resume_not_allowed",
+          "workflow.worker_lost",
           "render.invalid_timeline",
           "render.failed",
           "render.subtitle_failed",

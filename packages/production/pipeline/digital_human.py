@@ -28,6 +28,7 @@ from packages.core.contracts import (
     ErrorCode,
     Job,
     MediaInfo,
+    NodeError,
     NodeRun,
     NodeStatus,
     JobStatus,
@@ -414,6 +415,126 @@ class LocalRuntimeAdapter(WorkflowRuntimeAdapter):
 
     def request_cancel(self, run_id: str, *, force: bool = False, reason: str | None = None) -> WorkflowRun:
         return self.cancel_run(run_id, force=force, reason=reason) or self.repository.runs[run_id]
+
+    @staticmethod
+    def _next_unfinished_node_id(node_runs: list[NodeRun]) -> str | None:
+        """First template node not yet completed — the node that was due to run."""
+        done = {
+            node_run.node_id
+            for node_run in node_runs
+            if node_run.status in {NodeStatus.succeeded, NodeStatus.skipped, NodeStatus.degraded}
+        }
+        return next((node_id for node_id in NODE_SEQUENCE if node_id not in done), None)
+
+    def mark_run_failed(self, run_id: str, *, reason: str = "Worker lost or node activity timed out.") -> WorkflowRun:
+        """Fail a run whose node activity died without writing a terminal status.
+
+        Used by the Temporal workflow when a ``run_node`` activity is lost to an
+        infrastructure failure (e.g. the worker was restarted mid-node) and so
+        never marked the run failed itself. Idempotent — a run already in a
+        terminal state is returned unchanged. The run lands in ``failed`` with a
+        retryable error so an operator can resume it; a run mid-cancellation is
+        completed to ``cancelled`` instead.
+        """
+        run = self.repository.runs.get(run_id)
+        if run is None:
+            raise NodeExecutionError(ErrorCode.artifact_missing, f"Run {run_id} is missing.")
+        if run.status in {RunStatus.succeeded, RunStatus.failed, RunStatus.cancelled}:
+            return run
+        if run.status == RunStatus.cancelling:
+            self._mark_cancelled(run_id)
+            return self.repository.runs[run_id]
+
+        # Anchor a retryable failed node so the run detail shows where it stopped
+        # AND the run becomes resumable (can_resume keys off a retryable failed
+        # node). Prefer the in-flight running node; but a worker that dies mid-node
+        # never syncs that running node to storage, so fall back to synthesizing a
+        # failed entry for the next node that was due to run.
+        node_runs = self.repository.node_runs.setdefault(run_id, [])
+        running_index = next(
+            (i for i in range(len(node_runs) - 1, -1, -1) if node_runs[i].status == NodeStatus.running),
+            None,
+        )
+        if running_index is not None:
+            node_run = node_runs[running_index]
+            error = NodeError(
+                code=ErrorCode.workflow_worker_lost,
+                message=reason,
+                retryable=True,
+                run_id=run_id,
+                node_run_id=node_run.id,
+            )
+            failed_node = node_run.model_copy(
+                update={
+                    "status": NodeStatus.failed,
+                    "error": error,
+                    "finished_at": utcnow(),
+                    "updated_at": utcnow(),
+                }
+            )
+            node_runs[running_index] = failed_node
+        else:
+            next_node_id = self._next_unfinished_node_id(node_runs)
+            failed_node = None
+            if next_node_id is not None:
+                failed_node = NodeRun(
+                    id=new_id("nr"),
+                    run_id=run_id,
+                    node_id=next_node_id,
+                    node_version="v1",
+                    status=NodeStatus.failed,
+                    input_manifest_hash="",
+                    error=NodeError(
+                        code=ErrorCode.workflow_worker_lost,
+                        message=reason,
+                        retryable=True,
+                        run_id=run_id,
+                    ),
+                    started_at=utcnow(),
+                    finished_at=utcnow(),
+                )
+                node_runs.append(failed_node)
+        if failed_node is not None:
+            record_node_run(failed_node)
+            self.repository.create_event(
+                "workflow.node.failed",
+                "run",
+                run_id,
+                {"node_id": failed_node.node_id, "error_code": ErrorCode.workflow_worker_lost.value},
+                dedupe_key=f"{failed_node.id}:{NodeStatus.failed.value}",
+                event_type="node_update",
+                node_id=failed_node.node_id,
+                status=NodeStatus.failed.value,
+                message=f"Node {failed_node.node_id} failed.",
+            )
+
+        # admitted has no direct edge to failed; advance through running first.
+        current = self.repository.runs[run_id]
+        if current.status == RunStatus.admitted:
+            assert_transition("run", current.status, RunStatus.running)
+            self.repository.runs[run_id] = current.model_copy(
+                update={"status": RunStatus.running, "updated_at": utcnow()}
+            )
+        assert_transition("run", self.repository.runs[run_id].status, RunStatus.failed)
+        self.repository.runs[run_id] = self.repository.runs[run_id].model_copy(
+            update={"status": RunStatus.failed, "finished_at": utcnow(), "updated_at": utcnow()}
+        )
+        record_workflow_run(self.repository.runs[run_id])
+        self.repository.create_event(
+            "workflow.run.updated",
+            "run",
+            run_id,
+            {"status": RunStatus.failed.value, "reason": reason},
+            dedupe_key=f"{run_id}:run:{RunStatus.failed.value}",
+            status=RunStatus.failed.value,
+            message="Run failed (worker lost).",
+        )
+        job = self.repository.jobs.get(run.job_id)
+        if job is not None and job.status == JobStatus.running:
+            self.repository.jobs[job.id] = job.model_copy(
+                update={"status": JobStatus.failed, "updated_at": utcnow()}
+            )
+        return self.repository.runs[run_id]
 
     def _state_from_persisted_artifacts(
         self, run_id: str, request: DigitalHumanVideoRequest

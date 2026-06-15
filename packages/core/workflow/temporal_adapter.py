@@ -97,7 +97,15 @@ def temporal_workflows() -> list[type]:
 
 
 def temporal_activities() -> list:
-    return [apply_reuse_plan, run_node, mark_run_cancelled]
+    return [apply_reuse_plan, run_node, mark_run_cancelled, mark_run_failed]
+
+
+# A long node (e.g. LipSync) blocks the activity thread for minutes, so the
+# activity heartbeats from a background thread every INTERVAL seconds; if those
+# stop (worker lost), Temporal fails the activity after TIMEOUT seconds instead
+# of waiting out the multi-hour start_to_close_timeout.
+NODE_HEARTBEAT_INTERVAL_SECONDS = 20.0
+NODE_HEARTBEAT_TIMEOUT_SECONDS = 90
 
 
 def _context() -> TemporalActivityContext:
@@ -118,37 +126,55 @@ class DigitalHumanVideoWorkflow:
         nodes = list(payload["nodes"])
         reuse_plan = payload.get("reuse_plan")
         start_index = 0
-        if reuse_plan:
-            if self.cancel_requested:
-                return await self._cancel(run_id)
-            reuse_summary = await workflow.execute_activity(
-                "apply_reuse_plan",
-                {
-                    "run_id": run_id,
-                    "source_run_id": payload.get("source_run_id"),
-                    "reuse_plan": reuse_plan,
-                },
-                start_to_close_timeout=timedelta(minutes=5),
-            )
-            start_index = len(reuse_summary.get("reused_node_ids", []))
+        try:
+            if reuse_plan:
+                if self.cancel_requested:
+                    return await self._cancel(run_id)
+                reuse_summary = await workflow.execute_activity(
+                    "apply_reuse_plan",
+                    {
+                        "run_id": run_id,
+                        "source_run_id": payload.get("source_run_id"),
+                        "reuse_plan": reuse_plan,
+                    },
+                    start_to_close_timeout=timedelta(minutes=5),
+                )
+                start_index = len(reuse_summary.get("reused_node_ids", []))
 
-        for node in nodes[start_index:]:
-            if self.cancel_requested:
-                return await self._cancel(run_id)
-            result = await workflow.execute_activity(
-                "run_node",
-                {"run_id": run_id, "node_id": node["node_id"]},
-                start_to_close_timeout=timedelta(seconds=node["timeout_seconds"]),
-                retry_policy=_retry_policy(node["retry_policy"]),
+            for node in nodes[start_index:]:
+                if self.cancel_requested:
+                    return await self._cancel(run_id)
+                result = await workflow.execute_activity(
+                    "run_node",
+                    {"run_id": run_id, "node_id": node["node_id"]},
+                    start_to_close_timeout=timedelta(seconds=node["timeout_seconds"]),
+                    heartbeat_timeout=timedelta(seconds=NODE_HEARTBEAT_TIMEOUT_SECONDS),
+                    retry_policy=_retry_policy(node["retry_policy"]),
+                )
+                self.current_status = str(result.get("run_status") or self.current_status)
+                if self.current_status in {
+                    RunStatus.failed.value,
+                    RunStatus.cancelled.value,
+                    RunStatus.succeeded.value,
+                }:
+                    return {"run_id": run_id, "status": self.current_status}
+            return {"run_id": run_id, "status": self.current_status}
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            # A node activity was lost to an infrastructure failure (e.g. the
+            # worker was restarted mid-node) and so never wrote a terminal status.
+            # Reconcile the run to failed on a live worker so the UI reflects it
+            # and an operator can resume — rather than leaving it stuck "running"
+            # until the multi-hour start_to_close_timeout fires.
+            await workflow.execute_activity(
+                "mark_run_failed",
+                {"run_id": run_id, "reason": "Worker lost or node activity timed out."},
+                start_to_close_timeout=timedelta(minutes=2),
+                retry_policy=TemporalRetryPolicy(maximum_attempts=5),
             )
-            self.current_status = str(result.get("run_status") or self.current_status)
-            if self.current_status in {
-                RunStatus.failed.value,
-                RunStatus.cancelled.value,
-                RunStatus.succeeded.value,
-            }:
-                return {"run_id": run_id, "status": self.current_status}
-        return {"run_id": run_id, "status": self.current_status}
+            self.current_status = RunStatus.failed.value
+            return {"run_id": run_id, "status": self.current_status}
 
     @workflow.signal(name="cancel")
     async def cancel(self, payload: dict[str, Any] | None = None) -> None:
@@ -213,6 +239,38 @@ def apply_reuse_plan(payload: dict[str, Any]) -> dict[str, Any]:
         reset_observability_context(token)
 
 
+def _start_node_heartbeat(run_id: str, node_id: str):
+    """Heartbeat the current activity from a daemon thread every
+    ``NODE_HEARTBEAT_INTERVAL_SECONDS`` so a lost worker is detected within the
+    activity's ``heartbeat_timeout`` even while a long node blocks the activity
+    thread. Returns a callable that stops the thread.
+
+    ``activity.heartbeat`` reads the activity context from a contextvar, so the
+    thread runs it inside a copy of the current (activity) context.
+    """
+    import contextvars
+    import threading
+
+    stop = threading.Event()
+    ctx = contextvars.copy_context()
+
+    def _loop() -> None:
+        while not stop.wait(NODE_HEARTBEAT_INTERVAL_SECONDS):
+            try:
+                ctx.run(activity.heartbeat, {"run_id": run_id, "node_id": node_id, "phase": "running"})
+            except Exception:
+                return
+
+    thread = threading.Thread(target=_loop, name=f"hb-{run_id}-{node_id}", daemon=True)
+    thread.start()
+
+    def _stop() -> None:
+        stop.set()
+        thread.join(timeout=2)
+
+    return _stop
+
+
 @activity.defn(name="run_node")
 def run_node(payload: dict[str, Any]) -> dict[str, Any]:
     ctx = _context()
@@ -222,8 +280,9 @@ def run_node(payload: dict[str, Any]) -> dict[str, Any]:
     if ctx.production_repository is not None:
         ctx.production_repository.hydrate_workflow_runtime_snapshot(repository, run_id)
     token = _bind_activity_context(repository, run_id, node_id=node_id)
+    activity.heartbeat({"run_id": run_id, "node_id": node_id, "phase": "started"})
+    stop_heartbeat = _start_node_heartbeat(run_id, node_id)
     try:
-        activity.heartbeat({"run_id": run_id, "node_id": node_id, "phase": "started"})
         summary = runtime.run_node_activity(run_id, node_id)
         _sync_if_configured(ctx, repository, run_id)
         activity.heartbeat({"run_id": run_id, "node_id": node_id, "phase": "finished"})
@@ -232,6 +291,7 @@ def run_node(payload: dict[str, Any]) -> dict[str, Any]:
         record_temporal_activity_failure()
         raise
     finally:
+        stop_heartbeat()
         reset_observability_context(token)
 
 
@@ -245,6 +305,26 @@ def mark_run_cancelled(payload: dict[str, Any]) -> dict[str, Any]:
     token = _bind_activity_context(repository, run_id)
     try:
         run = runtime.request_cancel(run_id)
+        _sync_if_configured(ctx, repository, run_id)
+        return {"run_id": run.id, "run_status": run.status.value}
+    except Exception:
+        record_temporal_activity_failure()
+        raise
+    finally:
+        reset_observability_context(token)
+
+
+@activity.defn(name="mark_run_failed")
+def mark_run_failed(payload: dict[str, Any]) -> dict[str, Any]:
+    ctx = _context()
+    run_id = str(payload["run_id"])
+    reason = str(payload.get("reason") or "Worker lost or node activity timed out.")
+    repository, runtime = _activity_runtime(ctx)
+    if ctx.production_repository is not None:
+        ctx.production_repository.hydrate_workflow_runtime_snapshot(repository, run_id)
+    token = _bind_activity_context(repository, run_id)
+    try:
+        run = runtime.mark_run_failed(run_id, reason=reason)
         _sync_if_configured(ctx, repository, run_id)
         return {"run_id": run.id, "run_status": run.status.value}
     except Exception:

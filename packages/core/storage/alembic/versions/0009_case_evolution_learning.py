@@ -4,8 +4,8 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 
-revision = "0007_case_evolution_learning"
-down_revision = "0006_media_thumbnail_duration"
+revision = "0009_case_evolution_learning"
+down_revision = "0008_ops_governance"
 branch_labels = None
 depends_on = None
 
@@ -23,7 +23,7 @@ depends_on = None
 # is a no-op there but still applies on pre-existing databases.
 
 _MEMORY_COLUMNS = (
-    ("memory_type", sa.String(), False, "'script_pattern'"),
+    ("memory_type", sa.String(), False, sa.text("'script_pattern'")),
     ("scope_key", sa.String(), True, None),
     ("sample_size", sa.Integer(), False, "0"),
     ("supersedes_memory_id", sa.String(), True, None),
@@ -49,7 +49,7 @@ _OBSERVATION_COLUMNS = (
     ("follow_rate", sa.Float(), True, None),
     ("conversion_count", sa.Integer(), True, None),
     ("conversion_rate", sa.Float(), True, None),
-    ("raw_metrics", JSONB(), False, "'{}'::jsonb"),
+    ("raw_metrics", JSONB(), False, sa.text("'{}'::jsonb")),
 )
 
 _REFLECTION_COLUMNS = (

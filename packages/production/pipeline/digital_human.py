@@ -45,6 +45,7 @@ from packages.core.storage import Repository
 from packages.core.storage.object_store import get_object_store
 from packages.core.storage.repository import new_id
 from packages.core.workflow import NodeExecutionError, NodeOutput, WorkflowRuntimeAdapter, manifest_hash
+from packages.production.pipeline.node_sequence import NODE_SEQUENCE
 from packages.media.assets import local_object_path, store_file
 from packages.media.video.ffmpeg import FfmpegCommandError, probe_media
 from packages.core.observability import (
@@ -73,25 +74,6 @@ __all__ = [
     "get_object_store",
 ]
 
-
-NODE_SEQUENCE = [
-    "ValidateRequest",
-    "LoadCaseContext",
-    "ResolveCreativeIntent",
-    "TTS",
-    "MaterialPackPlanning",
-    "NarrationAlignment",
-    "PortraitPlanning",
-    "BrollPlanning",
-    "StylePlanning",
-    "TimelinePlanning",
-    "PortraitTrackBuild",
-    "LipSync",
-    "RenderFinalTimeline",
-    "SubtitleAndBgmMix",
-    "ExportFinishedVideo",
-    "FinalizeRunReport",
-]
 
 # Per-node handler dispatch: each entry maps a node id to its free ``run(ctx)``
 # function in ``packages.production.pipeline.nodes``.

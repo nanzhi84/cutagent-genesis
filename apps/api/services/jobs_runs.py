@@ -24,6 +24,7 @@ from packages.core.workflow import NodeExecutionError
 from packages.core.observability import record_funnel_event, workflow_stage
 from packages.production.pipeline import ReusePlan, ReuseSourceRun, compute_reuse_plan
 from packages.production.pipeline.digital_human import digital_human_template
+from packages.production.pipeline.node_sequence import expected_node_count
 
 
 NODE_LABELS = {
@@ -170,8 +171,11 @@ def _run_progress(run: c.WorkflowRun, node_runs: list[c.NodeRun]) -> float:
         return 0.05 if run.status in {c.RunStatus.created, c.RunStatus.admitted} else 0.1
     terminal = {c.NodeStatus.succeeded, c.NodeStatus.skipped, c.NodeStatus.degraded}
     completed = len([node for node in node_runs if node.status in terminal])
-    running_bonus = 0.5 if any(node.status == c.NodeStatus.running for node in node_runs) else 0
-    return min(0.95, max(0.05, (completed + running_bonus) / max(len(node_runs), 1)))
+    running = len([node for node in node_runs if node.status == c.NodeStatus.running])
+    # Node runs are created lazily, so divide by the template's *total* node count,
+    # not the count created so far (which would pin progress at ~95% immediately).
+    total = max(expected_node_count(run.workflow_template_id), len(node_runs))
+    return min(0.95, max(0.05, (completed + 0.5 * running) / max(total, 1)))
 
 
 def _current_node_label(node_runs: list[c.NodeRun]) -> str | None:

@@ -95,6 +95,7 @@ from packages.media.sqlalchemy_repository import (
 )
 from packages.media.video.ffmpeg import probe_media
 from packages.production.editor_handoff import EditorHandoffAsset, EditorHandoffBuilder, EditorHandoffInput
+from packages.production.pipeline.node_sequence import expected_node_count
 from packages.production.jianying_draft import JianyingDraftBuilder, JianyingDraftInput
 from packages.production.sqlalchemy_mappers import (
     artifact_ref_from_row,
@@ -163,8 +164,11 @@ def _run_progress(run: WorkflowRun, node_runs: list[NodeRun]) -> float:
         return 0.05 if run.status in {RunStatus.created, RunStatus.admitted} else 0.1
     terminal = {NodeStatus.succeeded, NodeStatus.skipped, NodeStatus.degraded}
     completed = len([node for node in node_runs if node.status in terminal])
-    running_bonus = 0.5 if any(node.status == NodeStatus.running for node in node_runs) else 0
-    return min(0.95, max(0.05, (completed + running_bonus) / max(len(node_runs), 1)))
+    running = len([node for node in node_runs if node.status == NodeStatus.running])
+    # Node runs are created lazily, so divide by the template's *total* node count,
+    # not the count created so far (which would pin progress at ~95% immediately).
+    total = max(expected_node_count(run.workflow_template_id), len(node_runs))
+    return min(0.95, max(0.05, (completed + 0.5 * running) / max(total, 1)))
 
 
 def _current_node_label(node_runs: list[NodeRun]) -> str | None:

@@ -54,11 +54,6 @@ export function RunConfigPanel({ config, runId }: { config?: RunConfigSummary | 
           </Field>
         ) : null}
         {dims ? <Field label="分辨率">{dims}</Field> : null}
-        {config?.workflow_template_id ? (
-          <Field label="工作流模板">
-            <span className="font-mono text-xs">{config.workflow_template_id}</span>
-          </Field>
-        ) : null}
       </div>
 
       {config?.subtitle_enabled != null || config?.broll_enabled != null || config?.lipsync_enabled != null ? (

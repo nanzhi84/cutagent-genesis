@@ -145,6 +145,13 @@ export function RunDetailModal({
               高级（开发者）：节点时间线 · 产物清单 · 交接包
             </summary>
             <div className="grid gap-5 border-t border-border/70 p-4">
+              {detail?.config?.workflow_template_id ? (
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="text-text-tertiary">工作流模板</span>
+                  <span className="font-mono text-xs text-text-secondary">{detail.config.workflow_template_id}</span>
+                </div>
+              ) : null}
+
               <section className="grid gap-3">
                 <h5 className="text-sm font-semibold text-text-secondary">节点时间线</h5>
                 {nodes.length === 0 && !isLoading ? <EmptyState title="暂无节点" /> : null}

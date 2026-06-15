@@ -527,11 +527,14 @@ def run_detail(request: Request, run_id: str) -> c.RunDetailResponse:
         for artifact in repository(request).artifacts.values()
         if artifact.run_id == run_id and artifact.payload is not None
     }
+    job = repository(request).jobs.get(run.job_id)
+    config = c.build_run_config_summary(run_id, job) if job is not None else None
     return c.RunDetailResponse(
         run=run,
         node_runs=node_runs,
         artifacts=artifacts,
         artifact_payloads=payloads,
+        config=config,
         request_id=request_id(),
     )
 

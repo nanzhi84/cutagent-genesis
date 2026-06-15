@@ -250,11 +250,38 @@ class JobDetailResponse(ContractModel):
     request_id: str = "req_local"
 
 
+class RunConfigSummary(ContractModel):
+    """User-facing snapshot of the inputs a run was launched with.
+
+    Sourced from the originating job's DigitalHumanVideoRequest so the run detail
+    view can show the title, chosen voice, script copy, publish copy, and output
+    format without the operator hunting through raw node artifacts.
+    """
+
+    run_id: str
+    job_id: str
+    workflow_template_id: str | None = None
+    title: str | None = None
+    script: str | None = None
+    publish_content: str | None = None
+    voice_id: str | None = None
+    voice_provider_profile_id: str | None = None
+    voice_speed: float | None = None
+    voice_emotion: str | None = None
+    width: int | None = None
+    height: int | None = None
+    fps: int | None = None
+    subtitle_enabled: bool | None = None
+    broll_enabled: bool | None = None
+    lipsync_enabled: bool | None = None
+
+
 class RunDetailResponse(ContractModel):
     run: WorkflowRun
     node_runs: list[NodeRun]
     artifacts: list[ArtifactRef]
     artifact_payloads: dict[str, JsonValue] = Field(default_factory=dict)
+    config: RunConfigSummary | None = None
     request_id: str = "req_local"
 
 
@@ -310,3 +337,28 @@ class RunArtifactsResponse(ContractModel):
 
 class RunEventsQuery(BaseListQuery):
     since_id: str | None = None
+
+
+def build_run_config_summary(run_id: str, job: Job) -> RunConfigSummary:
+    """Project a job's video request into the run-detail config snapshot."""
+    request = job.request
+    if not isinstance(request, DigitalHumanVideoRequest):
+        return RunConfigSummary(run_id=run_id, job_id=job.id)
+    return RunConfigSummary(
+        run_id=run_id,
+        job_id=job.id,
+        workflow_template_id=request.workflow_template_id,
+        title=request.title,
+        script=request.script,
+        publish_content=request.publish_content or None,
+        voice_id=request.voice.voice_id,
+        voice_provider_profile_id=request.voice.provider_profile_id,
+        voice_speed=request.voice.speed,
+        voice_emotion=request.voice.emotion,
+        width=request.output.width,
+        height=request.output.height,
+        fps=request.output.fps,
+        subtitle_enabled=request.subtitle.enabled,
+        broll_enabled=request.broll.enabled,
+        lipsync_enabled=request.lipsync.enabled,
+    )

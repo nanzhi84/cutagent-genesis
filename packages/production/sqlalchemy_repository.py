@@ -42,6 +42,7 @@ from packages.core.contracts import (
     RunCard,
     RunDebugReportArtifact,
     RunDetailResponse,
+    build_run_config_summary,
     RunPublicReportArtifact,
     RunReportResponse,
     RunStatus,
@@ -509,11 +510,18 @@ class SqlAlchemyProductionRepository:
             )
             artifacts = [artifact_ref_from_row(row) for row in artifact_rows]
             payloads = {row.id: row.payload for row in artifact_rows if row.payload is not None}
+            job_row = session.get(JobRow, run.job_id)
+            config = (
+                build_run_config_summary(run_id, job_row_to_contract(job_row))
+                if job_row is not None
+                else None
+            )
             return RunDetailResponse(
                 run=workflow_run_row_to_contract(run),
                 node_runs=node_runs,
                 artifacts=artifacts,
                 artifact_payloads=payloads,
+                config=config,
                 request_id=request_id,
             )
 

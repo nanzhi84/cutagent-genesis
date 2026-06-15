@@ -724,6 +724,7 @@ export type DigitalHumanVideoCostEstimateResponse = components["schemas"]["Digit
 export type NodeRun = components["schemas"]["NodeRun"];
 export type RunCard = components["schemas"]["RunCard"];
 export type RunDetailResponse = components["schemas"]["RunDetailResponse"];
+export type RunConfigSummary = components["schemas"]["RunConfigSummary"];
 export type VoiceProfile = components["schemas"]["VoiceProfile"];
 export type UploadKind = components["schemas"]["UploadKind"];
 export type UploadSession = components["schemas"]["UploadSession"];

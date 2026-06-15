@@ -6373,6 +6373,48 @@ export interface components {
             /** Updatedat */
             updatedAt?: string | null;
         };
+        /**
+         * RunConfigSummary
+         * @description User-facing snapshot of the inputs a run was launched with.
+         *
+         *     Sourced from the originating job's DigitalHumanVideoRequest so the run detail
+         *     view can show the title, chosen voice, script copy, publish copy, and output
+         *     format without the operator hunting through raw node artifacts.
+         */
+        RunConfigSummary: {
+            /** Run Id */
+            run_id: string;
+            /** Job Id */
+            job_id: string;
+            /** Workflow Template Id */
+            workflow_template_id?: string | null;
+            /** Title */
+            title?: string | null;
+            /** Script */
+            script?: string | null;
+            /** Publish Content */
+            publish_content?: string | null;
+            /** Voice Id */
+            voice_id?: string | null;
+            /** Voice Provider Profile Id */
+            voice_provider_profile_id?: string | null;
+            /** Voice Speed */
+            voice_speed?: number | null;
+            /** Voice Emotion */
+            voice_emotion?: string | null;
+            /** Width */
+            width?: number | null;
+            /** Height */
+            height?: number | null;
+            /** Fps */
+            fps?: number | null;
+            /** Subtitle Enabled */
+            subtitle_enabled?: boolean | null;
+            /** Broll Enabled */
+            broll_enabled?: boolean | null;
+            /** Lipsync Enabled */
+            lipsync_enabled?: boolean | null;
+        };
         /** RunDebugReportArtifact */
         RunDebugReportArtifact: {
             /** Run Id */
@@ -6406,6 +6448,7 @@ export interface components {
             artifact_payloads?: {
                 [key: string]: components["schemas"]["JsonValue"];
             };
+            config?: components["schemas"]["RunConfigSummary"] | null;
             /**
              * Request Id
              * @default req_local

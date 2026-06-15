@@ -5,6 +5,7 @@ from fastapi import Request
 
 from apps.api.common import (
     media_repository,
+    object_store,
     page,
     provider_repository,
     repository,
@@ -268,6 +269,26 @@ def _provider_voice_build(
 
 
 def voice_preview(voice_id: str, payload: c.VoicePreviewRequest, request: Request) -> c.VoicePreviewResponse:
+    response = _resolve_voice_preview(voice_id, payload, request)
+    return _sign_preview_audio(response, request)
+
+
+def _sign_preview_audio(response: c.VoicePreviewResponse, request: Request) -> c.VoicePreviewResponse:
+    """Replace a storage URI (s3://, oss://, local://) with a browser-playable
+    presigned HTTPS URL so the library试听 player can load the audio directly."""
+    uri = response.audio_artifact.uri
+    if not uri or uri.startswith(("http://", "https://")) or "://" not in uri:
+        return response
+    try:
+        signed = object_store(request).signed_url(uri).url
+    except Exception:
+        return response
+    return response.model_copy(
+        update={"audio_artifact": response.audio_artifact.model_copy(update={"uri": signed})}
+    )
+
+
+def _resolve_voice_preview(voice_id: str, payload: c.VoicePreviewRequest, request: Request) -> c.VoicePreviewResponse:
     media_repo = media_repository(request)
     if media_repo is not None:
         voice = load_voice(media_repo, voice_id)

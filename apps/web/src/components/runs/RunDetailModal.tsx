@@ -9,6 +9,7 @@ import { EditorHandoffActions } from "../editor-handoff/EditorHandoffActions";
 import { Modal } from "../ui/Modal";
 import { VideoPlayer } from "../ui/VideoPlayer";
 import { EditTimelinePreview, buildEditClips } from "./EditTimelinePreview";
+import { RunConfigPanel } from "./RunConfigPanel";
 import { StageProgress } from "./StageProgress";
 import { shortId } from "../../lib/format";
 import { toDisplayUrl } from "../../lib/url";
@@ -125,6 +126,9 @@ export function RunDetailModal({
             <DetailMetric label="开始" value={<TimeText value={card.startedAt} />} />
             <DetailMetric label="更新" value={<TimeText value={card.updatedAt} />} />
           </div>
+
+          {/* 生成配置（任务输入快照） */}
+          <RunConfigPanel config={detail?.config} runId={card.runId} />
 
           {/* 生产阶段（友好聚合） */}
           <section className="grid gap-3">

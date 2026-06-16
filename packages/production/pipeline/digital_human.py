@@ -64,6 +64,11 @@ from packages.production.pipeline import nodes
 from packages.production.pipeline._node_context import NodeContext
 from packages.production.pipeline._run_state import RunState, degradation_notice
 from packages.production.pipeline.degradation_policies import LIPSYNC_FAILOVER_POLICY
+from packages.production.pipeline.ephemeral_gc import (
+    failed_ephemeral_retention_policy,
+    gc_ephemeral_artifacts,
+    record_ephemeral_gc_event,
+)
 from packages.production.pipeline.reuse import ReusePlan, ReuseSourceRun, compute_reuse_plan
 
 __all__ = [
@@ -516,6 +521,9 @@ class LocalRuntimeAdapter(WorkflowRuntimeAdapter):
             self.repository.jobs[job.id] = job.model_copy(
                 update={"status": JobStatus.failed, "updated_at": utcnow()}
             )
+        state = self._terminal_state_from_repository(run_id)
+        if state is not None:
+            self._terminal_ephemeral_gc(run_id, state, terminal_status=RunStatus.failed)
         return self.repository.runs[run_id]
 
     def _state_from_persisted_artifacts(
@@ -535,6 +543,66 @@ class LocalRuntimeAdapter(WorkflowRuntimeAdapter):
             state.warnings.extend(node_run.warnings)
             state.degradations.extend(node_run.degradations)
         return state
+
+    def _terminal_state_from_repository(self, run_id: str) -> RunState | None:
+        run = self.repository.runs.get(run_id)
+        if run is None:
+            return None
+        job = self.repository.jobs.get(run.job_id)
+        if job is None:
+            return None
+        try:
+            return self._state_from_persisted_artifacts(run_id, self._request(job))
+        except Exception:
+            logger.warning("Failed to hydrate terminal state for run %s.", run_id, exc_info=True)
+            return None
+
+    def _terminal_ephemeral_gc(
+        self,
+        run_id: str,
+        state: RunState,
+        *,
+        terminal_status: RunStatus,
+    ) -> None:
+        try:
+            # A failed / worker-lost run can still be RESUMED reusing its valid
+            # prefix (spec §20.2.6 — see the lipsync-timeout resume path); deleting
+            # its ephemeral intermediates at the terminal hook would break resume.
+            # So retain them and let the time-based object-store sweep
+            # (scripts/gc_objectstore.py) reclaim them after the resume window.
+            # Only a cancelled run — which never resumes — is GC'd immediately.
+            if terminal_status != RunStatus.cancelled:
+                record_ephemeral_gc_event(
+                    self.repository,
+                    run_id=run_id,
+                    terminal_status=terminal_status.value,
+                    deleted_uris=[],
+                    skipped=True,
+                    retention_policy="retain_for_resume",
+                )
+                return
+            # Cancelled run: GC now, unless a debug-retention knob asks to keep it.
+            retention_policy = failed_ephemeral_retention_policy()
+            if retention_policy is not None:
+                record_ephemeral_gc_event(
+                    self.repository,
+                    run_id=run_id,
+                    terminal_status=terminal_status.value,
+                    deleted_uris=[],
+                    skipped=True,
+                    retention_policy=retention_policy,
+                )
+                return
+            deleted_uris = gc_ephemeral_artifacts(self._object_store(), state, run_id=run_id)
+            record_ephemeral_gc_event(
+                self.repository,
+                run_id=run_id,
+                terminal_status=terminal_status.value,
+                deleted_uris=deleted_uris,
+                skipped=False,
+            )
+        except Exception:
+            logger.warning("Failed to run terminal ephemeral GC for run %s.", run_id, exc_info=True)
 
     # --------------------------------------------------------------- engine loop
     def _execute_node(self, node_id: str, run: WorkflowRun, state: RunState) -> bool:
@@ -675,6 +743,7 @@ class LocalRuntimeAdapter(WorkflowRuntimeAdapter):
                     exc_info=True,
                 )
             self._write_report(run, state, failed=True)
+            self._terminal_ephemeral_gc(run.id, state, terminal_status=RunStatus.failed)
             assert_transition("run", self.repository.runs[run.id].status, RunStatus.failed)
             self.repository.runs[run.id] = self.repository.runs[run.id].model_copy(
                 update={"status": RunStatus.failed, "finished_at": utcnow(), "updated_at": utcnow()}
@@ -770,6 +839,18 @@ class LocalRuntimeAdapter(WorkflowRuntimeAdapter):
                 run_id,
                 exc_info=True,
             )
+        state = self._terminal_state_from_repository(run_id)
+        if state is not None:
+            try:
+                self._write_report(
+                    self.repository.runs[run.id],
+                    state,
+                    failed=False,
+                    status=RunStatus.cancelled,
+                )
+            except Exception:
+                logger.warning("Failed to write cancelled report for run %s.", run_id, exc_info=True)
+            self._terminal_ephemeral_gc(run_id, state, terminal_status=RunStatus.cancelled)
         record_workflow_run(self.repository.runs[run.id])
         self.repository.create_event(
             "workflow.run.cancelled",
@@ -1104,12 +1185,19 @@ class LocalRuntimeAdapter(WorkflowRuntimeAdapter):
         *,
         failed: bool,
         node_run: NodeRun | None = None,
+        status: RunStatus | None = None,
     ) -> tuple[Artifact, Artifact]:
         node_runs = self.repository.node_runs.get(run.id, [])
+        terminal_status = status or (RunStatus.failed if failed else RunStatus.succeeded)
+        summaries = {
+            RunStatus.failed: "Run failed.",
+            RunStatus.cancelled: "Run cancelled.",
+            RunStatus.succeeded: "Run completed.",
+        }
         public = RunPublicReportArtifact(
             run_id=run.id,
-            status=RunStatus.failed if failed else RunStatus.succeeded,
-            summary="Run failed." if failed else "Run completed.",
+            status=terminal_status,
+            summary=summaries.get(terminal_status, f"Run {terminal_status.value}."),
             node_statuses={node.node_id: node.status for node in node_runs},
             warnings=state.warnings,
             degradations=[notice.code for notice in state.degradations],

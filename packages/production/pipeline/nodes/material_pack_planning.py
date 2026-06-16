@@ -121,6 +121,9 @@ def run(ctx: NodeContext) -> NodeOutput:
     portrait_candidates.sort(
         key=lambda c: (-c.score, c.asset_id, str((c.metadata or {}).get("clip_id") or ""))
     )
+    _portrait_from_video_count = sum(
+        1 for c in portrait_candidates if (c.metadata or {}).get("clip_id")
+    )
 
     # --- b-roll (real annotation matching; no annotation -> no candidate) -----
     keywords = extract_keywords(request.script)
@@ -191,6 +194,12 @@ def run(ctx: NodeContext) -> NodeOutput:
             and bool(broll_assets)
             and not broll_annotations,
             "bgm_missing": request.bgm.enabled and not bgm_candidates,
+            # Unified video bucket visibility: how many portrait candidates came from
+            # per-clip lip-sync windows, and the honest "operator uploaded video but it
+            # has no talking-head clip" signal (an A-roll-insufficiency early-warning;
+            # PortraitPlanning still enforces the hard coverage gate downstream).
+            "portrait_from_video": _portrait_from_video_count,
+            "video_no_lipsync": bool(video_portrait_assets) and _portrait_from_video_count == 0,
         },
         reservations=reservation_ids,
     ).model_dump(mode="json")

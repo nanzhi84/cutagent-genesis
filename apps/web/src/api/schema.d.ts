@@ -2883,6 +2883,11 @@ export interface components {
              * @default true
              */
             enabled: boolean;
+            /**
+             * Enforce
+             * @default false
+             */
+            enforce: boolean;
         };
         /** Budget */
         "Budget-Output": {
@@ -2931,6 +2936,11 @@ export interface components {
              * @default true
              */
             enabled: boolean;
+            /**
+             * Enforce
+             * @default false
+             */
+            enforce: boolean;
         };
         /**
          * BudgetEvaluation
@@ -5585,6 +5595,8 @@ export interface components {
             alert_threshold?: number | null;
             /** Enabled */
             enabled?: boolean | null;
+            /** Enforce */
+            enforce?: boolean | null;
             /** Period */
             period?: ("day" | "week" | "month") | null;
         };
@@ -7009,6 +7021,16 @@ export interface components {
             /** Segment Id */
             segment_id?: string | null;
         };
+        /** ReconcileBillingLineItem */
+        ReconcileBillingLineItem: {
+            /** Provider Id */
+            provider_id: string;
+            /** Capability Id */
+            capability_id: string;
+            estimated_cost: components["schemas"]["Money-Output"];
+            recorded_usage_cost: components["schemas"]["Money-Output"];
+            variance: components["schemas"]["Money-Output"];
+        };
         /** ReconcileBillingRequest */
         ReconcileBillingRequest: {
             /** Provider Id */
@@ -7037,7 +7059,12 @@ export interface components {
              * Status
              * @enum {string}
              */
-            status: "queued" | "running";
+            status: "queued" | "running" | "completed";
+            estimated_cost: components["schemas"]["Money-Output"];
+            recorded_usage_cost: components["schemas"]["Money-Output"];
+            variance: components["schemas"]["Money-Output"];
+            /** Line Items */
+            line_items?: components["schemas"]["ReconcileBillingLineItem"][];
             /** Request Id */
             request_id: string;
         };
@@ -8098,7 +8125,7 @@ export interface components {
          * WarningCode
          * @enum {string}
          */
-        WarningCode: "broll.skipped_no_material" | "bgm.skipped_library_unannotated" | "font.default_used" | "cover.frame_fallback" | "timestamp.estimated" | "cost.unpriced" | "lipsync.fallback_used" | "bgm.loudness_probe_failed" | "font.resolution_failed";
+        WarningCode: "broll.skipped_no_material" | "bgm.skipped_library_unannotated" | "font.default_used" | "cover.frame_fallback" | "timestamp.estimated" | "cost.unpriced" | "budget.exceeded" | "lipsync.fallback_used" | "bgm.loudness_probe_failed" | "font.resolution_failed";
         /** WorkflowRun */
         WorkflowRun: {
             /** Id */

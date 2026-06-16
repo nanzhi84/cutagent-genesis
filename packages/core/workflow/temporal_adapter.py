@@ -66,6 +66,7 @@ class TemporalActivityContext:
             secret_store=template_gateway.secret_store,
             object_store=template_gateway.object_store,
             http_client=template_gateway.http_client,
+            budget_guard=template_gateway.budget_guard,
             auto_register_real_plugins=False,
         )
         # Reuse the already-registered (stateless) plugin instances rather than

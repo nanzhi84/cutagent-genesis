@@ -77,6 +77,7 @@ class WarningCode(str, Enum):
     cover_frame_fallback = "cover.frame_fallback"
     timestamp_estimated = "timestamp.estimated"
     cost_unpriced = "cost.unpriced"
+    budget_exceeded = "budget.exceeded"
     lipsync_fallback_used = "lipsync.fallback_used"
     bgm_loudness_probe_failed = "bgm.loudness_probe_failed"
     font_resolution_failed = "font.resolution_failed"

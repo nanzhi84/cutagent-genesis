@@ -306,4 +306,11 @@ def build_balance_poller_service(app) -> BalancePollerService:
 def reconcile_billing(payload: c.ReconcileBillingRequest, request: Request) -> c.ReconcileBillingResponse:
     if ops_repository(request) is not None:
         return ops_repository(request).reconcile_billing(payload, request_id())
-    return c.ReconcileBillingResponse(reconciliation_run_id=new_id("recon"), status="queued", request_id=request_id())
+    return c.ReconcileBillingResponse(
+        reconciliation_run_id=new_id("recon"),
+        status="completed",
+        estimated_cost=c.zero_money(),
+        recorded_usage_cost=c.zero_money(),
+        variance=c.zero_money(),
+        request_id=request_id(),
+    )

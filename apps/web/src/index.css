@@ -268,6 +268,30 @@
     @apply w-full;
   }
 
+  .loginPage {
+    @apply grid min-h-screen place-items-center p-6;
+  }
+
+  .loginPanel {
+    @apply card grid w-full max-w-[420px] gap-5;
+  }
+
+  .loginPanel h1 {
+    @apply font-display text-2xl leading-tight text-text-primary;
+    margin: 0;
+  }
+
+  .loginPanel p {
+    @apply mt-1 text-sm text-text-secondary;
+    margin: 0;
+  }
+
+  .loginMark {
+    @apply inline-flex h-12 w-12 items-center justify-center rounded-2xl text-[#1b1d1a];
+    background: linear-gradient(135deg, #d6ff48 0%, #eef2cf 100%);
+    box-shadow: 0 14px 36px rgba(214, 255, 72, 0.16);
+  }
+
   .pageStack {
     @apply grid max-w-[1280px] gap-4;
   }

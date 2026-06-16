@@ -15,7 +15,10 @@ from packages.planning.material.keywords import (
 )
 from packages.planning.material.matching import BrollScene, MatchResult, best_match, score_segment
 from packages.planning.material.portrait_pack import (
+    PortraitClipCandidate,
     SimpleCandidate,
+    clip_is_lip_sync_usable,
+    rank_portrait_clip_candidates,
     score_portrait_candidate,
     score_simple_candidate,
 )
@@ -33,6 +36,9 @@ __all__ = [
     "best_match",
     "score_segment",
     "SimpleCandidate",
+    "PortraitClipCandidate",
+    "clip_is_lip_sync_usable",
+    "rank_portrait_clip_candidates",
     "score_portrait_candidate",
     "score_simple_candidate",
 ]

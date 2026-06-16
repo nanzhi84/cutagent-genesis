@@ -109,7 +109,11 @@ def rank_broll_candidates(
     candidates: list[BrollCandidate] = []
     for asset_id, annotation in annotations.items():
         for clip in annotation.clips:
-            if clip.usage.role.value == "avoid":
+            # Skip non-cover roles: ``avoid`` (unusable) plus the talking-head roles
+            # ``main``/``hook`` (those are A-roll lip-sync clips from a unified video
+            # asset, not cutaway cover). Legacy b-roll clips are only cover/backup/avoid,
+            # so this is a no-op for them.
+            if clip.usage.role.value in {"avoid", "main", "hook"}:
                 continue
             scene = _scene_from_clip(asset_id, clip)
             best_segment, match = best_match(seg_list, scene)

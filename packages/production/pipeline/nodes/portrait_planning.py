@@ -47,12 +47,10 @@ def run(ctx: NodeContext) -> NodeOutput:
     duration = max([float(unit.get("end", 0)) for unit in raw_units] or [1.0])
 
     hard_fail = state.request.strictness.portrait_insufficient_policy == "hard_fail"
-    portrait_candidate_ids = [
-        item.get("asset_id")
-        for item in material.get("portrait_candidates", [])
-        if item.get("asset_id")
+    portrait_candidate_items = [
+        item for item in material.get("portrait_candidates", []) if item.get("asset_id")
     ]
-    if hard_fail and not portrait_candidate_ids:
+    if hard_fail and not portrait_candidate_items:
         raise NodeExecutionError(
             ErrorCode.material_insufficient_portrait,
             "Portrait main track cannot cover the full audio.",
@@ -66,8 +64,8 @@ def run(ctx: NodeContext) -> NodeOutput:
     portrait_ledger = ctx.repository.recent_selections(
         case_id=state.request.case_id, medium="portrait"
     )
-    candidates = _portrait_window_candidates(ctx, portrait_candidate_ids, portrait_ledger)
-    if portrait_candidate_ids and not candidates:
+    candidates = _portrait_window_candidates(ctx, portrait_candidate_items, portrait_ledger)
+    if portrait_candidate_items and not candidates:
         raise NodeExecutionError(
             ErrorCode.material_insufficient_portrait,
             "Portrait source window cannot cover the full audio.",
@@ -218,19 +216,26 @@ def _plan_with_escalation(
     }
 
 
-def _portrait_window_candidates(ctx: NodeContext, asset_ids: list[str], ledger) -> list[dict]:
-    """One source-window candidate per usable portrait asset (ranked order kept).
+def _portrait_window_candidates(ctx: NodeContext, items: list[dict], ledger) -> list[dict]:
+    """One source-window candidate per ranked material-pack portrait candidate.
 
-    ``window_id`` / ``template_id`` are the asset id so the planned segment's
-    ``template_id`` maps straight back to the material asset for the render node.
+    Legacy ``portrait`` assets yield the whole-asset span ``[0, source_duration]``.
+    Unified ``video`` candidates carry a clip window in ``metadata``
+    (``clip_id`` / ``source_start`` / ``source_end``): the candidate's source span
+    is exactly that clip, so the boundary planner draws lip-sync source frames only
+    from the talking-head segment of a mixed video (``_assigned_start = start +
+    offset`` is absolute source time, which PortraitTrackBuild cuts verbatim).
 
-    Each candidate also carries a ``recent_usage`` context built from the case's
-    recent portrait ledger rows (most-recent-first), so the ported scoring side
-    actually demotes a recently-used template and blocks a consecutive opening reuse
-    — without it ``is_recent_portrait_candidate`` defaulted to False for everyone.
+    ``template_id`` stays the asset id so the planned segment maps back to the
+    source artifact for the render node; ``window_id`` is per-clip so several clips
+    of one video compete as distinct windows. ``recent_usage`` is built from the
+    case's recent portrait ledger so a recently-used source is demoted.
     """
     candidates: list[dict] = []
-    for rank, asset_id in enumerate(asset_ids):
+    for rank, item in enumerate(items):
+        asset_id = item.get("asset_id")
+        if not asset_id:
+            continue
         source = ctx.source_artifact_for_asset(asset_id)
         source_duration = (
             float(source.media_info.duration_sec or 0)
@@ -239,6 +244,17 @@ def _portrait_window_candidates(ctx: NodeContext, asset_ids: list[str], ledger) 
         )
         if source_duration <= 0.08:
             continue
+        meta = item.get("metadata") or {}
+        clip_id = meta.get("clip_id")
+        if clip_id is not None and meta.get("source_end") is not None:
+            win_start = max(0.0, float(meta.get("source_start") or 0.0))
+            win_end = min(round(source_duration, 3), float(meta.get("source_end")))
+            window_id = f"{asset_id}:{clip_id}"
+        else:
+            win_start, win_end = 0.0, round(source_duration, 3)
+            window_id = asset_id
+        if win_end - win_start <= 0.08:
+            continue
         recent_usage = build_portrait_recency_context_from_ledger(
             entries=ledger,
             template_id=asset_id,
@@ -246,15 +262,15 @@ def _portrait_window_candidates(ctx: NodeContext, asset_ids: list[str], ledger) 
         )
         candidates.append(
             {
-                "window_id": asset_id,
+                "window_id": window_id,
                 "template_id": asset_id,
                 "template_name": asset_id,
-                "start": 0.0,
-                "end": round(source_duration, 3),
-                "duration": round(source_duration, 3),
+                "start": round(win_start, 3),
+                "end": round(win_end, 3),
+                "duration": round(win_end - win_start, 3),
                 "role": "main",
                 # Material pack ranks by score desc; turn rank into a stable
-                # confidence so the highest-ranked usable asset wins ties.
+                # confidence so the highest-ranked usable window wins ties.
                 "confidence": round(max(0.1, 0.9 - rank * 0.05), 3),
                 "source_mode_hint": "lipsynced",
                 "recent_usage": recent_usage,

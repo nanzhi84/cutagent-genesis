@@ -69,7 +69,7 @@ class BudgetEnforcementGuard:
     ) -> bool:
         scope_type = evaluation.scope_type
         scope_id = evaluation.scope_id
-        if scope_type in {"global"}:
+        if scope_type == "global":
             return True
         if scope_type == "workspace":
             workspace_id = self._workspace_id(call, invocation)

@@ -6,7 +6,7 @@ import pytest
 
 from packages.core.contracts import ErrorCode, MediaInfo
 from packages.core.workflow import NodeExecutionError
-from packages.media.rendering import RenderExpectation, validate_rendered_output
+from packages.media.rendering import validate_rendered_output
 import packages.media.rendering.timeline as rendering_timeline
 
 
@@ -37,7 +37,6 @@ def test_validate_rendered_output_returns_media_info_when_render_matches(monkeyp
     )
 
     assert result is media_info
-    assert RenderExpectation(expected_frames=30).expected_frames == 30
 
 
 def test_validate_rendered_output_raises_render_error_for_frame_mismatch(monkeypatch):

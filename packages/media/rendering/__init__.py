@@ -1,7 +1,6 @@
 """Rendering helpers and ffmpeg command builders."""
 
 from packages.media.rendering.timeline import (
-    RenderExpectation,
     _escape_subtitle_filter_value,
     concat_video_segments,
     fit_video_to_exact_duration,
@@ -14,7 +13,6 @@ from packages.media.rendering.timeline import (
 )
 
 __all__ = [
-    "RenderExpectation",
     "_escape_subtitle_filter_value",
     "concat_video_segments",
     "fit_video_to_exact_duration",

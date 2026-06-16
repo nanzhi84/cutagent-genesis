@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from packages.core.contracts import WarningCode
-
 
 _LIPSYNC_CONTENT_POLICY_MARKERS = (
     "input data may contain inappropriate content",
@@ -18,7 +16,6 @@ _LIPSYNC_CONTENT_POLICY_MARKERS = (
 class DegradationPolicy:
     id: str
     version: str
-    warning_code: WarningCode
 
 
 class LipsyncFailoverPolicy(DegradationPolicy):
@@ -47,17 +44,14 @@ def _is_lipsync_content_policy_error(message: str | None) -> bool:
 LIPSYNC_FAILOVER_POLICY = LipsyncFailoverPolicy(
     id="lipsync.failover.v1",
     version="v1",
-    warning_code=WarningCode.lipsync_fallback_used,
 )
 ASR_ESTIMATED_FALLBACK_POLICY = DegradationPolicy(
     id="asr.estimated_fallback.v1",
     version="v1",
-    warning_code=WarningCode.timestamp_estimated,
 )
 COVER_FALLBACK_POLICY = DegradationPolicy(
     id="cover.fallback.v1",
     version="v1",
-    warning_code=WarningCode.cover_frame_fallback,
 )
 
 DEGRADATION_POLICIES = (

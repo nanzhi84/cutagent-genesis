@@ -130,7 +130,6 @@ class DistributedRateLimiter:
         self.max_qps = max_qps if max_qps and max_qps > 0 else _max_qps()
         self.lease_ttl_ms = max(1000, int(lease_ttl_seconds * 1000))
         self.acquire_sleep_seconds = acquire_sleep_seconds
-        self._redis_client_factory = redis_client_factory
         self._registry_lock = threading.Lock()
         self._semaphores: dict[str, threading.BoundedSemaphore] = {}
         self._degradation_lock = threading.Lock()

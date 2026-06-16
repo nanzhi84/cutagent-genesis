@@ -6,7 +6,6 @@ import functools
 import os
 import threading
 from contextlib import contextmanager
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Iterator
 
@@ -66,14 +65,6 @@ def _limit_render_slot(key: str) -> Callable:
     return decorator
 
 
-@dataclass(frozen=True)
-class RenderExpectation:
-    expected_frames: int
-    expected_width: int | None = None
-    expected_height: int | None = None
-    expected_fps: int | None = None
-
-
 def validate_rendered_output(
     output_path: Path,
     *,
@@ -84,26 +75,17 @@ def validate_rendered_output(
     frame_count_message: str = "Rendered timeline frame count does not match the plan.",
     media_info_message: str = "Rendered timeline media info does not match the plan.",
 ) -> MediaInfo:
-    expectation = RenderExpectation(
-        expected_frames=expected_frames,
-        expected_width=expected_width,
-        expected_height=expected_height,
-        expected_fps=expected_fps,
-    )
     media_info = probe_media(output_path)
     frame_count = probe_video_frame_count(output_path)
-    if frame_count != expectation.expected_frames:
+    if frame_count != expected_frames:
         raise NodeExecutionError(
             ErrorCode.render_invalid_timeline,
             frame_count_message,
         )
     if (
-        (expectation.expected_width is not None and media_info.width != expectation.expected_width)
-        or (expectation.expected_height is not None and media_info.height != expectation.expected_height)
-        or (
-            expectation.expected_fps is not None
-            and round(media_info.fps or 0) != expectation.expected_fps
-        )
+        (expected_width is not None and media_info.width != expected_width)
+        or (expected_height is not None and media_info.height != expected_height)
+        or (expected_fps is not None and round(media_info.fps or 0) != expected_fps)
     ):
         raise NodeExecutionError(
             ErrorCode.render_invalid_timeline,

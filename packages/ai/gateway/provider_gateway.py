@@ -85,6 +85,16 @@ class BudgetGuard(Protocol):
         ...
 
 
+class CircuitBreakerGuard(Protocol):
+    def evaluate(
+        self,
+        *,
+        call: ProviderCall,
+        invocation: ProviderInvocation,
+    ) -> ProviderError | None:
+        ...
+
+
 class ProviderRuntimeError(Exception):
     def __init__(self, code: ErrorCode, message: str) -> None:
         super().__init__(message)
@@ -141,6 +151,7 @@ class ProviderGateway:
     object_store: ObjectStore | None = None
     http_client: object | None = None
     budget_guard: BudgetGuard | None = None
+    circuit_breaker: CircuitBreakerGuard | None = None
     auto_register_real_plugins: bool = True
 
     def __post_init__(self) -> None:
@@ -227,6 +238,22 @@ class ProviderGateway:
                     update={
                         "status": ProviderStatus.failed,
                         "error": budget_error,
+                        "duration_ms": int((perf_counter() - started) * 1000),
+                        "finished_at": utcnow(),
+                        "updated_at": utcnow(),
+                    }
+                )
+                self.repository.provider_invocations[invocation.id] = invocation
+                record_provider_invocation(invocation)
+                return invocation, None
+        if self.circuit_breaker is not None:
+            circuit_error = self.circuit_breaker.evaluate(call=call, invocation=invocation)
+            if circuit_error is not None:
+                assert_transition("provider", invocation.status, ProviderStatus.failed)
+                invocation = invocation.model_copy(
+                    update={
+                        "status": ProviderStatus.failed,
+                        "error": circuit_error,
                         "duration_ms": int((perf_counter() - started) * 1000),
                         "finished_at": utcnow(),
                         "updated_at": utcnow(),

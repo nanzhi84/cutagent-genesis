@@ -56,6 +56,7 @@ from packages.core.workflow import NodeExecutionError, load_workflow_runtime_set
 from packages.creative.cases import SqlAlchemyCaseLearningRepository, SqlAlchemyCaseRepository
 from packages.media import SqlAlchemyMediaRepository
 from packages.ops import BudgetEnforcementGuard, SqlAlchemyOpsRepository
+from packages.ops.circuit_breaker import ProviderCircuitBreaker
 from packages.production import SqlAlchemyProductionRepository
 from packages.production.pipeline import build_digital_human_workflow
 from packages.publishing import SqlAlchemyPublishingRepository
@@ -166,6 +167,7 @@ def configure_app_state(app: FastAPI, *, session_factory=None) -> None:
         provider_reader=provider_reader,
         secret_store=app.state.secret_store,
         budget_guard=budget_guard,
+        circuit_breaker=ProviderCircuitBreaker(session_factory) if session_factory is not None else None,
     )
     app.state.prompt_registry = PromptRegistry(runtime_repository, prompt_reader=prompt_reader)
     app.state.workflow_runtime_settings = load_workflow_runtime_settings()

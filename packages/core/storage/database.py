@@ -727,6 +727,65 @@ class PerformanceScoreRow(TimestampMixin, Base):
     excluded_reason: Mapped[str | None] = mapped_column(String)
 
 
+class CaseRubricRow(TimestampMixin, Base):
+    __tablename__ = "case_rubrics"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    case_id: Mapped[str] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    status: Mapped[str] = mapped_column(String, nullable=False, default="active")
+    dimensions: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    fitted_from_sample_size: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    cold_start: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    supersedes_version: Mapped[int | None] = mapped_column(Integer)
+
+
+class ScorePredictionRow(TimestampMixin, Base):
+    __tablename__ = "score_predictions"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    case_id: Mapped[str] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
+    script_draft_id: Mapped[str | None] = mapped_column(String)
+    script_version_id: Mapped[str | None] = mapped_column(String)
+    rubric_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    composite: Mapped[float] = mapped_column(Float, nullable=False, default=0)
+    band: Mapped[str] = mapped_column(String, nullable=False, default="ok")
+    dimension_scores: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    reason: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    locked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    settled_reward: Mapped[float | None] = mapped_column(Float)
+    settled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class RewardSignalRow(TimestampMixin, Base):
+    __tablename__ = "reward_signals"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    case_id: Mapped[str] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
+    script_version_id: Mapped[str | None] = mapped_column(String)
+    script_draft_id: Mapped[str | None] = mapped_column(String)
+    source_kind: Mapped[str] = mapped_column(String, nullable=False)
+    value: Mapped[float] = mapped_column(Float, nullable=False, default=0)
+    confidence: Mapped[float] = mapped_column(Float, nullable=False, default=0.5)
+    evidence_ref: Mapped[str | None] = mapped_column(String)
+    reason: Mapped[str | None] = mapped_column(String)
+    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+
+class RubricBumpProposalRow(TimestampMixin, Base):
+    __tablename__ = "rubric_bump_proposals"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    case_id: Mapped[str] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
+    status: Mapped[str] = mapped_column(String, nullable=False, default="proposed")
+    from_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    candidate: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    old_consistency: Mapped[float] = mapped_column(Float, nullable=False, default=0)
+    new_consistency: Mapped[float] = mapped_column(Float, nullable=False, default=0)
+    sample_size: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    rationale: Mapped[str] = mapped_column(Text, nullable=False, default="")
+
+
 class CaseKnowledgeItemRow(TimestampMixin, Base):
     __tablename__ = "case_knowledge_items"
 

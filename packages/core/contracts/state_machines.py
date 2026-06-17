@@ -87,6 +87,22 @@ CASE_MEMORY_TRANSITIONS: dict[str, frozenset[str]] = {
     "superseded": frozenset(),
 }
 
+# Case rubric versions (§6.4): a fitted card goes draft→active; an accepted bump
+# supersedes the prior active card.
+CASE_RUBRIC_TRANSITIONS: dict[str, frozenset[str]] = {
+    "draft": frozenset({"active"}),
+    "active": frozenset({"superseded"}),
+    "superseded": frozenset(),
+}
+
+# Rubric bump proposals (§6.4): a single human accept/reject after the candidate
+# clears the "must rerank more accurately" gate.
+RUBRIC_BUMP_TRANSITIONS: dict[str, frozenset[str]] = {
+    "proposed": frozenset({"accepted", "rejected"}),
+    "accepted": frozenset(),
+    "rejected": frozenset(),
+}
+
 UPLOAD_SESSION_TRANSITIONS: dict[str, frozenset[str]] = {
     "prepared": frozenset({"uploading", "failed", "cancelled", "expired"}),
     "uploading": frozenset({"completed", "failed", "cancelled", "expired"}),
@@ -135,6 +151,8 @@ TRANSITIONS: dict[str, dict[Any, frozenset[Any]]] = {
     "provider": PROVIDER_TRANSITIONS,
     "prompt_version": PROMPT_VERSION_TRANSITIONS,
     "case_memory": CASE_MEMORY_TRANSITIONS,
+    "case_rubric": CASE_RUBRIC_TRANSITIONS,
+    "rubric_bump": RUBRIC_BUMP_TRANSITIONS,
     "upload_session": UPLOAD_SESSION_TRANSITIONS,
     "publish_batch": PUBLISH_BATCH_TRANSITIONS,
     "publish_item": PUBLISH_ITEM_TRANSITIONS,

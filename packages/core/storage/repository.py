@@ -28,10 +28,14 @@ from packages.core.contracts import (
     CaseAgentSourceBinding,
     CaseDetail,
     CaseMemory,
+    CaseRubric,
     CostRollup,
     CreativeBrief,
     CreativePattern,
     FinishedVideo,
+    RewardSignal,
+    RubricBumpProposal,
+    ScorePrediction,
     ImportBatchReport,
     Job,
     MediaInfo,
@@ -191,6 +195,10 @@ class Repository:
         self.import_reports: dict[str, ImportBatchReport] = {}
         self.outbox: dict[str, OutboxEvent] = {}
         self.creative_patterns: dict[str, CreativePattern] = {}
+        self.case_rubrics: dict[str, CaseRubric] = {}
+        self.score_predictions: dict[str, ScorePrediction] = {}
+        self.reward_signals: dict[str, RewardSignal] = {}
+        self.rubric_bump_proposals: dict[str, RubricBumpProposal] = {}
         self.idempotency_records: dict[str, dict] = {}
         self.seed()
 

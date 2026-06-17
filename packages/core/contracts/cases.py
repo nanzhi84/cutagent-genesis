@@ -377,6 +377,8 @@ class GenerateScriptWithMemoryRequest(ContractModel):
     strategy_tags: list[str] = Field(default_factory=list)
     reference_script: str | None = None
     duration: str | None = None
+    # >1 时生成多版草稿、各自盲打分（§6.2）；默认 1 保持向后兼容。
+    variation_count: int = Field(1, ge=1, le=5)
 
 
 class ReferenceExtractRequest(ContractModel):
@@ -515,3 +517,149 @@ class OceanEngineMetricRow(ContractModel):
     attributes: dict[str, str] = Field(default_factory=dict)
     raw: dict[str, str] = Field(default_factory=dict)
     row_fingerprint: str
+
+
+# ---------------------------------------------------------------------------
+# 评分卡自进化（case_rubric_v1）
+# 见 docs/superpowers/specs/2026-06-17-case-agent-rubric-redesign.md
+# ---------------------------------------------------------------------------
+
+RubricDimensionKind = Literal["categorical", "numeric"]
+
+
+class RubricDimension(ContractModel):
+    """评分卡的一个维度：对齐 CreativeFeatureVector 字段，带权重与取值→分映射。"""
+
+    key: str  # 对齐 CreativeFeatureVector 字段名，如 "hook_type" / "cut_density"
+    label: str  # 人话维度名，如 "开场强度"
+    weight: float = Field(0.0, ge=0, le=1)
+    kind: RubricDimensionKind = "categorical"
+    # categorical: 取值 → [0,1] 评分表；numeric: [low, high] 线性归一。
+    value_scores: dict[str, float] = Field(default_factory=dict)
+    numeric_low: float | None = None
+    numeric_high: float | None = None
+
+
+class CaseRubric(EntityMeta):
+    """案例评分卡：一个案例"什么样的内容更可能成"的可执行打分公式（§6）。"""
+
+    case_id: str
+    version: int = 1
+    status: Literal["draft", "active", "superseded"] = "active"
+    dimensions: list[RubricDimension] = Field(default_factory=list)
+    fitted_from_sample_size: int = 0
+    cold_start: bool = True
+    supersedes_version: int | None = None
+
+
+ScoreBand = Literal["top", "ok", "low"]
+
+
+class ScorePrediction(EntityMeta):
+    """对一版脚本的盲预测（§6.2）：``locked_at`` 之后 composite/维度分不可改；
+    任何 ``performance_scored`` 结算必须晚于 ``locked_at``。"""
+
+    case_id: str
+    script_draft_id: str | None = None
+    script_version_id: str | None = None
+    rubric_version: int = 1
+    composite: float = Field(0.0, ge=0, le=10)
+    band: ScoreBand = "ok"
+    dimension_scores: dict[str, float] = Field(default_factory=dict)
+    reason: str = ""
+    locked_at: datetime = Field(default_factory=utcnow)
+    settled_reward: float | None = None
+    settled_at: datetime | None = None
+
+
+RewardSourceKind = Literal[
+    "draft_adopted",
+    "draft_pick",
+    "video_produced",
+    "published",
+    "performance_scored",
+    "video_discarded",
+    "stale_unpublished",
+]
+
+DiscardReason = Literal["script", "visual", "topic", "no_time"]
+
+
+class RewardSignal(EntityMeta):
+    """人类选择 / 阶段进展产生的分级奖励信号（§5），评分卡学习的训练标签。"""
+
+    case_id: str
+    script_version_id: str | None = None
+    script_draft_id: str | None = None
+    source_kind: RewardSourceKind
+    value: float = 0.0
+    confidence: float = Field(0.5, ge=0, le=1)
+    evidence_ref: str | None = None
+    reason: DiscardReason | None = None
+    occurred_at: datetime = Field(default_factory=utcnow)
+
+
+class RubricBumpProposal(EntityMeta):
+    """评分卡升版提议（§6.4）：新卡须在校准池上重排更准才生成，人工一次确认。"""
+
+    case_id: str
+    status: Literal["proposed", "accepted", "rejected"] = "proposed"
+    from_version: int = 1
+    candidate: CaseRubric
+    old_consistency: float = 0.0
+    new_consistency: float = 0.0
+    sample_size: int = 0
+    rationale: str = ""
+
+
+class CalibrationReport(ContractModel):
+    """复盘只读报告（§6.3）：校准池规模、排序一致性、连续误判、待复盘数。"""
+
+    case_id: str
+    rubric_version: int = 1
+    sample_size: int = 0
+    consistency: float | None = None
+    miss_streak: int = 0
+    pending_retro_count: int = 0
+    bump_recommended: bool = False
+
+
+class MetricsBackfillRequest(ContractModel):
+    """单条人工回填（§5.3）：从具体成片/发布进来，无需匹配键，填后台原始计数。
+
+    后端把原始 count 折算成 canonical rate（``counts_to_canonical``）再走与批量
+    导入同款的 observation 构建 + ``compute_performance_score``。"""
+
+    window: MetricWindow = "7d"
+    platform: str | None = None
+    account_id: str | None = None
+    views: int | None = None
+    impressions: int | None = None
+    likes: int | None = None
+    comments: int | None = None
+    shares: int | None = None
+    follows: int | None = None
+    conversions: int | None = None
+    avg_watch_sec: float | None = None
+
+
+class PendingRetroItem(EntityMeta):
+    """一条已发布、回填窗口到期但尚未回填指标的成片（"待复盘"）。"""
+
+    case_id: str
+    finished_video_id: str
+    publish_record_id: str
+    video_version_id: str | None = None
+    title: str = ""
+    platform: str | None = None
+    published_at: datetime | None = None
+    days_since_publish: int = 0
+
+
+class PendingRetroResponse(ContractModel):
+    case_id: str
+    items: list[PendingRetroItem] = Field(default_factory=list)
+
+
+class RejectBumpRequest(ContractModel):
+    reason: str | None = None

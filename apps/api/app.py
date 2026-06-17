@@ -27,6 +27,7 @@ from apps.api.routers import (
     ops,
     prompts,
     providers,
+    publish_accounts,
     publishing,
     secrets,
     uploads,
@@ -64,7 +65,7 @@ from packages.ops import BudgetEnforcementGuard, SqlAlchemyOpsRepository
 from packages.ops.circuit_breaker import ProviderCircuitBreaker
 from packages.production import SqlAlchemyProductionRepository
 from packages.production.pipeline import build_digital_human_workflow
-from packages.publishing import SqlAlchemyPublishingRepository
+from packages.publishing import SqlAlchemyAccountsRepository, SqlAlchemyPublishingRepository
 
 ROUTER_MODULES = (
     core,
@@ -82,6 +83,7 @@ ROUTER_MODULES = (
     case_agent,
     case_rubric,
     finished_videos,
+    publish_accounts,
     publishing,
     ops,
     imports,
@@ -148,6 +150,7 @@ def configure_app_state(app: FastAPI, *, session_factory=None) -> None:
         app.state.sqlalchemy_secret_repository = None
         app.state.sqlalchemy_ops_repository = None
         app.state.sqlalchemy_publishing_repository = None
+        app.state.sqlalchemy_accounts_repository = None
         app.state.sqlalchemy_production_repository = None
         app.state.auth_service = AuthService(runtime_repository, create_password_hasher())
         provider_reader = None
@@ -165,6 +168,7 @@ def configure_app_state(app: FastAPI, *, session_factory=None) -> None:
         app.state.sqlalchemy_secret_repository = SqlAlchemySecretRepository(session_factory, app.state.secret_store)
         app.state.sqlalchemy_ops_repository = SqlAlchemyOpsRepository(session_factory)
         app.state.sqlalchemy_publishing_repository = SqlAlchemyPublishingRepository(session_factory)
+        app.state.sqlalchemy_accounts_repository = SqlAlchemyAccountsRepository(session_factory)
         app.state.sqlalchemy_production_repository = SqlAlchemyProductionRepository(session_factory, app.state.object_store)
         app.state.auth_service = create_sqlalchemy_auth_service(session_factory)
         provider_reader = SqlAlchemyProviderRuntimeRepository(session_factory)

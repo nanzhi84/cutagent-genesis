@@ -325,6 +325,16 @@ from .media import (
     PortraitQualityReport,
     BrollQualityReport,
 )
+from .publish_accounts import (
+    Client,
+    PublishAccount,
+    CasePublishTarget,
+    CreateClientRequest,
+    PatchClientRequest,
+    CreatePublishAccountRequest,
+    PatchPublishAccountRequest,
+    SetCasePublishTargetsRequest,
+)
 from .ops import (
     OpsDashboardQuery,
     CostGroupBy,
@@ -667,6 +677,14 @@ __all__ = [
     "PlatformAccountList",
     "PublishAttempt",
     "PublishAttemptDetail",
+    "Client",
+    "PublishAccount",
+    "CasePublishTarget",
+    "CreateClientRequest",
+    "PatchClientRequest",
+    "CreatePublishAccountRequest",
+    "PatchPublishAccountRequest",
+    "SetCasePublishTargetsRequest",
     "OpsDashboardQuery",
     "CostGroupBy",
     "CostRollup",

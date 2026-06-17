@@ -25,10 +25,16 @@ from packages.publishing.platform_adapter import (
     resolve_adapter_id,
     select_adapter,
 )
+from packages.publishing.accounts_repository import (
+    MemoryAccountsRepository,
+    SqlAlchemyAccountsRepository,
+)
 from packages.publishing.sqlalchemy_repository import SqlAlchemyPublishingRepository
 
 __all__ = [
     "SqlAlchemyPublishingRepository",
+    "SqlAlchemyAccountsRepository",
+    "MemoryAccountsRepository",
     "match_account",
     "normalize_publish_tags",
     "normalize_scheduled_at",

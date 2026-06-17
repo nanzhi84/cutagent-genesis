@@ -23,7 +23,7 @@ from packages.creative.cases import (
 from packages.media import SqlAlchemyMediaRepository
 from packages.ops import SqlAlchemyOpsRepository
 from packages.production import SqlAlchemyProductionRepository
-from packages.publishing import SqlAlchemyPublishingRepository
+from packages.publishing import SqlAlchemyAccountsRepository, SqlAlchemyPublishingRepository
 
 REQUEST_ID_CONTEXT: ContextVar[str | None] = ContextVar("request_id", default=None)
 
@@ -101,6 +101,10 @@ def ops_repository(request: Request) -> SqlAlchemyOpsRepository | None:
 
 def publishing_repository(request: Request) -> SqlAlchemyPublishingRepository | None:
     return request.app.state.sqlalchemy_publishing_repository
+
+
+def accounts_repository(request: Request) -> SqlAlchemyAccountsRepository | None:
+    return request.app.state.sqlalchemy_accounts_repository
 
 
 def production_repository(request: Request) -> SqlAlchemyProductionRepository | None:

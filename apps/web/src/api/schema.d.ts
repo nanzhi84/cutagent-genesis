@@ -1723,6 +1723,96 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/publish/clients": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Clients */
+        get: operations["list_clients_api_publish_clients_get"];
+        put?: never;
+        /** Create Client */
+        post: operations["create_client_api_publish_clients_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/publish/clients/{client_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Client */
+        delete: operations["delete_client_api_publish_clients__client_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch Client */
+        patch: operations["patch_client_api_publish_clients__client_id__patch"];
+        trace?: never;
+    };
+    "/api/publish/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Accounts */
+        get: operations["list_accounts_api_publish_accounts_get"];
+        put?: never;
+        /** Create Account */
+        post: operations["create_account_api_publish_accounts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/publish/accounts/{account_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Account */
+        delete: operations["delete_account_api_publish_accounts__account_id__delete"];
+        options?: never;
+        head?: never;
+        /** Patch Account */
+        patch: operations["patch_account_api_publish_accounts__account_id__patch"];
+        trace?: never;
+    };
+    "/api/cases/{case_id}/publish-targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Case Targets */
+        get: operations["list_case_targets_api_cases__case_id__publish_targets_get"];
+        /** Set Case Targets */
+        put: operations["set_case_targets_api_cases__case_id__publish_targets_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/publish/packages": {
         parameters: {
             query?: never;
@@ -3156,6 +3246,54 @@ export interface components {
             scores?: components["schemas"]["PerformanceScore"][];
         };
         /**
+         * CasePublishTarget
+         * @description Binding: a Case publishes to one of its client's accounts.
+         *
+         *     ``platform`` / ``account_name`` / ``client_id`` are denormalized read-only
+         *     conveniences hydrated from the bound account.
+         */
+        CasePublishTarget: {
+            /** Id */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
+            /**
+             * Schema Version
+             * @default v1
+             */
+            schema_version: string;
+            /** Case Id */
+            case_id: string;
+            /** Account Id */
+            account_id: string;
+            /**
+             * Enabled
+             * @default true
+             */
+            enabled: boolean;
+            /** Platform */
+            platform?: ("douyin" | "shipinhao" | "kuaishou" | "xiaohongshu") | null;
+            /** Account Name */
+            account_name?: string | null;
+            /** Client Id */
+            client_id?: string | null;
+        };
+        /**
          * CaseRubric
          * @description 案例评分卡：一个案例"什么样的内容更可能成"的可执行打分公式（§6）。
          */
@@ -3213,6 +3351,49 @@ export interface components {
             old_password: string;
             /** New Password */
             new_password: string;
+        };
+        /**
+         * Client
+         * @description A customer/brand whose platform accounts we publish on behalf of.
+         */
+        Client: {
+            /** Id */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
+            /**
+             * Schema Version
+             * @default v1
+             */
+            schema_version: string;
+            /** Name */
+            name: string;
+            /**
+             * Remark
+             * @default
+             */
+            remark: string;
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "active" | "archived";
         };
         /**
          * ClipRetrievalV4
@@ -3557,6 +3738,16 @@ export interface components {
             /** Competitor Names */
             competitor_names?: string[];
         };
+        /** CreateClientRequest */
+        CreateClientRequest: {
+            /** Name */
+            name: string;
+            /**
+             * Remark
+             * @default
+             */
+            remark: string;
+        };
         /** CreateEditorHandoffRequest */
         CreateEditorHandoffRequest: {
             /**
@@ -3699,6 +3890,20 @@ export interface components {
              * @default v1
              */
             version: string;
+        };
+        /** CreatePublishAccountRequest */
+        CreatePublishAccountRequest: {
+            /** Client Id */
+            client_id: string;
+            /**
+             * Platform
+             * @enum {string}
+             */
+            platform: "douyin" | "shipinhao" | "kuaishou" | "xiaohongshu";
+            /** Account Name */
+            account_name: string;
+            /** Platform Uid */
+            platform_uid?: string | null;
         };
         /** CreatePublishBatchRequest */
         CreatePublishBatchRequest: {
@@ -4978,6 +5183,28 @@ export interface components {
             /** Request Id */
             request_id: string;
         };
+        /** PageResponse[CasePublishTarget] */
+        PageResponse_CasePublishTarget_: {
+            /** Items */
+            items: components["schemas"]["CasePublishTarget"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+            /** Total Hint */
+            total_hint?: number | null;
+            /** Request Id */
+            request_id: string;
+        };
+        /** PageResponse[Client] */
+        PageResponse_Client_: {
+            /** Items */
+            items: components["schemas"]["Client"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+            /** Total Hint */
+            total_hint?: number | null;
+            /** Request Id */
+            request_id: string;
+        };
         /** PageResponse[CostRollup] */
         PageResponse_CostRollup_: {
             /** Items */
@@ -5103,6 +5330,17 @@ export interface components {
         PageResponse_ProviderProfile_: {
             /** Items */
             items: components["schemas"]["ProviderProfile"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+            /** Total Hint */
+            total_hint?: number | null;
+            /** Request Id */
+            request_id: string;
+        };
+        /** PageResponse[PublishAccount] */
+        PageResponse_PublishAccount_: {
+            /** Items */
+            items: components["schemas"]["PublishAccount"][];
             /** Next Cursor */
             next_cursor?: string | null;
             /** Total Hint */
@@ -5267,6 +5505,15 @@ export interface components {
             /** Competitor Names */
             competitor_names?: string[] | null;
         };
+        /** PatchClientRequest */
+        PatchClientRequest: {
+            /** Name */
+            name?: string | null;
+            /** Remark */
+            remark?: string | null;
+            /** Status */
+            status?: ("active" | "archived") | null;
+        };
         /** PatchPromptBindingRequest */
         PatchPromptBindingRequest: {
             /** Prompt Version Id */
@@ -5306,6 +5553,15 @@ export interface components {
             default_options?: {
                 [key: string]: components["schemas"]["JsonValue"];
             } | null;
+        };
+        /** PatchPublishAccountRequest */
+        PatchPublishAccountRequest: {
+            /** Account Name */
+            account_name?: string | null;
+            /** Platform Uid */
+            platform_uid?: string | null;
+            /** Status */
+            status?: ("active" | "archived") | null;
         };
         /** PatchPublishItemRequest */
         PatchPublishItemRequest: {
@@ -6335,6 +6591,72 @@ export interface components {
             actual_cost?: components["schemas"]["Money-Output"] | null;
             /** Unpriced Invocation Count */
             unpriced_invocation_count: number;
+        };
+        /**
+         * PublishAccount
+         * @description A client's persistent publishing account on one platform.
+         *
+         *     The browser session lives in the ``SecretStore`` (never in the DB row nor in
+         *     this contract); ``has_session`` + ``session_status`` are the only session
+         *     surface exposed to the API.
+         */
+        PublishAccount: {
+            /** Id */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
+            /**
+             * Schema Version
+             * @default v1
+             */
+            schema_version: string;
+            /** Client Id */
+            client_id: string;
+            /**
+             * Platform
+             * @enum {string}
+             */
+            platform: "douyin" | "shipinhao" | "kuaishou" | "xiaohongshu";
+            /** Account Name */
+            account_name: string;
+            /** Platform Uid */
+            platform_uid?: string | null;
+            /**
+             * Session Status
+             * @default never_logged_in
+             * @enum {string}
+             */
+            session_status: "never_logged_in" | "active" | "expired";
+            /**
+             * Has Session
+             * @default false
+             */
+            has_session: boolean;
+            /** Session Expires At */
+            session_expires_at?: string | null;
+            /** Last Validated At */
+            last_validated_at?: string | null;
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "active" | "archived";
         };
         /** PublishAttempt */
         PublishAttempt: {
@@ -7460,6 +7782,14 @@ export interface components {
             expires_at: string;
             /** Request Id */
             request_id: string;
+        };
+        /**
+         * SetCasePublishTargetsRequest
+         * @description Replace the full set of accounts a Case publishes to (idempotent PUT).
+         */
+        SetCasePublishTargetsRequest: {
+            /** Account Ids */
+            account_ids?: string[];
         };
         /** SignedUrlResponse */
         SignedUrlResponse: {
@@ -11914,6 +12244,336 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["JianyingDraftPackageArtifact"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_clients_api_publish_clients_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+                include_archived?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageResponse_Client_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_client_api_publish_clients_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateClientRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Client"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_client_api_publish_clients__client_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OkResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_client_api_publish_clients__client_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                client_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchClientRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Client"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_accounts_api_publish_accounts_get: {
+        parameters: {
+            query?: {
+                client_id?: string | null;
+                platform?: string | null;
+                limit?: number;
+                include_archived?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageResponse_PublishAccount_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_account_api_publish_accounts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreatePublishAccountRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublishAccount"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_account_api_publish_accounts__account_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OkResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    patch_account_api_publish_accounts__account_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchPublishAccountRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublishAccount"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_case_targets_api_cases__case_id__publish_targets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageResponse_CasePublishTarget_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_case_targets_api_cases__case_id__publish_targets_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetCasePublishTargetsRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageResponse_CasePublishTarget_"];
                 };
             };
             /** @description Validation Error */

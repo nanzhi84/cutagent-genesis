@@ -542,10 +542,7 @@ def accept_bump(request: Request, case_id: str, proposal_id: str) -> c.CaseRubri
     repo = case_rubric_repository(request)
     new_active = proposal.candidate.model_copy(update={"status": "active"})
     if repo is not None:
-        repo.supersede_active(case_id)
-        repo.add_rubric(new_active)
-        repo.update_bump_proposal(proposal.model_copy(update={"status": "accepted"}))
-        return repo.get_active_rubric(case_id) or new_active
+        return repo.accept_bump(case_id, proposal_id)
     mem = repository(request)
     active = _active_rubric_memory(mem, case_id)
     if active is not None:

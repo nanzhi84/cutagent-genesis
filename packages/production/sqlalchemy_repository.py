@@ -687,11 +687,11 @@ class SqlAlchemyProductionRepository:
             artifact = session.get(ArtifactRow, ref.artifact_id)
             return artifact.uri if artifact is not None and artifact.uri else ""
 
-    def delete_finished_video(self, finished_video_id: str) -> None:
+    def delete_finished_video(self, finished_video_id: str) -> bool:
         with self.session_factory() as session:
             finished = session.get(FinishedVideoRow, finished_video_id)
             if finished is None:
-                return
+                return False
             for package in session.scalars(
                 select(PublishPackageRow).where(PublishPackageRow.source_finished_video_id == finished_video_id)
             ):
@@ -702,6 +702,7 @@ class SqlAlchemyProductionRepository:
                 version.finished_video_id = None
             session.delete(finished)
             session.commit()
+            return True
 
     def create_editor_handoff(
         self, finished_video_id: str, payload: CreateEditorHandoffRequest

@@ -3,16 +3,20 @@ from __future__ import annotations
 import json
 import sqlite3
 
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import sessionmaker
 
-from packages.core.contracts import RewardSignal
+from packages.core.contracts import CaseRubric, RewardSignal
 from packages.core.storage.database import (
     CaseRow,
+    CaseRubricRow,
     FinishedVideoRow,
     RewardSignalRow,
+    RubricBumpProposalRow,
     ScriptVersionRow,
     VideoVersionRow,
 )
@@ -40,7 +44,9 @@ def _repository_with_sqlite():
         ScriptVersionRow.__table__,
         VideoVersionRow.__table__,
         FinishedVideoRow.__table__,
+        CaseRubricRow.__table__,
         RewardSignalRow.__table__,
+        RubricBumpProposalRow.__table__,
     ):
         table.create(engine)
     session_factory = sessionmaker(bind=engine, expire_on_commit=False)
@@ -122,3 +128,52 @@ def test_reward_dedupe_is_scoped_by_case_id():
     assert repository.reward_exists("case_a", "published", "evidence_shared") is True
     assert repository.reward_exists("case_b", "published", "evidence_shared") is False
     assert len(repository.list_rewards("case_a")) == 1
+
+
+@pytest.mark.filterwarnings(
+    "ignore:New instance .* conflicts with persistent instance:sqlalchemy.exc.SAWarning"
+)
+def test_accept_bump_rolls_back_when_new_active_insert_fails():
+    repository, session_factory = _repository_with_sqlite()
+    candidate = CaseRubric(id="rubric_active", case_id="case_a", version=2)
+    with session_factory() as session:
+        session.add(
+            CaseRubricRow(
+                id="rubric_active",
+                case_id="case_a",
+                version=1,
+                status="active",
+                dimensions=[],
+                fitted_from_sample_size=0,
+                cold_start=True,
+            )
+        )
+        session.add(
+            RubricBumpProposalRow(
+                id="bump_conflict",
+                case_id="case_a",
+                status="proposed",
+                from_version=1,
+                candidate=candidate.model_dump(mode="json"),
+                old_consistency=0.1,
+                new_consistency=0.2,
+                sample_size=3,
+                rationale="would conflict on rubric id",
+            )
+        )
+        session.commit()
+
+    try:
+        repository.accept_bump("case_a", "bump_conflict")
+    except IntegrityError:
+        pass
+    else:  # pragma: no cover - protects the rollback assertion above.
+        raise AssertionError("expected primary-key conflict")
+
+    active = repository.get_active_rubric("case_a")
+    assert active is not None
+    assert active.id == "rubric_active"
+    with session_factory() as session:
+        proposal = session.get(RubricBumpProposalRow, "bump_conflict")
+        assert proposal is not None
+        assert proposal.status == "proposed"

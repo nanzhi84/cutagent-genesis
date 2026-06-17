@@ -98,13 +98,15 @@ def finished_video_download(request: Request, id: str) -> c.SignedUrlResponse:
 def delete_finished_video(id: str, request: Request, reason: str | None = None) -> c.OkResponse:
     if production_repository(request) is not None:
         case_id = _finished_video_case_id_db(request, id)
+        if case_id is None:
+            raise NodeExecutionError(c.ErrorCode.artifact_missing, "Finished video is missing.")
         _record_discard_reward(request, case_id, id, reason)
-        production_repository(request).delete_finished_video(id)
+        if not production_repository(request).delete_finished_video(id):
+            raise NodeExecutionError(c.ErrorCode.artifact_missing, "Finished video is missing.")
         return c.OkResponse(request_id=request_id())
-    finished = repository(request).finished_videos.get(id)
-    case_id = finished.case_id if finished is not None else None
-    _record_discard_reward(request, case_id, id, reason)
-    repository(request).finished_videos.pop(id, None)
+    finished = _finished_video_or_error(request, id)
+    _record_discard_reward(request, finished.case_id, id, reason)
+    repository(request).finished_videos.pop(id)
     return c.OkResponse(request_id=request_id())
 
 

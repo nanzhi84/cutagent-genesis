@@ -369,6 +369,13 @@ def test_missing_finished_video_read_endpoints_return_404():
             assert response.status_code == 404, response.text
 
 
+def test_missing_finished_video_delete_returns_404():
+    with TestClient(create_app(), raise_server_exceptions=False) as client:
+        _login(client)
+        response = client.delete("/api/finished-videos/missing_fv")
+        assert response.status_code == 404, response.text
+
+
 def test_backfill_unpublished_finished_video_preserves_lineage():
     with TestClient(create_app()) as client:
         _login(client)

@@ -323,6 +323,28 @@ class SqlAlchemyCaseRubricRepository:
             session.refresh(row)
             return case_rubric_row_to_contract(row)
 
+    def accept_bump(self, case_id: str, proposal_id: str) -> CaseRubric:
+        with self.session_factory() as session:
+            proposal = session.get(RubricBumpProposalRow, proposal_id)
+            if proposal is None or proposal.case_id != case_id:
+                raise KeyError(proposal_id)
+            assert_transition("rubric_bump", proposal.status, "accepted")
+            active = self._active_rubric_row(session, case_id)
+            if active is not None:
+                assert_transition("case_rubric", active.status, "superseded")
+                active.status = "superseded"
+                active.updated_at = utcnow()
+            new_active = CaseRubric.model_validate(proposal.candidate).model_copy(
+                update={"status": "active"}
+            )
+            row = _case_rubric_to_row(new_active)
+            session.add(row)
+            proposal.status = "accepted"
+            proposal.updated_at = utcnow()
+            session.commit()
+            session.refresh(row)
+            return case_rubric_row_to_contract(row)
+
     # -- predictions --------------------------------------------------------
 
     def add_prediction(self, pred: ScorePrediction) -> ScorePrediction:

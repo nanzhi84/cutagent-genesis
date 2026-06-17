@@ -256,6 +256,45 @@ def test_case_rubric_indexes_and_uniques_exist():
     assert reward_unique.dialect_options["postgresql"]["where"] is not None
 
 
+def test_case_rubric_server_defaults_match_migration_path():
+    tables = Base.metadata.tables
+    expected_defaults = {
+        "case_rubrics": {
+            "version": "1",
+            "status": "active",
+            "dimensions": "[]",
+            "fitted_from_sample_size": "0",
+            "cold_start": "true",
+        },
+        "score_predictions": {
+            "rubric_version": "1",
+            "composite": "0",
+            "band": "ok",
+            "dimension_scores": "{}",
+            "reason": "",
+            "locked_at": "now()",
+        },
+        "reward_signals": {
+            "value": "0",
+            "confidence": "0.5",
+            "occurred_at": "now()",
+        },
+        "rubric_bump_proposals": {
+            "status": "proposed",
+            "from_version": "1",
+            "old_consistency": "0",
+            "new_consistency": "0",
+            "sample_size": "0",
+            "rationale": "",
+        },
+    }
+    for table_name, columns in expected_defaults.items():
+        for column_name, expected in columns.items():
+            default = tables[table_name].columns[column_name].server_default
+            assert default is not None, f"{table_name}.{column_name}"
+            assert expected in str(default.arg)
+
+
 def test_alembic_artifacts_run_index_revision_exists():
     migration = Path("packages/core/storage/alembic/versions/0004_artifacts_run_index.py")
     assert migration.exists()

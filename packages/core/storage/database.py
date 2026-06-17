@@ -18,6 +18,7 @@ from sqlalchemy import (
     UniqueConstraint,
     create_engine,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.engine import Engine, make_url
@@ -667,11 +668,19 @@ class CaseRubricRow(TimestampMixin, Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     case_id: Mapped[str] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
-    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    status: Mapped[str] = mapped_column(String, nullable=False, default="active")
-    dimensions: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
-    fitted_from_sample_size: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    cold_start: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
+    status: Mapped[str] = mapped_column(
+        String, nullable=False, default="active", server_default="active"
+    )
+    dimensions: Mapped[list] = mapped_column(
+        JSONB, nullable=False, default=list, server_default="[]"
+    )
+    fitted_from_sample_size: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    cold_start: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=text("true")
+    )
     supersedes_version: Mapped[int | None] = mapped_column(Integer)
 
 
@@ -682,12 +691,18 @@ class ScorePredictionRow(TimestampMixin, Base):
     case_id: Mapped[str] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
     script_draft_id: Mapped[str | None] = mapped_column(String)
     script_version_id: Mapped[str | None] = mapped_column(String)
-    rubric_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    composite: Mapped[float] = mapped_column(Float, nullable=False, default=0)
-    band: Mapped[str] = mapped_column(String, nullable=False, default="ok")
-    dimension_scores: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
-    reason: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    locked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    rubric_version: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=1, server_default="1"
+    )
+    composite: Mapped[float] = mapped_column(Float, nullable=False, default=0, server_default="0")
+    band: Mapped[str] = mapped_column(String, nullable=False, default="ok", server_default="ok")
+    dimension_scores: Mapped[dict] = mapped_column(
+        JSONB, nullable=False, default=dict, server_default="{}"
+    )
+    reason: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default="")
+    locked_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
     settled_reward: Mapped[float | None] = mapped_column(Float)
     settled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
@@ -700,11 +715,15 @@ class RewardSignalRow(TimestampMixin, Base):
     script_version_id: Mapped[str | None] = mapped_column(String)
     script_draft_id: Mapped[str | None] = mapped_column(String)
     source_kind: Mapped[str] = mapped_column(String, nullable=False)
-    value: Mapped[float] = mapped_column(Float, nullable=False, default=0)
-    confidence: Mapped[float] = mapped_column(Float, nullable=False, default=0.5)
+    value: Mapped[float] = mapped_column(Float, nullable=False, default=0, server_default="0")
+    confidence: Mapped[float] = mapped_column(
+        Float, nullable=False, default=0.5, server_default="0.5"
+    )
     evidence_ref: Mapped[str | None] = mapped_column(String)
     reason: Mapped[str | None] = mapped_column(String)
-    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
 
 
 class RubricBumpProposalRow(TimestampMixin, Base):
@@ -712,13 +731,23 @@ class RubricBumpProposalRow(TimestampMixin, Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     case_id: Mapped[str] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
-    status: Mapped[str] = mapped_column(String, nullable=False, default="proposed")
-    from_version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    status: Mapped[str] = mapped_column(
+        String, nullable=False, default="proposed", server_default="proposed"
+    )
+    from_version: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=1, server_default="1"
+    )
     candidate: Mapped[dict] = mapped_column(JSONB, nullable=False)
-    old_consistency: Mapped[float] = mapped_column(Float, nullable=False, default=0)
-    new_consistency: Mapped[float] = mapped_column(Float, nullable=False, default=0)
-    sample_size: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    rationale: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    old_consistency: Mapped[float] = mapped_column(
+        Float, nullable=False, default=0, server_default="0"
+    )
+    new_consistency: Mapped[float] = mapped_column(
+        Float, nullable=False, default=0, server_default="0"
+    )
+    sample_size: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    rationale: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default="")
 
 
 class FinishedVideoRow(TimestampMixin, Base):

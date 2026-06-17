@@ -154,43 +154,6 @@ def test_seeded_demo_case_reports_material_count_from_assets() -> None:
         assert demo["quality_count"] == 0
 
 
-def test_import_case_source_emits_real_brief_for_text_binding() -> None:
-    with TestClient(create_app()) as client:
-        _login_admin(client)
-        binding = client.post(
-            "/api/cases/case_demo/agent/source-bindings",
-            json={
-                "source_type": "text",
-                "source_ref": "首屏先给具体成果。\n再讲清楚方法。\n最后给行动建议。",
-                "title": "Audience note",
-            },
-        )
-        assert binding.status_code == 201, binding.text
-        binding_id = binding.json()["id"]
-
-        imported = client.post(
-            "/api/cases/case_demo/agent/import-source",
-            json={"source_binding_id": binding_id},
-        )
-        assert imported.status_code == 202, imported.text
-        run = imported.json()
-        assert run["goal"] == "brief"
-        run_id = run["id"]
-
-        detail = client.get(f"/api/cases/case_demo/agent/runs/{run_id}")
-        assert detail.status_code == 200, detail.text
-        briefs = detail.json()["briefs"]
-        assert briefs
-        brief = briefs[-1]
-        # F/#2: no longer the stub summary; real §32.4 fields are populated.
-        assert brief["summary"] != "Imported source summary."
-        assert brief["summary"]
-        assert brief["topic"] == "Audience note"
-        assert brief["key_insights"]
-        assert brief["source_refs"]
-        assert brief["generated_by_run_id"] == run_id
-
-
 def test_case_prompt_variables_bridges_contract_to_template_vocabulary() -> None:
     case = c.CaseDetail(
         id="case_probe",

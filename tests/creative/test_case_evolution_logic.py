@@ -1,17 +1,11 @@
-"""Unit tests for the Case self-evolution pure logic (Spec §8.4 / §25.4-25.8)."""
+"""Unit tests for performance scoring, feature extraction, and metrics import."""
 
 from __future__ import annotations
 
-from datetime import timedelta
-
 from packages.core.contracts import (
-    CaseMemory,
-    CaseMemoryScope,
-    CreativeBrief,
     PerformanceObservation,
     ScriptVersion,
     VideoVersion,
-    utcnow,
 )
 from packages.creative.cases import evolution, metrics_import
 
@@ -43,7 +37,6 @@ def test_score_24h_is_early_signal_only():
     obs = _obs(id="o2", impressions=20000, completion_rate=0.7, window="24h")
     score = evolution.compute_performance_score(obs)
     assert score.excluded_reason == "early_signal_window"
-    assert not evolution.score_is_active_eligible(score)
 
 
 def test_score_mature_window_with_volume_is_active_eligible():
@@ -51,8 +44,7 @@ def test_score_mature_window_with_volume_is_active_eligible():
     score = evolution.compute_performance_score(obs)
     assert score.excluded_reason is None
     assert score.primary_metric == "completion_rate"
-    assert score.confidence >= evolution.MEMORY_ACTIVATION_MIN_CONFIDENCE
-    assert evolution.score_is_active_eligible(score)
+    assert score.confidence >= 0.6
 
 
 def test_score_without_normalized_metric_is_excluded():
@@ -107,134 +99,6 @@ def test_video_feature_extraction_completes_from_timeline():
     assert vector.bgm_id == "bgm1"
     # The partial's script-side features are retained.
     assert vector.hook_type == partial.hook_type
-
-
-# --------------------------------------------------------------------------- #
-# §25.8 Memory recall
-# --------------------------------------------------------------------------- #
-
-def _memory(mid: str, **kwargs) -> CaseMemory:
-    scope = kwargs.pop("scope", CaseMemoryScope())
-    base = dict(
-        id=mid,
-        case_id="case_x",
-        status="active",
-        insight=f"insight {mid}",
-        confidence=0.7,
-    )
-    base.update(kwargs)
-    return CaseMemory(scope=scope, **base)
-
-
-def test_recall_filters_inactive_and_expired():
-    now = utcnow()
-    active = _memory("m_active")
-    inactive = _memory("m_inactive", status="proposed")
-    expired = _memory(
-        "m_expired",
-        scope=CaseMemoryScope(valid_until=now - timedelta(days=1)),
-    )
-    future = _memory(
-        "m_future",
-        scope=CaseMemoryScope(valid_from=now + timedelta(days=1)),
-    )
-    recalled = evolution.filter_recall_memories(
-        [active, inactive, expired, future], mode="recent", now=now
-    )
-    ids = {m.id for m in recalled}
-    assert ids == {"m_active"}
-
-
-def test_recall_platform_mode_filters_by_scope_platform():
-    douyin = _memory("m_dy", scope=CaseMemoryScope(applies_to_platforms=["douyin"]))
-    other = _memory("m_ks", scope=CaseMemoryScope(applies_to_platforms=["kuaishou"]))
-    recalled = evolution.filter_recall_memories(
-        [douyin, other], mode="platform", platform="douyin"
-    )
-    assert [m.id for m in recalled] == ["m_dy"]
-
-
-def test_recall_memory_type_mode():
-    pat = _memory("m_pat", memory_type="script_pattern")
-    neg = _memory("m_neg", memory_type="negative_lesson")
-    recalled = evolution.filter_recall_memories(
-        [pat, neg], mode="memory_type", memory_type="negative_lesson"
-    )
-    assert [m.id for m in recalled] == ["m_neg"]
-
-
-def test_recall_high_performance_uses_score_lookup():
-    a = _memory("m_a", scope=CaseMemoryScope(scope_key="douyin"), confidence=0.6)
-    b = _memory("m_b", scope=CaseMemoryScope(scope_key="kuaishou"), confidence=0.6)
-    recalled = evolution.filter_recall_memories(
-        [a, b],
-        mode="high_performance",
-        score_lookup={"douyin": 0.9, "kuaishou": 0.2},
-    )
-    assert [m.id for m in recalled] == ["m_a", "m_b"]
-    recalled_low = evolution.filter_recall_memories(
-        [a, b],
-        mode="low_performance",
-        score_lookup={"douyin": 0.9, "kuaishou": 0.2},
-    )
-    assert [m.id for m in recalled_low] == ["m_b", "m_a"]
-
-
-# --------------------------------------------------------------------------- #
-# §8.4 analysis + proposals
-# --------------------------------------------------------------------------- #
-
-def test_analysis_groups_by_platform_account_window_with_sample_size():
-    obs1 = _obs(id="o1", platform="douyin", account_id="acc1", window="7d", completion_rate=0.8, impressions=20000)
-    obs2 = _obs(id="o2", platform="douyin", account_id="acc1", window="7d", completion_rate=0.7, impressions=20000)
-    obs3 = _obs(id="o3", platform="kuaishou", account_id="acc2", window="7d", completion_rate=0.3, impressions=20000)
-    scores = [evolution.compute_performance_score(o) for o in (obs1, obs2, obs3)]
-    analysis = evolution.analyze_historical_performance([obs1, obs2, obs3], scores)
-    by_platform = {g["platform"]: g for g in analysis}
-    assert by_platform["douyin"]["sample_size"] == 2
-    assert by_platform["douyin"]["confident_sample_size"] == 2
-    assert by_platform["kuaishou"]["sample_size"] == 1
-
-
-def test_build_proposals_are_data_driven_with_evidence_and_dedup():
-    obs_hi = _obs(id="o1", platform="douyin", window="7d", completion_rate=0.85, impressions=20000)
-    obs_lo = _obs(id="o2", platform="kuaishou", window="7d", completion_rate=0.1, impressions=20000)
-    scores = [evolution.compute_performance_score(o) for o in (obs_hi, obs_lo)]
-    analysis = evolution.analyze_historical_performance([obs_hi, obs_lo], scores)
-    brief = CreativeBrief(id="b1", case_id="case_x", summary="减肥产品种草", topic="减肥")
-    counter = 0
-
-    def factory() -> str:
-        nonlocal counter
-        counter += 1
-        return f"mem_{counter}"
-
-    proposals = evolution.build_memory_proposals(
-        case_id="case_x",
-        reflection_run_id="refl_1",
-        analysis=analysis,
-        briefs=[brief],
-        id_factory=factory,
-    )
-    assert proposals, "expected data-driven proposals"
-    # Evidence carries the observation ids + the reflection run id.
-    for proposal in proposals:
-        assert "refl_1" in proposal.evidence
-        assert proposal.sample_size >= 1
-        assert proposal.scope.scope_key in {"douyin", "kuaishou"}
-    types = {p.memory_type for p in proposals}
-    assert "negative_lesson" in types  # the low scorer becomes a counter-example
-
-    # Re-running dedups against existing active + proposed.
-    again = evolution.build_memory_proposals(
-        case_id="case_x",
-        reflection_run_id="refl_2",
-        analysis=analysis,
-        briefs=[brief],
-        existing_proposed=proposals,
-        id_factory=factory,
-    )
-    assert again == []
 
 
 # --------------------------------------------------------------------------- #

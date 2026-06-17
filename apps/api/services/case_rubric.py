@@ -1,9 +1,8 @@
 """Case-rubric self-evolution service (case_rubric_v1).
 
-See ``docs/superpowers/specs/2026-06-17-case-agent-rubric-redesign.md``. This is the
-double-backend integration layer over the storage-agnostic ``rubric.py`` pure
-functions: it wires blind scoring, reward-signal collection (搭车既有动作), lazy
-reward derivation, calibration, and the one-confirmation bump flow.
+Double-backend integration layer over the storage-agnostic ``rubric.py`` pure
+functions: it wires blind scoring, reward-signal collection, lazy reward derivation,
+calibration, and the one-confirmation bump flow.
 
 Two symmetric paths, exactly like ``case_agent.py``:
 - DB:    ``case_rubric_repository(request)`` is not None.

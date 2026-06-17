@@ -55,11 +55,14 @@ def upgrade() -> None:
     # create_all DBs, while still applying on databases provisioned before the columns
     # were added to the models.
     bind = op.get_bind()
+    existing_tables = set(sa.inspect(bind).get_table_names())
     _add_missing_columns(bind, "cases", _CASE_COLUMNS)
-    _add_missing_columns(bind, "creative_briefs", _BRIEF_COLUMNS)
+    if "creative_briefs" in existing_tables:
+        _add_missing_columns(bind, "creative_briefs", _BRIEF_COLUMNS)
 
 
 def downgrade() -> None:
     bind = op.get_bind()
-    _drop_columns(bind, "creative_briefs", _BRIEF_COLUMNS)
+    if "creative_briefs" in set(sa.inspect(bind).get_table_names()):
+        _drop_columns(bind, "creative_briefs", _BRIEF_COLUMNS)
     _drop_columns(bind, "cases", _CASE_COLUMNS)

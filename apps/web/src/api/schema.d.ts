@@ -1382,93 +1382,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/cases/{case_id}/agent/source-bindings": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Source Bindings */
-        get: operations["source_bindings_api_cases__case_id__agent_source_bindings_get"];
-        put?: never;
-        /** Create Source Binding */
-        post: operations["create_source_binding_api_cases__case_id__agent_source_bindings_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/cases/{case_id}/agent/source-bindings/{binding_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete Source Binding */
-        delete: operations["delete_source_binding_api_cases__case_id__agent_source_bindings__binding_id__delete"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/cases/{case_id}/agent/import-source": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Import Case Source */
-        post: operations["import_case_source_api_cases__case_id__agent_import_source_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/cases/{case_id}/agent/runs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Case Agent Runs */
-        get: operations["case_agent_runs_api_cases__case_id__agent_runs_get"];
-        put?: never;
-        /** Start Case Agent Run */
-        post: operations["start_case_agent_run_api_cases__case_id__agent_runs_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/cases/{case_id}/agent/runs/{run_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Case Agent Run Detail */
-        get: operations["case_agent_run_detail_api_cases__case_id__agent_runs__run_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/cases/{case_id}/agent/drafts": {
         parameters: {
             query?: never;
@@ -1503,108 +1416,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/cases/{case_id}/agent/memory-proposals": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Memory Proposals */
-        get: operations["memory_proposals_api_cases__case_id__agent_memory_proposals_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/cases/{case_id}/knowledge": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Case Knowledge */
-        get: operations["case_knowledge_api_cases__case_id__knowledge_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/cases/{case_id}/memory": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Case Memory */
-        get: operations["case_memory_api_cases__case_id__memory_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/cases/{case_id}/memory/recall": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Recall Memory */
-        get: operations["recall_memory_api_cases__case_id__memory_recall_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/cases/{case_id}/memory/{memory_id}/approve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Approve Memory */
-        post: operations["approve_memory_api_cases__case_id__memory__memory_id__approve_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/cases/{case_id}/memory/{memory_id}/reject": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Reject Memory */
-        post: operations["reject_memory_api_cases__case_id__memory__memory_id__reject_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/cases/{case_id}/performance": {
         parameters: {
             query?: never;
@@ -1633,57 +1444,6 @@ export interface paths {
         put?: never;
         /** Import Metrics */
         post: operations["import_metrics_api_cases__case_id__metrics_import_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/cases/{case_id}/reflection-runs": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Start Reflection */
-        post: operations["start_reflection_api_cases__case_id__reflection_runs_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/cases/{case_id}/insights": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Case Insights */
-        get: operations["case_insights_api_cases__case_id__insights_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/cases/{case_id}/creative-patterns": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Creative Patterns */
-        get: operations["creative_patterns_api_cases__case_id__creative_patterns_get"];
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2763,11 +2523,6 @@ export interface components {
             /** Reason */
             reason?: string | null;
         };
-        /** ApproveMemoryRequest */
-        ApproveMemoryRequest: {
-            /** Reason */
-            reason?: string | null;
-        };
         /** ApprovePromptVersionRequest */
         ApprovePromptVersionRequest: {
             /** Reason */
@@ -2777,7 +2532,7 @@ export interface components {
          * ArtifactKind
          * @enum {string}
          */
-        ArtifactKind: "uploaded.file" | "spec.validated_production" | "case.context" | "case.performance_analysis" | "case.reflection" | "script.strategy" | "creative.intent" | "audio.tts" | "audio.alignment.raw" | "audio.alignment" | "narration.units" | "plan.material_pack" | "plan.material_pack" | "plan.portrait" | "plan.portrait" | "plan.broll" | "plan.broll" | "plan.style" | "plan.style" | "plan.timeline" | "plan.timeline" | "plan.render" | "plan.render" | "video.portrait_track" | "video.lipsync" | "lipsync.report" | "video.rendered" | "video.final" | "video.finished" | "subtitle.ass" | "cover.image" | "publish.package" | "run.report.public" | "run.report.public" | "run.report.debug" | "run.report.debug" | "editor.handoff_package" | "editor.handoff_package" | "editor.jianying_draft_package" | "editor.jianying_draft_package" | "provider.raw_request" | "provider.raw_response" | "import.mapping" | "material.annotation";
+        ArtifactKind: "uploaded.file" | "spec.validated_production" | "case.context" | "case.performance_analysis" | "script.strategy" | "creative.intent" | "audio.tts" | "audio.alignment.raw" | "audio.alignment" | "narration.units" | "plan.material_pack" | "plan.material_pack" | "plan.portrait" | "plan.portrait" | "plan.broll" | "plan.broll" | "plan.style" | "plan.style" | "plan.timeline" | "plan.timeline" | "plan.render" | "plan.render" | "video.portrait_track" | "video.lipsync" | "lipsync.report" | "video.rendered" | "video.final" | "video.finished" | "subtitle.ass" | "cover.image" | "publish.package" | "run.report.public" | "run.report.public" | "run.report.debug" | "run.report.debug" | "editor.handoff_package" | "editor.handoff_package" | "editor.jianying_draft_package" | "editor.jianying_draft_package" | "provider.raw_request" | "provider.raw_response" | "import.mapping" | "material.annotation";
         /** ArtifactRef */
         ArtifactRef: {
             /** Artifact Id */
@@ -3163,109 +2918,6 @@ export interface components {
              */
             force: boolean;
         };
-        /** CaseAgentRun */
-        CaseAgentRun: {
-            /** Id */
-            id: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at?: string;
-            /** Created By */
-            created_by?: string | null;
-            /**
-             * Version
-             * @default 1
-             */
-            version: number;
-            /**
-             * Schema Version
-             * @default v1
-             */
-            schema_version: string;
-            /** Case Id */
-            case_id: string;
-            /**
-             * Goal
-             * @enum {string}
-             */
-            goal: "brief" | "script_draft" | "memory_proposal";
-            /** @default created */
-            status: components["schemas"]["RunStatus"];
-            /** Source Binding Ids */
-            source_binding_ids?: string[];
-        };
-        /** CaseAgentRunDetail */
-        CaseAgentRunDetail: {
-            run: components["schemas"]["CaseAgentRun"];
-            /** Briefs */
-            briefs?: components["schemas"]["CreativeBrief"][];
-            /** Drafts */
-            drafts?: components["schemas"]["ScriptDraft"][];
-            /** Memory Proposals */
-            memory_proposals?: components["schemas"]["MemoryProposal"][];
-        };
-        /** CaseAgentRunRequest */
-        CaseAgentRunRequest: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            schema_version: "case_agent_run_request.v1";
-            /** Case Id */
-            case_id: string;
-            /**
-             * Goal
-             * @enum {string}
-             */
-            goal: "brief" | "script_draft" | "memory_proposal";
-            /** Source Binding Ids */
-            source_binding_ids?: string[];
-        };
-        /** CaseAgentSourceBinding */
-        CaseAgentSourceBinding: {
-            /** Id */
-            id: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at?: string;
-            /** Created By */
-            created_by?: string | null;
-            /**
-             * Version
-             * @default 1
-             */
-            version: number;
-            /**
-             * Schema Version
-             * @default v1
-             */
-            schema_version: string;
-            /** Case Id */
-            case_id: string;
-            /**
-             * Source Type
-             * @enum {string}
-             */
-            source_type: "url" | "text" | "file" | "manual_note";
-            /** Source Ref */
-            source_ref: string;
-            /** Title */
-            title?: string | null;
-        };
         /** CaseDetail */
         CaseDetail: {
             /** Id */
@@ -3347,56 +2999,6 @@ export interface components {
             brand_keywords?: string[];
             /** Competitor Names */
             competitor_names?: string[];
-        };
-        /** CaseInsightCard */
-        CaseInsightCard: {
-            /** Id */
-            id: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at?: string;
-            /** Created By */
-            created_by?: string | null;
-            /**
-             * Version
-             * @default 1
-             */
-            version: number;
-            /**
-             * Schema Version
-             * @default v1
-             */
-            schema_version: string;
-            /** Case Id */
-            case_id: string;
-            /** Title */
-            title: string;
-            /** Body */
-            body: string;
-            /**
-             * Severity
-             * @default info
-             * @enum {string}
-             */
-            severity: "info" | "warning" | "success";
-        };
-        /** CaseKnowledgeResponse */
-        CaseKnowledgeResponse: {
-            /** Case Id */
-            case_id: string;
-            /** Memories */
-            memories: components["schemas"]["CaseMemory"][];
-            /** Recent Script Versions */
-            recent_script_versions: components["schemas"]["ScriptVersion"][];
-            /** Recent Video Versions */
-            recent_video_versions: components["schemas"]["VideoVersion"][];
         };
         /** CaseListItem */
         CaseListItem: {
@@ -3492,10 +3094,10 @@ export interface components {
             case_id: string;
             /**
              * Status
-             * @default proposed
+             * @default active
              * @enum {string}
              */
-            status: "proposed" | "approved" | "active" | "deprecated" | "rejected" | "superseded";
+            status: "active" | "deprecated" | "superseded";
             /**
              * Memory Type
              * @default script_pattern
@@ -4179,18 +3781,6 @@ export interface components {
             /** Plaintext Secret */
             plaintext_secret: string;
         };
-        /** CreateSourceBindingRequest */
-        CreateSourceBindingRequest: {
-            /**
-             * Source Type
-             * @enum {string}
-             */
-            source_type: "url" | "text" | "file" | "manual_note";
-            /** Source Ref */
-            source_ref: string;
-            /** Title */
-            title?: string | null;
-        };
         /** CreatedRegistrationCode */
         CreatedRegistrationCode: {
             /** Id */
@@ -4216,49 +3806,6 @@ export interface components {
             created_at: string;
             /** Plaintext Code */
             plaintext_code: string;
-        };
-        /** CreativeBrief */
-        CreativeBrief: {
-            /** Id */
-            id: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at?: string;
-            /** Created By */
-            created_by?: string | null;
-            /**
-             * Version
-             * @default 1
-             */
-            version: number;
-            /**
-             * Schema Version
-             * @default v1
-             */
-            schema_version: string;
-            /** Case Id */
-            case_id: string;
-            /** Summary */
-            summary: string;
-            /** Source Binding Ids */
-            source_binding_ids?: string[];
-            /** Topic */
-            topic?: string | null;
-            /** Audience */
-            audience?: string | null;
-            /** Key Insights */
-            key_insights?: string[];
-            /** Source Refs */
-            source_refs?: string[];
-            /** Generated By Run Id */
-            generated_by_run_id?: string | null;
         };
         /** CreativeFeatureVector */
         CreativeFeatureVector: {
@@ -4329,44 +3876,6 @@ export interface components {
              * @default 0
              */
             title_tokens: number;
-        };
-        /** CreativePattern */
-        CreativePattern: {
-            /** Id */
-            id: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at?: string;
-            /** Created By */
-            created_by?: string | null;
-            /**
-             * Version
-             * @default 1
-             */
-            version: number;
-            /**
-             * Schema Version
-             * @default v1
-             */
-            schema_version: string;
-            /** Case Id */
-            case_id: string;
-            /** Label */
-            label: string;
-            /** Lift */
-            lift?: number | null;
-            /**
-             * Evidence Count
-             * @default 0
-             */
-            evidence_count: number;
         };
         /**
          * DegradationCode
@@ -4743,13 +4252,6 @@ export interface components {
          * @enum {string}
          */
         ImportBatchStatus: "created" | "running" | "completed" | "failed" | "partially_failed";
-        /** ImportCaseSourceRequest */
-        ImportCaseSourceRequest: {
-            /** Source Binding Id */
-            source_binding_id: string;
-            /** Provider Profile Id */
-            provider_profile_id?: string | null;
-        };
         /** ImportRowResult */
         ImportRowResult: {
             /** Row Index */
@@ -4807,7 +4309,7 @@ export interface components {
             /** Request Schema */
             request_schema: string;
             /** Request */
-            request: components["schemas"]["DigitalHumanVideoRequest"] | components["schemas"]["CaseAgentRunRequest"] | components["schemas"]["PublishBatchRequest"] | components["schemas"]["AnnotationBatchRequest"];
+            request: components["schemas"]["DigitalHumanVideoRequest"] | components["schemas"]["PublishBatchRequest"] | components["schemas"]["AnnotationBatchRequest"];
             /** Active Run Id */
             active_run_id?: string | null;
             /** Latest Finished Video Id */
@@ -4835,7 +4337,7 @@ export interface components {
          * JobType
          * @enum {string}
          */
-        JobType: "digital_human_video" | "case_agent_run" | "publish_batch" | "annotation_batch";
+        JobType: "digital_human_video" | "publish_batch" | "annotation_batch";
         JsonValue: unknown;
         /** LipSyncOptions */
         LipSyncOptions: {
@@ -5060,78 +4562,6 @@ export interface components {
         MediaAssetReplaceSourceRequest: {
             /** Upload Session Id */
             upload_session_id: string;
-        };
-        /** MemoryProposal */
-        MemoryProposal: {
-            /** Id */
-            id: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at?: string;
-            /** Created By */
-            created_by?: string | null;
-            /**
-             * Version
-             * @default 1
-             */
-            version: number;
-            /**
-             * Schema Version
-             * @default v1
-             */
-            schema_version: string;
-            /** Case Id */
-            case_id: string;
-            /**
-             * Status
-             * @default proposed
-             * @enum {string}
-             */
-            status: "proposed" | "approved" | "active" | "deprecated" | "rejected" | "superseded";
-            /**
-             * Memory Type
-             * @default script_pattern
-             * @enum {string}
-             */
-            memory_type: "script_pattern" | "video_pattern" | "audience_insight" | "editing_rule" | "negative_lesson";
-            scope?: components["schemas"]["CaseMemoryScope"];
-            /** Insight */
-            insight: string;
-            /** Evidence */
-            evidence?: string[];
-            /**
-             * Confidence
-             * @default 0.5
-             */
-            confidence: number;
-            /**
-             * Sample Size
-             * @default 0
-             */
-            sample_size: number;
-            /** Supersedes Memory Id */
-            supersedes_memory_id?: string | null;
-            /** Proposed By Reflection Run Id */
-            proposed_by_reflection_run_id?: string | null;
-        };
-        /** MemoryRecallResponse */
-        MemoryRecallResponse: {
-            /** Case Id */
-            case_id: string;
-            /**
-             * Mode
-             * @enum {string}
-             */
-            mode: "recent" | "topic" | "platform" | "memory_type" | "high_performance" | "low_performance";
-            /** Memories */
-            memories?: components["schemas"]["CaseMemory"][];
         };
         /**
          * MetricsBackfillRequest
@@ -5537,39 +4967,6 @@ export interface components {
             /** Request Id */
             request_id: string;
         };
-        /** PageResponse[CaseAgentRun] */
-        PageResponse_CaseAgentRun_: {
-            /** Items */
-            items: components["schemas"]["CaseAgentRun"][];
-            /** Next Cursor */
-            next_cursor?: string | null;
-            /** Total Hint */
-            total_hint?: number | null;
-            /** Request Id */
-            request_id: string;
-        };
-        /** PageResponse[CaseAgentSourceBinding] */
-        PageResponse_CaseAgentSourceBinding_: {
-            /** Items */
-            items: components["schemas"]["CaseAgentSourceBinding"][];
-            /** Next Cursor */
-            next_cursor?: string | null;
-            /** Total Hint */
-            total_hint?: number | null;
-            /** Request Id */
-            request_id: string;
-        };
-        /** PageResponse[CaseInsightCard] */
-        PageResponse_CaseInsightCard_: {
-            /** Items */
-            items: components["schemas"]["CaseInsightCard"][];
-            /** Next Cursor */
-            next_cursor?: string | null;
-            /** Total Hint */
-            total_hint?: number | null;
-            /** Request Id */
-            request_id: string;
-        };
         /** PageResponse[CaseListItem] */
         PageResponse_CaseListItem_: {
             /** Items */
@@ -5581,32 +4978,10 @@ export interface components {
             /** Request Id */
             request_id: string;
         };
-        /** PageResponse[CaseMemory] */
-        PageResponse_CaseMemory_: {
-            /** Items */
-            items: components["schemas"]["CaseMemory"][];
-            /** Next Cursor */
-            next_cursor?: string | null;
-            /** Total Hint */
-            total_hint?: number | null;
-            /** Request Id */
-            request_id: string;
-        };
         /** PageResponse[CostRollup] */
         PageResponse_CostRollup_: {
             /** Items */
             items: components["schemas"]["CostRollup"][];
-            /** Next Cursor */
-            next_cursor?: string | null;
-            /** Total Hint */
-            total_hint?: number | null;
-            /** Request Id */
-            request_id: string;
-        };
-        /** PageResponse[CreativePattern] */
-        PageResponse_CreativePattern_: {
-            /** Items */
-            items: components["schemas"]["CreativePattern"][];
             /** Next Cursor */
             next_cursor?: string | null;
             /** Total Hint */
@@ -5640,17 +5015,6 @@ export interface components {
         PageResponse_MediaAssetCard_: {
             /** Items */
             items: components["schemas"]["MediaAssetCard"][];
-            /** Next Cursor */
-            next_cursor?: string | null;
-            /** Total Hint */
-            total_hint?: number | null;
-            /** Request Id */
-            request_id: string;
-        };
-        /** PageResponse[MemoryProposal] */
-        PageResponse_MemoryProposal_: {
-            /** Items */
-            items: components["schemas"]["MemoryProposal"][];
             /** Next Cursor */
             next_cursor?: string | null;
             /** Total Hint */
@@ -7517,56 +6881,6 @@ export interface components {
             /** Request Id */
             request_id: string;
         };
-        /** ReflectionRun */
-        ReflectionRun: {
-            /** Id */
-            id: string;
-            /**
-             * Created At
-             * Format: date-time
-             */
-            created_at?: string;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at?: string;
-            /** Created By */
-            created_by?: string | null;
-            /**
-             * Version
-             * @default 1
-             */
-            version: number;
-            /**
-             * Schema Version
-             * @default v1
-             */
-            schema_version: string;
-            /** Case Id */
-            case_id: string;
-            /** @default created */
-            status: components["schemas"]["RunStatus"];
-            /**
-             * Window
-             * @default 7d
-             * @enum {string}
-             */
-            window: "24h" | "3d" | "7d" | "30d";
-            /** Report Artifact Id */
-            report_artifact_id?: string | null;
-            /** Input Observation Ids */
-            input_observation_ids?: string[];
-            /** Input Feature Vector Ids */
-            input_feature_vector_ids?: string[];
-            /** Memory Proposal Ids */
-            memory_proposal_ids?: string[];
-            /**
-             * Sample Size
-             * @default 0
-             */
-            sample_size: number;
-        };
         /** RefreshProviderBalancesRequest */
         RefreshProviderBalancesRequest: {
             /** Reason */
@@ -7611,11 +6925,6 @@ export interface components {
         RejectBumpRequest: {
             /** Reason */
             reason?: string | null;
-        };
-        /** RejectMemoryRequest */
-        RejectMemoryRequest: {
-            /** Reason */
-            reason: string;
         };
         /** RerunAnnotationRequest */
         RerunAnnotationRequest: {
@@ -8170,30 +7479,6 @@ export interface components {
              * @default false
              */
             playable: boolean;
-        };
-        /** StartCaseAgentRunRequest */
-        StartCaseAgentRunRequest: {
-            /**
-             * Goal
-             * @enum {string}
-             */
-            goal: "brief" | "script_draft" | "memory_proposal";
-            /** Source Binding Ids */
-            source_binding_ids?: string[];
-        };
-        /** StartReflectionRunRequest */
-        StartReflectionRunRequest: {
-            /**
-             * Window
-             * @default 7d
-             * @enum {string}
-             */
-            window: "24h" | "3d" | "7d" | "30d";
-            /**
-             * Force
-             * @default false
-             */
-            force: boolean;
         };
         /** StrictnessOptions */
         StrictnessOptions: {
@@ -11949,241 +11234,6 @@ export interface operations {
             };
         };
     };
-    source_bindings_api_cases__case_id__agent_source_bindings_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                case_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PageResponse_CaseAgentSourceBinding_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    create_source_binding_api_cases__case_id__agent_source_bindings_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                case_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateSourceBindingRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CaseAgentSourceBinding"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    delete_source_binding_api_cases__case_id__agent_source_bindings__binding_id__delete: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                case_id: string;
-                binding_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["OkResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    import_case_source_api_cases__case_id__agent_import_source_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                case_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ImportCaseSourceRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CaseAgentRun"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    case_agent_runs_api_cases__case_id__agent_runs_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                case_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PageResponse_CaseAgentRun_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    start_case_agent_run_api_cases__case_id__agent_runs_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                case_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["StartCaseAgentRunRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CaseAgentRun"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    case_agent_run_detail_api_cases__case_id__agent_runs__run_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                case_id: string;
-                run_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CaseAgentRunDetail"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     script_drafts_api_cases__case_id__agent_drafts_get: {
         parameters: {
             query?: {
@@ -12253,213 +11303,6 @@ export interface operations {
             };
         };
     };
-    memory_proposals_api_cases__case_id__agent_memory_proposals_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                case_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PageResponse_MemoryProposal_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    case_knowledge_api_cases__case_id__knowledge_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                case_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CaseKnowledgeResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    case_memory_api_cases__case_id__memory_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                case_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PageResponse_CaseMemory_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    recall_memory_api_cases__case_id__memory_recall_get: {
-        parameters: {
-            query?: {
-                mode?: "recent" | "topic" | "platform" | "memory_type" | "high_performance" | "low_performance";
-                topic?: string | null;
-                platform?: string | null;
-                memory_type?: ("script_pattern" | "video_pattern" | "audience_insight" | "editing_rule" | "negative_lesson") | null;
-                scope_key?: string | null;
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                case_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemoryRecallResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    approve_memory_api_cases__case_id__memory__memory_id__approve_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                case_id: string;
-                memory_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ApproveMemoryRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CaseMemory"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    reject_memory_api_cases__case_id__memory__memory_id__reject_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                case_id: string;
-                memory_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RejectMemoryRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MemoryProposal"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     case_performance_api_cases__case_id__performance_get: {
         parameters: {
             query?: {
@@ -12515,107 +11358,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportBatchReport"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    start_reflection_api_cases__case_id__reflection_runs_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                case_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["StartReflectionRunRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ReflectionRun"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    case_insights_api_cases__case_id__insights_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                case_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PageResponse_CaseInsightCard_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    creative_patterns_api_cases__case_id__creative_patterns_get: {
-        parameters: {
-            query?: {
-                limit?: number;
-            };
-            header?: never;
-            path: {
-                case_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PageResponse_CreativePattern_"];
                 };
             };
             /** @description Validation Error */

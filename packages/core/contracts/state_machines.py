@@ -79,11 +79,8 @@ PROMPT_VERSION_TRANSITIONS: dict[str, frozenset[str]] = {
 }
 
 CASE_MEMORY_TRANSITIONS: dict[str, frozenset[str]] = {
-    "proposed": frozenset({"approved", "rejected"}),
-    "approved": frozenset({"active", "rejected"}),
     "active": frozenset({"deprecated", "superseded"}),
     "deprecated": frozenset(),
-    "rejected": frozenset(),
     "superseded": frozenset(),
 }
 

@@ -78,24 +78,12 @@ def upload_cover_artifact(active_client) -> str:
     return completed.json()["artifact"]["artifact_id"]
 
 
-def test_case_reflection_memory_approval_and_publish_flow():
+def test_case_publish_flow_reaches_ops_dashboard():
     login = client.post(
         "/api/auth/login",
         json={"email": "admin@local.cutagent", "password": "local-admin"},
     )
     assert login.status_code == 200, login.text
-    reflection = client.post(
-        "/api/cases/case_demo/reflection-runs",
-        json={"window": "7d", "force": True},
-    )
-    assert reflection.status_code == 202, reflection.text
-    proposals = client.get("/api/cases/case_demo/agent/memory-proposals").json()["items"]
-    assert proposals
-    memory = client.post(
-        f"/api/cases/case_demo/memory/{proposals[-1]['id']}/approve",
-        json={"reason": "golden approval"},
-    ).json()
-    assert memory["status"] == "active"
 
     videos = client.get("/api/cases/case_demo/finished-videos").json()["items"]
     if not videos:
@@ -374,26 +362,3 @@ def test_yield_funnel_records_manual_rejected_stage():
         assert rejected.status_code == 200, rejected.text
         event_types = _funnel_event_types(active_client)
         assert "manual_rejected" in event_types
-
-
-def test_spec_20_2_16_case_reflection_after_five_published_videos_creates_memory_proposal():
-    """Spec 20.2 #16: five published videos can trigger reflection memory proposal generation."""
-    with TestClient(create_app()) as active_client:
-        login_admin_for(active_client)
-        for index in range(5):
-            finished_video_id = create_finished_video(active_client, f"Reflection seed {index}")
-            batch = create_publish_batch(active_client, finished_video_id)
-            submitted = active_client.post(f"/api/publish/batches/{batch['id']}/submit", json={"dry_run": False})
-            assert submitted.status_code == 202, submitted.text
-            assert submitted.json()["items"][0]["status"] == "published"
-
-        reflection = active_client.post(
-            "/api/cases/case_demo/reflection-runs",
-            json={"window": "7d", "force": True},
-        )
-        assert reflection.status_code == 202, reflection.text
-        reflection_id = reflection.json()["id"]
-        proposals = active_client.get("/api/cases/case_demo/agent/memory-proposals").json()["items"]
-        proposal = next(item for item in proposals if item.get("proposed_by_reflection_run_id") == reflection_id)
-        assert proposal["status"] == "proposed"
-        assert proposal["evidence"]

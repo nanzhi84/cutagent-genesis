@@ -11,7 +11,7 @@ depends_on = None
 
 
 # case_rubric_v1: evaluate→blind-predict→reward→retro→bump self-evolution.
-# See docs/superpowers/specs/2026-06-17-case-agent-rubric-redesign.md. Adds:
+# Adds the case_rubric_v1 persistence loop:
 #   - case_rubrics            (§6 executable scoring card, versioned)
 #   - score_predictions       (§6.2 blind predictions; settled after metrics)
 #   - reward_signals          (§5 graded human-choice reward signals)

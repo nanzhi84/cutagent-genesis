@@ -14,7 +14,6 @@ JSON_ARTIFACT_KINDS = {
     ArtifactKind.validated_production_spec,
     ArtifactKind.case_context,
     ArtifactKind.case_performance_analysis,
-    ArtifactKind.case_reflection,
     ArtifactKind.script_strategy,
     ArtifactKind.creative_intent,
     ArtifactKind.audio_alignment_raw,

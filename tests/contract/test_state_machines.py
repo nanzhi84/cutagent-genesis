@@ -59,20 +59,17 @@ def test_cancelled_upload_cannot_complete():
         assert_transition("upload_session", "cancelled", "completed")
 
 
-def test_case_memory_requires_approved_before_active():
-    assert {item for item in CaseMemory.model_fields["status"].annotation.__args__} >= {
-        "proposed",
-        "approved",
+def test_case_memory_only_tracks_active_constraints():
+    assert {item for item in CaseMemory.model_fields["status"].annotation.__args__} == {
         "active",
         "deprecated",
-        "rejected",
         "superseded",
     }
-    assert_transition("case_memory", "proposed", "approved")
-    assert_transition("case_memory", "approved", "active")
+    assert_transition("case_memory", "active", "deprecated")
+    assert_transition("case_memory", "active", "superseded")
 
     with pytest.raises(NodeExecutionError):
-        assert_transition("case_memory", "proposed", "active")
+        assert_transition("case_memory", "deprecated", "active")
 
 
 def test_publish_item_status_uses_uploaded_initial_state_not_draft():

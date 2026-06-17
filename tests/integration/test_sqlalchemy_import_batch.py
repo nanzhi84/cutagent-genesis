@@ -97,9 +97,8 @@ def test_sqlalchemy_import_batch_remaining_types_are_persisted_and_listed():
         assert cases.status_code == 200, cases.text
         assert any(item["id"] == case_id for item in cases.json()["items"])
 
-        knowledge = client.get("/api/cases/case_demo/knowledge")
-        assert knowledge.status_code == 200, knowledge.text
-        assert any(item["id"] == script_id for item in knowledge.json()["recent_script_versions"])
+        with session_factory() as session:
+            assert session.get(ScriptVersionRow, script_id) is not None
 
         media = client.get("/api/media/assets", params={"case_id": "case_demo", "kind": "broll"})
         assert media.status_code == 200, media.text

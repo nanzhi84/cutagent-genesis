@@ -1,8 +1,4 @@
-"""API-level tests for the Case self-evolution closed loop (in-memory backend).
-
-Covers Spec §25.4 metrics matching + lineage回流, §25.6 PerformanceScore,
-§25.8 memory recall modes, and §8.4 data-driven reflection proposals.
-"""
+"""API-level tests for metrics import and performance scoring."""
 
 from __future__ import annotations
 
@@ -136,73 +132,3 @@ def test_low_impression_metrics_are_not_high_confidence():
         score = client.get("/api/cases/case_demo/performance").json()["scores"][0]
         assert score["excluded_reason"] == "low_impressions"
         assert score["confidence"] <= 0.3
-
-
-def test_reflection_emits_data_driven_proposal_from_metrics():
-    with TestClient(create_app()) as client:
-        _login(client)
-        _, publish_record_id = _seed_published_record(client)
-        client.post(
-            "/api/cases/case_demo/metrics/import",
-            json={
-                "rows": [
-                    {
-                        "publish_record_id": publish_record_id,
-                        "metric_name": "completion_rate",
-                        "metric_value": 0.85,
-                        "completion_rate": 0.85,
-                        "impressions": 25000,
-                        "window": "7d",
-                    }
-                ],
-            },
-        )
-        reflection = client.post("/api/cases/case_demo/reflection-runs", json={"window": "7d"})
-        assert reflection.status_code == 202, reflection.text
-        reflection_id = reflection.json()["id"]
-        assert reflection.json()["sample_size"] >= 1
-
-        proposals = client.get("/api/cases/case_demo/agent/memory-proposals").json()["items"]
-        proposal = next(p for p in proposals if p["proposed_by_reflection_run_id"] == reflection_id)
-        # §8.4: proposal is data-driven, not the old canned literal.
-        assert "best performing hook style" not in proposal["insight"]
-        assert proposal["evidence"]  # carries evidence refs
-        assert proposal["sample_size"] >= 1
-
-
-def test_memory_recall_modes_filter_and_rank():
-    with TestClient(create_app()) as client:
-        _login(client)
-        # Seed an active memory via reflection + approval.
-        reflection = client.post("/api/cases/case_demo/reflection-runs", json={"window": "7d"})
-        assert reflection.status_code == 202, reflection.text
-        proposals = client.get("/api/cases/case_demo/agent/memory-proposals").json()["items"]
-        approved = client.post(
-            f"/api/cases/case_demo/memory/{proposals[-1]['id']}/approve", json={}
-        )
-        assert approved.status_code == 200, approved.text
-        memory_id = approved.json()["id"]
-
-        recall = client.get("/api/cases/case_demo/memory/recall", params={"mode": "recent", "limit": 5})
-        assert recall.status_code == 200, recall.text
-        body = recall.json()
-        assert body["mode"] == "recent"
-        assert any(m["id"] == memory_id for m in body["memories"])
-
-        # A platform that no active memory is scoped to yields nothing for platform mode.
-        recall_platform = client.get(
-            "/api/cases/case_demo/memory/recall", params={"mode": "platform", "platform": "douyin"}
-        )
-        assert recall_platform.status_code == 200, recall_platform.text
-
-
-def test_agent_memory_proposal_run_is_data_driven():
-    with TestClient(create_app()) as client:
-        _login(client)
-        run = client.post("/api/cases/case_demo/agent/runs", json={"goal": "memory_proposal"})
-        assert run.status_code == 202, run.text
-        run_id = run.json()["id"]
-        proposals = client.get("/api/cases/case_demo/agent/memory-proposals").json()["items"]
-        proposal = next(p for p in proposals if p["proposed_by_reflection_run_id"] == run_id)
-        # Old hardcoded literal must be gone.
-        assert proposal["insight"] != "Short hooks with concrete outcomes perform better for this case."

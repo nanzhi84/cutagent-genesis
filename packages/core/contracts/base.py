@@ -136,7 +136,6 @@ class ProviderStatus(str, Enum):
 
 class JobType(str, Enum):
     digital_human_video = "digital_human_video"
-    case_agent_run = "case_agent_run"
     publish_batch = "publish_batch"
     annotation_batch = "annotation_batch"
 
@@ -146,7 +145,6 @@ class ArtifactKind(str, Enum):
     validated_production_spec = "spec.validated_production"
     case_context = "case.context"
     case_performance_analysis = "case.performance_analysis"
-    case_reflection = "case.reflection"
     script_strategy = "script.strategy"
     creative_intent = "creative.intent"
     audio_tts = "audio.tts"

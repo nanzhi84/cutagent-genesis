@@ -260,6 +260,7 @@ def test_case_rubric_server_defaults_match_migration_path():
     tables = Base.metadata.tables
     expected_defaults = {
         "case_rubrics": {
+            "schema_version": "v1",
             "version": "1",
             "status": "active",
             "dimensions": "[]",
@@ -267,6 +268,7 @@ def test_case_rubric_server_defaults_match_migration_path():
             "cold_start": "true",
         },
         "score_predictions": {
+            "schema_version": "v1",
             "rubric_version": "1",
             "composite": "0",
             "band": "ok",
@@ -275,11 +277,13 @@ def test_case_rubric_server_defaults_match_migration_path():
             "locked_at": "now()",
         },
         "reward_signals": {
+            "schema_version": "v1",
             "value": "0",
             "confidence": "0.5",
             "occurred_at": "now()",
         },
         "rubric_bump_proposals": {
+            "schema_version": "v1",
             "status": "proposed",
             "from_version": "1",
             "old_consistency": "0",

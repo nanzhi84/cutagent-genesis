@@ -52,7 +52,9 @@ class Base(DeclarativeBase):
 
 
 class TimestampMixin:
-    schema_version: Mapped[str] = mapped_column(String(16), nullable=False, default="v1")
+    schema_version: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="v1", server_default="v1"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

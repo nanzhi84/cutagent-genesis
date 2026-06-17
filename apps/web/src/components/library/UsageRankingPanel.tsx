@@ -9,6 +9,7 @@ export function UsageRankingPanel({
   isLoading,
   error,
   onItemClick,
+  embedded = false,
 }: {
   title?: string;
   report?: MaterialUsageRankingReport;
@@ -16,6 +17,12 @@ export function UsageRankingPanel({
   error: unknown;
   /** When provided, each ranking item becomes clickable and jumps to that asset. */
   onItemClick?: (assetId: string) => void;
+  /**
+   * When true, the panel does NOT cap its own height / scroll — the parent owns a
+   * single scroll region (e.g. several panels stacked in one sticky sidebar). Keeps
+   * standalone usages self-scrolling at 70vh by default.
+   */
+  embedded?: boolean;
 }) {
   const items = report?.items ?? [];
   return (
@@ -31,7 +38,11 @@ export function UsageRankingPanel({
       {error ? <ErrorState error={error} /> : null}
       {!isLoading && !error && items.length === 0 ? <EmptyState title="暂无使用记录" detail="素材被生产链路命中后会进入排行。" /> : null}
       {items.length > 0 ? (
-        <div className="flex max-h-[70vh] flex-col gap-2 overflow-y-auto overflow-x-hidden pr-1">
+        <div
+          className={`flex flex-col gap-2 overflow-x-hidden ${
+            embedded ? "" : "max-h-[70vh] overflow-y-auto pr-1"
+          }`}
+        >
           {items.map((item, index) => {
             const title = item.asset?.title ?? shortId(item.asset_id, 12);
             const inner = (

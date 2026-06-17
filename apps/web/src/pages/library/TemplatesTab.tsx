@@ -538,13 +538,17 @@ export function TemplatesTab() {
         ) : null}
       </div>
 
-      <div className="grid gap-4 xl:sticky xl:top-4 xl:self-start">
+      {/* Ranking sidebar is its OWN scroll region (pinned to the viewport, scrolls
+          internally) so the A-roll/B-roll panels are fully reachable independently of
+          the material grid's page scroll — no shared sticky binding. */}
+      <div className="grid content-start gap-4 xl:sticky xl:top-4 xl:max-h-[calc(100vh-2rem)] xl:self-start xl:overflow-y-auto xl:pr-1">
         <UsageRankingPanel
           title="A-roll（口播）"
           report={portraitUsageQuery.data}
           isLoading={portraitUsageQuery.isLoading}
           error={portraitUsageQuery.error}
           onItemClick={jumpToAsset}
+          embedded
         />
         <UsageRankingPanel
           title="B-roll（空镜）"
@@ -552,6 +556,7 @@ export function TemplatesTab() {
           isLoading={brollUsageQuery.isLoading}
           error={brollUsageQuery.error}
           onItemClick={jumpToAsset}
+          embedded
         />
       </div>
 

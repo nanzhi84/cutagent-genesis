@@ -145,7 +145,10 @@ export default function StudioCreatePage() {
         mode: form.coverMode,
       },
       lipsync: {
-        enabled: form.lipsyncEnabled,
+        // B_roll-only mode never runs LipSync; force the block off so the run-config
+        // snapshot and cost estimate reflect the actual workflow instead of a phantom
+        // "口型同步: 开" the template can't perform.
+        enabled: isBrollOnly ? false : form.lipsyncEnabled,
         provider_profile_id: "runninghub.heygem.prod",
         video_extension: form.lipsyncVideoExtension,
         timeout_minutes: form.lipsyncTimeoutMinutes,

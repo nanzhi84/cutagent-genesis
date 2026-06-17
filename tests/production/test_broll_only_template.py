@@ -78,8 +78,12 @@ def test_template_for_dispatches_known_templates_and_rejects_unknown_id():
     assert template_for("broll_only_v1").workflow_template_id == "broll_only_v1"
     assert template_for("digital_human_v2").workflow_template_id == "digital_human_v2"
 
-    with pytest.raises(ValueError):
+    # workflow_template_id is a free-form request string; an unknown id must surface
+    # as a NodeExecutionError so the API maps it to a clean 4xx ErrorEnvelope rather
+    # than letting a bare ValueError bubble into an uncaught 500 at job admission.
+    with pytest.raises(NodeExecutionError) as exc_info:
         template_for("unknown_template")
+    assert exc_info.value.error.code == ErrorCode.validation_invalid_options
 
 
 def test_digital_human_template_keeps_existing_sequence_edges_and_outputs():

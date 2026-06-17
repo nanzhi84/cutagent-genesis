@@ -189,7 +189,13 @@ def template_for(workflow_template_id: str) -> WorkflowTemplate:
     try:
         return _TEMPLATE_BUILDERS[workflow_template_id]()
     except KeyError as exc:
-        raise ValueError(f"Unknown workflow template id: {workflow_template_id}") from exc
+        # workflow_template_id is a free-form request field, so an unknown id reaches
+        # here at job admission. Raise NodeExecutionError (not a bare ValueError) so
+        # the API handler maps it to a 4xx ErrorEnvelope instead of an uncaught 500.
+        raise NodeExecutionError(
+            ErrorCode.validation_invalid_options,
+            f"Unknown workflow template id: {workflow_template_id}",
+        ) from exc
 
 
 class LocalRuntimeAdapter(WorkflowRuntimeAdapter):

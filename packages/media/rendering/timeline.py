@@ -357,6 +357,14 @@ def render_broll_montage(
     filters.append(
         (
             f"{concat_inputs}concat=n={len(montage_inputs)}:v=1:a=0,"
+            # Per-segment fps resampling floors sub-frame tails, so the raw concat can
+            # land a frame short of total_frames (real narration durations are rarely
+            # frame-aligned). Clone the final frame to overshoot the target, then the
+            # frame-exact trim below sets the precise length -- mirrors
+            # fit_video_to_exact_duration on the A-roll base track. Without this, a
+            # short montage trips validate_rendered_output's exact-frame check and the
+            # whole render hard-fails with a misleading render_invalid_timeline.
+            "tpad=stop_mode=clone:stop_duration=1.000,"
             f"trim=start_frame=0:end_frame={total_frames},setpts=PTS-STARTPTS[outv]"
         )
     )

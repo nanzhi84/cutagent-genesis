@@ -167,3 +167,29 @@ def test_refresh_status_reports_unsupported() -> None:
     status = rc.refresh_status()
     assert status["auto_refresh_supported"] is False
     assert set(status) == {"chrome_available", "chrome_path", "playwright_available", "auto_refresh_supported"}
+
+
+# DevTools "Application -> Cookies" table paste: name<TAB>value<TAB>domain<TAB>...
+DEVTOOLS_TABLE_BLOB = (
+    "名称\t值\t域\t路径\tExpires\t大小\tHttpOnly\t安全\n"
+    "__ac_signature\t_02B4Z6wo00f01Z-PyBQ\twww.douyin.com\t/\t会话\t61\t\t✓\n"
+    "sessionid\t1330ce8a986fe139058a7c2a3d6ef0c2\t.douyin.com\t/\t2026-08-15\t41\t✓\t✓\n"
+    "ttwid\t1%7CjLGZ8-Bjk89\t.douyin.com\t/\t2027-06-17\t132\t✓\t✓\n"
+)
+
+
+def test_parse_devtools_table_extracts_name_value_and_skips_header():
+    cookies = rc.parse_cookies(DEVTOOLS_TABLE_BLOB, "auto")
+    by_name = {ck.name: ck.value for ck in cookies}
+    assert by_name["sessionid"] == "1330ce8a986fe139058a7c2a3d6ef0c2"
+    assert by_name["ttwid"] == "1%7CjLGZ8-Bjk89"
+    assert by_name["__ac_signature"] == "_02B4Z6wo00f01Z-PyBQ"
+    # the localized header row ("名称" / "值") must NOT become a cookie
+    assert "名称" not in by_name
+    assert all(name not in {"值", "域"} for name in by_name)
+
+
+def test_netscape_blob_still_parses_after_devtools_support():
+    cookies = rc.parse_cookies(NETSCAPE_BLOB, "auto")
+    by_name = {ck.name: ck.value for ck in cookies}
+    assert by_name == {"sessionid": "abc123", "ttwid": "xyz789", "passport_csrf_token": "tok"}

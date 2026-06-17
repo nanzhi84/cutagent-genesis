@@ -100,9 +100,16 @@ def _parsers_for(text: str, fmt: str) -> list[Callable[[str], list[ParsedCookie]
     ordered: list[Callable[[str], list[ParsedCookie]]] = []
     if text.startswith(("[", "{")):
         ordered.append(_parse_json_cookies)
-    if "\t" in text or text.startswith("# Netscape"):
+    if "\t" in text:
+        # A DevTools "Application -> Cookies" table copy is ``name<TAB>value<TAB>domain
+        # <TAB>...`` (value/domain order) — distinct from Netscape's domain-first order,
+        # so try it first (unless this is clearly a Netscape cookies.txt export).
+        if not text.lstrip().startswith("# Netscape"):
+            ordered.append(_parse_devtools_table_cookies)
         ordered.append(_parse_netscape_cookies)
-    ordered.extend([_parse_header_cookies, _parse_json_cookies, _parse_netscape_cookies])
+    ordered.extend(
+        [_parse_header_cookies, _parse_json_cookies, _parse_netscape_cookies, _parse_devtools_table_cookies]
+    )
     # Preserve order while dropping duplicates.
     seen: set[int] = set()
     unique: list[Callable[[str], list[ParsedCookie]]] = []
@@ -111,6 +118,41 @@ def _parsers_for(text: str, fmt: str) -> list[Callable[[str], list[ParsedCookie]
             seen.add(id(parser))
             unique.append(parser)
     return unique
+
+
+_COOKIE_NAME_HEADERS = {"name", "名称", "cookie", "cookie name"}
+
+
+def _looks_like_cookie_name(name: str) -> bool:
+    # A cookie name is a token: no spaces / separators, and not a domain (starts with
+    # ``.``) / comment (``#``) line, nor the table's localized header cell.
+    if not name or name.startswith((".", "#")):
+        return False
+    if any(ch in name for ch in " \t/;=,"):
+        return False
+    if name.lower() in _HEADER_ATTRIBUTES or name.lower() in _COOKIE_NAME_HEADERS:
+        return False
+    return True
+
+
+def _parse_devtools_table_cookies(text: str) -> list[ParsedCookie]:
+    """Parse a Chrome DevTools ``Application -> Cookies`` selection (rows copied as
+    ``name<TAB>value<TAB>domain<TAB>path<TAB>...``). Only the first two columns
+    (name, value) are needed; the header row and non-cookie rows are skipped."""
+    cookies: list[ParsedCookie] = []
+    for line in text.replace("\r", "\n").splitlines():
+        if not line.strip():
+            continue
+        fields = line.split("\t")
+        if len(fields) < 2:
+            fields = re.split(r"\s{2,}", line.strip())
+        if len(fields) < 2:
+            continue
+        name, value = fields[0].strip(), fields[1].strip()
+        if not _looks_like_cookie_name(name) or not value:
+            continue
+        cookies.append(ParsedCookie(name=name, value=value))
+    return cookies
 
 
 def _parse_header_cookies(text: str) -> list[ParsedCookie]:

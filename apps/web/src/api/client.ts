@@ -259,6 +259,24 @@ export const api = {
         "/api/creative/reference-extract",
         { method: "POST", body: payload, idempotencyKey: createIdempotencyKey("reference_extract") },
       ),
+    referenceExtractorStatus: () =>
+      fetchJson<JsonResponse<operations["reference_extractor_status_api_creative_reference_extractor_status_get"]>>(
+        "/api/creative/reference-extractor/status",
+      ),
+    importReferenceCookies: (
+      payload: JsonRequest<operations["import_reference_cookies_api_creative_reference_extractor_import_cookies_post"]>,
+    ) =>
+      fetchJson<JsonResponse<operations["import_reference_cookies_api_creative_reference_extractor_import_cookies_post"]>>(
+        "/api/creative/reference-extractor/import-cookies",
+        { method: "POST", body: payload, idempotencyKey: createIdempotencyKey("reference_cookies") },
+      ),
+    testReferenceCookies: (
+      payload: JsonRequest<operations["test_reference_cookies_api_creative_reference_extractor_test_cookies_post"]>,
+    ) =>
+      fetchJson<JsonResponse<operations["test_reference_cookies_api_creative_reference_extractor_test_cookies_post"]>>(
+        "/api/creative/reference-extractor/test-cookies",
+        { method: "POST", body: payload },
+      ),
   },
   prompts: {
     list: (query: QueryParams<operations["list_prompts_api_prompts_get"]> = {}) =>

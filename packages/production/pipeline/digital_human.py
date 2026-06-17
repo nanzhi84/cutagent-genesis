@@ -204,7 +204,6 @@ class LocalRuntimeAdapter(WorkflowRuntimeAdapter):
         self.repository = repository
         self.provider_gateway = provider_gateway
         self.prompt_registry = prompt_registry
-        self.template = digital_human_template()
         # ``seed_media`` generates demo seed media via ffmpeg/object-store on
         # construction. The per-activity Temporal scoping (see
         # ``TemporalActivityContext.build_runtime``) rehydrates real media

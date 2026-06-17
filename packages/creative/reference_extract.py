@@ -3,8 +3,10 @@ from __future__ import annotations
 import asyncio
 import html
 import inspect
+import ipaddress
 import json
 import re
+import socket
 import tempfile
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
@@ -43,38 +45,91 @@ async def extract_reference(
     asr_invoke: AsrInvoke,
     object_store: ObjectStore,
     secret_store: SecretStore,
+    sniffer: Callable[..., Awaitable[Any]] | None = None,
 ) -> c.ReferenceExtractResult:
-    parsed = _supported_url(url)
-    platform = _platform_from_host(parsed.netloc)
+    parsed = _assert_public_url(url)
+    platform = _platform_from_host(parsed.hostname or "")
     headers = {"User-Agent": USER_AGENT}
     cookie_header = stored_cookie_header(secret_store)
-    if cookie_header:
+    # The stored cookie is a Douyin LOGIN credential — only ever attach it to
+    # douyin hosts so it can never leak to youtube/bilibili/attacker hosts.
+    if cookie_header and _is_douyin_host(parsed.hostname or ""):
         headers["Cookie"] = cookie_header
     douyin_title: str | None = None
     douyin_duration: float | None = None
+    original_url = url
 
     if platform == "douyin":
-        douyin = await _extract_douyin_share(url, secret_store)
-        headers.update(douyin.headers)
-        douyin_title = douyin.title
-        douyin_duration = douyin.duration_sec
-        url = douyin.resolved_url or url
+        try:
+            douyin = await _extract_douyin_share(url, secret_store)
+            headers.update(douyin.headers)
+            douyin_title = douyin.title
+            douyin_duration = douyin.duration_sec
+            url = douyin.resolved_url or url
+        except ReferenceExtractError:
+            # Share page blocked without a login cookie — the guest browser sniff
+            # below is the cookie-free fallback, so do not abort the whole extract.
+            pass
 
-    info = await _extract_info(url, headers=headers)
-    platform = _platform_from_info(info, fallback=platform)
+    info: dict[str, Any] = {}
+    try:
+        info = await _extract_info(url, headers=headers)
+    except ReferenceExtractError:
+        # Douyin's metadata fetch can be blocked too; fall through to the browser
+        # sniff. For other platforms an unreachable URL is still a hard error.
+        if platform != "douyin":
+            raise
+
+    if info:
+        platform = _platform_from_info(info, fallback=platform)
     title = _clean_optional_text(info.get("title")) or douyin_title
     duration = _duration_from_value(info.get("duration")) or douyin_duration
     resolved_url = _clean_optional_text(info.get("webpage_url")) or url
 
-    subtitle = await _subtitle_from_info(info, language=language, headers=headers)
-    if subtitle:
+    if info:
+        subtitle = await _subtitle_from_info(info, language=language, headers=headers)
+        if subtitle:
+            return c.ReferenceExtractResult(
+                reference_script=subtitle,
+                source="subtitle",
+                title=title,
+                platform=platform,
+                duration_sec=duration,
+                resolved_url=resolved_url,
+            )
+
+    if platform == "douyin" and not info:
+        # yt-dlp couldn't resolve the video (blocked without a cookie) — fall back to the
+        # cookie-free guest browser sniff. With a cookie yt-dlp wins and we skip this.
+        sniff = sniffer or _default_sniffer
+        try:
+            media = await sniff(original_url, cookie_header=headers.get("Cookie"))
+        except ReferenceExtractError:
+            raise
+        except Exception as exc:
+            # Playwright/native browser errors (incl. chromium not installed) must
+            # surface as a structured error, not an unmapped 500.
+            raise ReferenceExtractError(
+                c.ErrorCode.reference_unreachable,
+                "Headless browser could not capture the video (guest mode may be blocked).",
+                details={"reason": str(exc)},
+            ) from exc
+        # media_url is derived from page content — re-validate it (SSRF guard) before
+        # handing it to the downloader, which would otherwise carry our headers to it.
+        _assert_public_url(media.media_url)
+        sniff_headers = dict(headers)
+        if media.cookie_header:
+            sniff_headers["Cookie"] = media.cookie_header
+        transcript = await _download_upload_and_asr(
+            media.media_url, language, asr_invoke, object_store, sniff_headers
+        )
         return c.ReferenceExtractResult(
-            reference_script=subtitle,
-            source="subtitle",
-            title=title,
-            platform=platform,
-            duration_sec=duration,
-            resolved_url=resolved_url,
+            reference_script=transcript,
+            source="asr",
+            title=media.title or title,
+            platform="douyin",
+            duration_sec=media.duration_sec or duration,
+            resolved_url=media.resolved_url or resolved_url,
         )
 
     transcript = await _download_upload_and_asr(url, language, asr_invoke, object_store, headers)
@@ -87,6 +142,12 @@ async def extract_reference(
         resolved_url=resolved_url,
     )
 
+
+async def _default_sniffer(url: str, *, cookie_header: str | None = None):
+    from packages.creative.reference_browser import sniff_media
+
+    return await sniff_media(url, cookie_header=cookie_header)
+
 def _supported_url(url: str):
     parsed = urlparse(url)
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
@@ -97,8 +158,88 @@ def _supported_url(url: str):
         )
     return parsed
 
+# Exact host suffix allowlist per platform. A *substring* match (the old
+# behaviour) let an attacker host like ``douyin.attacker.com`` opt into the
+# headless-browser path and receive the stored login cookie — so host-based
+# platform detection MUST be an exact base-domain / subdomain match.
+_HOST_PLATFORMS: tuple[tuple[tuple[str, ...], str], ...] = (
+    (("douyin.com", "iesdouyin.com"), "douyin"),
+    (("youtube.com", "youtu.be"), "youtube"),
+    (("bilibili.com", "b23.tv"), "bilibili"),
+    (("kuaishou.com",), "kuaishou"),
+)
+
+
+def _host_matches(host: str, base: str) -> bool:
+    return host == base or host.endswith("." + base)
+
+
 def _platform_from_host(host: str) -> str:
-    return _platform_from_key(host.lower(), "generic")
+    h = (host or "").lower().strip().rstrip(".")
+    for bases, platform in _HOST_PLATFORMS:
+        if any(_host_matches(h, base) for base in bases):
+            return platform
+    return "generic"
+
+
+def _is_douyin_host(host: str) -> bool:
+    h = (host or "").lower().strip().rstrip(".")
+    return any(_host_matches(h, base) for base in ("douyin.com", "iesdouyin.com"))
+
+
+def _assert_public_url(url: str, *, resolve: Callable[..., Any] | None = None):
+    """Validate scheme/host AND reject URLs whose host resolves to a non-public
+    address (SSRF guard for the browser + downloader sinks). ``resolve`` is
+    injectable for tests; defaults to ``socket.getaddrinfo``."""
+    parsed = _supported_url(url)
+    host = parsed.hostname
+    if not host:
+        raise ReferenceExtractError(
+            c.ErrorCode.reference_unsupported_platform,
+            "Reference URL has no host.",
+            details={"url": url},
+        )
+    resolver = resolve or socket.getaddrinfo
+    try:
+        infos = resolver(host, None)
+    except Exception as exc:
+        raise ReferenceExtractError(
+            c.ErrorCode.reference_unreachable,
+            "Reference host does not resolve.",
+            details={"host": host},
+        ) from exc
+    for info in infos:
+        ip_text = info[4][0]
+        try:
+            addr = ipaddress.ip_address(ip_text)
+        except ValueError:
+            continue
+        if _is_blocked_address(addr):
+            raise ReferenceExtractError(
+                c.ErrorCode.reference_unsupported_platform,
+                "Reference URL resolves to a non-public address.",
+                details={"host": host, "ip": ip_text},
+            )
+    return parsed
+
+
+# RFC 2544 benchmarking range. Non-routable on the public internet and commonly
+# commandeered by fake-IP proxies (Clash etc.) to map external domains — so it is
+# NOT an internal-service range and must not trip the SSRF guard.
+_PROXY_FAKE_IP_NET = ipaddress.ip_network("198.18.0.0/15")
+
+
+def _is_blocked_address(addr: ipaddress.IPv4Address | ipaddress.IPv6Address) -> bool:
+    if addr.version == 4 and addr in _PROXY_FAKE_IP_NET:
+        return False
+    return (
+        addr.is_private
+        or addr.is_loopback
+        or addr.is_link_local
+        or addr.is_reserved
+        or addr.is_multicast
+        or addr.is_unspecified
+    )
 
 def _platform_from_info(info: dict[str, Any], *, fallback: str) -> str:
     key = str(info.get("extractor_key") or info.get("extractor") or "").lower()
@@ -264,11 +405,20 @@ def _parse_subtitle_text(raw: str, ext: str) -> str | None:
     if ext.lower() == "json3":
         return _parse_json3_subtitle(raw)
     lines: list[str] = []
+    seen_cue = False
     for raw_line in raw.splitlines():
         line = html.unescape(re.sub(r"<[^>]+>", "", raw_line)).strip()
         if not line or line == "WEBVTT" or line.isdigit():
             continue
-        if "-->" in line or line.startswith(("NOTE", "STYLE")):
+        if "-->" in line:
+            seen_cue = True
+            continue
+        if line.startswith(("NOTE", "STYLE")):
+            continue
+        # WebVTT header metadata (e.g. YouTube's ``Kind: captions`` / ``Language: en``
+        # / ``X-TIMESTAMP-MAP=...``) lives before the first cue — drop it so it does
+        # not leak into the script. Spoken caption text always follows a timestamp.
+        if not seen_cue and re.match(r"^[A-Za-z][\w-]*\s*[:=]", line):
             continue
         if lines and lines[-1] == line:
             continue
@@ -302,7 +452,9 @@ async def _download_upload_and_asr(
         audio_path = await _download_audio(url, headers=headers, directory=Path(tmp))
         ref: ObjectRef | None = None
         try:
-            ref = object_store.prepare_upload(audio_path.name, "reference-audio", tier="ephemeral")
+            # Durable (cloud) tier — a cloud ASR provider must fetch the audio from a
+            # presigned URL, which a local ephemeral MinIO (127.0.0.1) cannot serve.
+            ref = object_store.prepare_upload(audio_path.name, "reference-audio", tier="durable")
             object_store.put_bytes(ref, audio_path.read_bytes())
             signed_url = object_store.signed_url(ref.uri).url
             transcript = await _invoke_asr(asr_invoke, signed_url, language)

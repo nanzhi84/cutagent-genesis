@@ -15,13 +15,6 @@ import { shortId } from "../../lib/format";
 import { toDisplayUrl } from "../../lib/url";
 import { artifactLabel, buildStages, lipsyncProviderLabel, nodeLabel, severityLabel, warningLabel, type RunAction } from "./runModel";
 
-function qcLabel(status: string) {
-  if (status === "passed") return "质检通过";
-  if (status === "failed") return "质检未通过";
-  if (status === "warning") return "质检告警";
-  return "待质检";
-}
-
 export function RunDetailModal({
   isOpen,
   onClose,
@@ -106,7 +99,6 @@ export function RunDetailModal({
               )}
               <div className="mx-auto flex w-full max-w-[320px] items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="badge-info">{qcLabel(finishedVideo.qc_status)}</span>
                   {lipsyncProviderLabel(finishedVideo.lipsync_provider_id, finishedVideo.lipsync_fallback_used) ? (
                     <span
                       className={finishedVideo.lipsync_fallback_used ? "badge-warning" : "badge-info"}

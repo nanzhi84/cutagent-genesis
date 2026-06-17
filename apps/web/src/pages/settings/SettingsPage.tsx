@@ -9,7 +9,7 @@ import { StatusPill } from "../../components/Status";
 import { useAuth } from "../auth/AuthContext";
 import { labelForStatus } from "../../lib/status";
 
-type SettingsTab = "providers" | "secrets" | "prices";
+type SettingsTab = "providers" | "secrets" | "prices" | "cookies";
 
 type ProfileForm = {
   id?: string;
@@ -73,13 +73,14 @@ function parseOptions(value: string) {
 }
 
 function tabFromSearch(value: string | null): SettingsTab {
-  return value === "secrets" || value === "prices" ? value : "providers";
+  return value === "secrets" || value === "prices" || value === "cookies" ? value : "providers";
 }
 
 function tabLabel(tab: SettingsTab) {
   if (tab === "providers") return "供应商";
   if (tab === "secrets") return "密钥";
-  return "价格";
+  if (tab === "prices") return "价格";
+  return "对标 Cookie";
 }
 
 function environmentLabel(value?: string | null) {
@@ -274,6 +275,31 @@ export default function SettingsPage() {
     mutationFn: (catalogId: string) => api.providers.approvePriceCatalog(catalogId, { reason: governReason }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["price-catalogs"] }),
   });
+
+  const [cookieText, setCookieText] = useState("");
+  const [cookieFormat, setCookieFormat] = useState<"auto" | "header" | "netscape" | "json">("auto");
+  const [cookieTestUrl, setCookieTestUrl] = useState("");
+  const [cookieError, setCookieError] = useState<unknown>(null);
+
+  const cookieStatus = useQuery({
+    queryKey: ["reference-extractor-status"],
+    queryFn: api.creative.referenceExtractorStatus,
+    enabled: tab === "cookies",
+  });
+  const importCookies = useMutation({
+    mutationFn: () =>
+      api.creative.importReferenceCookies({ cookie_text: cookieText, format: cookieFormat, source: "manual" }),
+    onSuccess: async () => {
+      setCookieText("");
+      setCookieError(null);
+      await queryClient.invalidateQueries({ queryKey: ["reference-extractor-status"] });
+    },
+    onError: setCookieError,
+  });
+  const testCookies = useMutation({
+    mutationFn: () => api.creative.testReferenceCookies({ url: cookieTestUrl.trim() || null }),
+    onError: setCookieError,
+  });
   const publishCatalog = useMutation({
     mutationFn: (catalogId: string) => api.providers.publishPriceCatalog(catalogId, { reason: governReason }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["price-catalogs"] }),
@@ -288,7 +314,7 @@ export default function SettingsPage() {
         </div>
       </header>
       <nav className="tabs" aria-label="设置 tabs">
-        {(["providers", "secrets", "prices"] as SettingsTab[]).map((item) => (
+        {(["providers", "secrets", "prices", "cookies"] as SettingsTab[]).map((item) => (
           <button
             className={`tabLink ${tab === item ? "active" : ""}`}
             type="button"
@@ -530,6 +556,118 @@ export default function SettingsPage() {
               <button className="primaryButton" type="submit" disabled={createPriceCatalog.isPending}><Plus size={16} /><span>创建草稿</span></button>
             </form>
           ) : null}
+        </div>
+      ) : null}
+
+      {tab === "cookies" ? (
+        <div className="settingsGrid">
+          <section className="surface formSection">
+            <div className="sectionHeader">
+              <h2>对标视频 Cookie 状态</h2>
+              {cookieStatus.isLoading ? <span>加载中</span> : null}
+            </div>
+            {cookieStatus.error ? <ErrorState error={cookieStatus.error} /> : null}
+            {cookieStatus.data ? (
+              <div className="listTable">
+                <div className="listRow">
+                  <div>
+                    <strong>{cookieStatus.data.cookie.cookie_present ? "已配置 Cookie" : "未配置 Cookie"}</strong>
+                    <span>
+                      {cookieStatus.data.cookie.cookie_count} 条 ·{" "}
+                      {cookieStatus.data.cookie.expired ? "已过期" : "有效"}
+                      {cookieStatus.data.cookie.earliest_expiry
+                        ? ` · 最早 ${new Date(cookieStatus.data.cookie.earliest_expiry).toLocaleString()} 过期`
+                        : ""}
+                    </span>
+                    <span>无头浏览器(Playwright)：{cookieStatus.data.playwright_available ? "可用" : "未安装"}</span>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+            <p>
+              抖音必须登录后才能取到视频。两种取法都支持（格式保持「自动识别」即可）：
+            </p>
+            <p>
+              ① <strong>应用程序面板（最简单）</strong>：F12 → 应用程序 → Cookie → https://www.douyin.com
+              → 在右侧表格里点一行后按 Ctrl+A 全选 → Ctrl+C → 粘到下方。表格的「名称/值」会被自动识别。
+            </p>
+            <p>
+              ② <strong>Network 请求头</strong>：F12 → Network → 点任一 douyin.com 请求 → Request Headers
+              里复制整段 <code>cookie:</code> 值 → 粘到下方。
+            </p>
+            <p>Cookie 一般几天到几周会过期，过期后重新复制导入即可。</p>
+          </section>
+
+          <form
+            className="surface formSection"
+            onSubmit={(event) => {
+              event.preventDefault();
+              setCookieError(null);
+              importCookies.mutate();
+            }}
+          >
+            <h2>导入 / 测试 Cookie</h2>
+            <label>
+              <span>格式</span>
+              <select value={cookieFormat} onChange={(event) => setCookieFormat(event.target.value as typeof cookieFormat)}>
+                <option value="auto">自动识别</option>
+                <option value="header">Cookie 请求头</option>
+                <option value="netscape">Netscape cookies.txt</option>
+                <option value="json">JSON 导出</option>
+              </select>
+            </label>
+            <label>
+              <span>Cookie 内容</span>
+              <textarea
+                rows={6}
+                value={cookieText}
+                onChange={(event) => setCookieText(event.target.value)}
+                placeholder="sessionid=...; ttwid=...; sid_guard=...; ..."
+                required
+              />
+            </label>
+            {cookieError ? <ErrorState error={cookieError} /> : null}
+            {importCookies.data ? (
+              <div className="stateBox">
+                <CheckCircle2 size={16} />
+                <span>{importCookies.data.message}</span>
+              </div>
+            ) : null}
+            <div className="formActions">
+              <button className="primaryButton" type="submit" disabled={importCookies.isPending || !cookieText.trim()}>
+                <KeyRound size={16} />
+                <span>导入</span>
+              </button>
+            </div>
+            <div className="governActions">
+              <input
+                placeholder="测试链接（可选，默认用内置示例）"
+                value={cookieTestUrl}
+                onChange={(event) => setCookieTestUrl(event.target.value)}
+              />
+              <button
+                className="ghostButton"
+                type="button"
+                disabled={testCookies.isPending}
+                onClick={() => {
+                  setCookieError(null);
+                  testCookies.mutate();
+                }}
+              >
+                <FlaskConical size={15} />
+                <span>测试 Cookie</span>
+              </button>
+            </div>
+            {testCookies.data ? (
+              <div className="stateBox">
+                {testCookies.data.success ? <CheckCircle2 size={16} /> : <ShieldAlert size={16} />}
+                <span>
+                  {testCookies.data.message}
+                  {testCookies.data.title ? ` — ${testCookies.data.title}` : ""}
+                </span>
+              </div>
+            ) : null}
+          </form>
         </div>
       ) : null}
 

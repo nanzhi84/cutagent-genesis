@@ -81,8 +81,8 @@ ScriptDraft → ScriptVersion → FinishedVideo → PublishRecord → Performanc
    publish            → RewardSignal(published,        +++)
    delete/归档废片     → RewardSignal(video_discarded, −, 可带原因)
 
-③ 指标回流（有数据后）
-   import_metrics → PerformanceObservation → compute_performance_score
+③ 指标回流（人工回填为主，§5.3）
+   成片旁手填原始计数 → PerformanceObservation → compute_performance_score
                   → RewardSignal(performance_scored, value=normalized_score, 置信门控)
                   → 结算对应 ScorePrediction（脱离盲态，进校准池）
 
@@ -121,7 +121,7 @@ ScriptDraft → ScriptVersion → FinishedVideo → PublishRecord → Performanc
 | 同批落选 | `draft_pick` | −0.05 | 0.3 | 同上（对未被 adopt 的同批 draft） |
 | 做成成片 | `video_produced` | +0.4 | 0.6 | 成片落库（`finished_videos` / Export 节点后） |
 | 发布 | `published` | +0.7 | 0.8 | `publishing` 发布成功 |
-| 有表现 | `performance_scored` | `normalized_score`∈[0,1] | = `PerformanceScore.confidence` | `import_metrics` |
+| 有表现 | `performance_scored` | `normalized_score`∈[0,1] | = `PerformanceScore.confidence` | 人工回填端点 / `import_metrics`（§5.3） |
 | 删/归档废片 | `video_discarded` | 原因=`script` → −0.3；其他 → 0（不算账） | 0.5 | `delete_finished_video` |
 | 成片 N=30d 未发布 | `stale_unpublished` | −0.1 | 0.3 | 惰性：复盘/读取时按 `created_at` 算，不引定时任务 |
 
@@ -129,6 +129,28 @@ ScriptDraft → ScriptVersion → FinishedVideo → PublishRecord → Performanc
 - **废片不是噪音**：用 `reason` 区分"脚本不行"（负样本）和"非脚本原因"（不算账），避免冤枉好脚本——这是"轻干预"的最佳落点。
 - **置信门控**：`performance_scored` 直接继承 §25.6 的 `excluded_reason`（低曝光/早窗口不进校准池），杜绝拿播放量当质量。
 - **同批 pairwise**：`draft_adopted` + 同批 `draft_pick` 构成"选了A没选B"的相对信号，**不依赖发布**，前期即可学。
+
+## 5.3 指标回流：人工回填（无自动化数据源）
+
+现状没有接入任何自动化流量数据分析，因此**指标回流以人工为主**。现有 `import_metrics`（§25.4 匹配策略 + `apps/connectors` OceanEngine ETL）是面向批量的：要调用方提供匹配键（`external_post_id` 等）且收**已算好的 rate**——对运营是黑话，且没有数据源在喂。本节定义一条**对运营友好的人工回填**路径作为 P1 主入口；批量导入保留为高级口。
+
+### 原则：回填是"加分项"，不是闭环前置
+即使没人回填，P0 的创作侧奖励（采用/成片/发布/删片）照样训练评分卡。回填只是接上**最强信号**让复盘/升级更准——降低运营负担，也贴合现实。**没数据就是没数据，绝不臆断**（no-silent-degrade）。
+
+### 回填流程（清楚版）
+1. **入口从视频进，消灭"匹配"**：成片/已发布列表里每条已发布视频旁一个【填数据】。因为从具体 `PublishRecord` 进来，`publish_record_id` 自动带上，运营**完全不接触 matching_policy / 外部 ID**。
+2. **只问后台看得到的原始数字**：统计时点（T+1/3/7/30 → `window`）、播放/曝光、点赞、评论、转发、新增关注、（选填）私信/留资/下单。提示语："填你平台后台能看到的数就行，没有的留空"。后端把**原始 count → rate**（`like_rate = 赞/播放` …）再走与批量同款的 `observation_contract_from_match` + `compute_performance_score`。**运营从不碰 rate**。
+3. **待复盘清单 + 轻提醒**：发布满 N 天（默认 3，`RETRO_WINDOW_DAYS`）自动进"待复盘 N 条"，在概览/智能体 tab 顶部提示，点开即待填列表。不填不催死、不臆断。
+4. **多窗口可重复填**：同一条可在 T+3 / T+7 / T+30 各填一次，记不同 `window`；早窗口（1h/24h）只作早期信号，**7d/30d 才进校准池**，且仍受 §25.6 置信门控（曝光 < 1000 不进）。
+
+### 半自动减负（可选，P1.5）
+传平台后台**截图** → vision LLM 读数 → **运营确认/修正** → 入库。经 `ProviderGateway`，未配置则退回纯手填；LLM 读数必须人工确认后才落库（防读错，不静默）。
+
+### 原始计数 → canonical 的转换（新增纯函数）
+`metrics_import.py::counts_to_canonical(raw_counts) -> dict`：把 `{views, likes, comments, shares, follows, conversions, impressions, avg_watch_sec}` 折算成现有 canonical rate 字段（`like_rate/comment_rate/share_rate/follow_rate/conversion_rate` + 透传 `impressions/views/avg_watch_sec`），原始数保留进 `raw_metrics`。单条回填端点用它产 `MatchedRow`（`publish_record_id` 已知，**跳过** `match_metrics_rows`），复用 `observation_contract_from_match`。
+
+### 人工边界（一句话）
+人工只做"填几个数字 / 确认截图读数"；**绑定、算 rate、置信门控、结算盲预测、触发升级全自动**。运营永远不碰 `matching_policy` / `normalized_score` / rubric 权重。
 
 ## 6. 评分卡：打分 / 盲测 / 复盘 / 升级
 
@@ -267,6 +289,8 @@ RUBRIC_BUMP_TRANSITIONS = {
 - `GET  /api/cases/{id}/rubric/bump-proposal` → `RubricBumpProposal | null`
 - `POST /api/cases/{id}/rubric/bump-proposal/{pid}/accept|reject`（operator）
 - 创作页生成响应里**内联**每版 `ScorePrediction`（见 §10 改 `generate_script_with_memory` 返回）。
+- `POST /api/cases/{id}/finished-videos/{fid}/metrics` → 单条人工回填（原始 count + window，无匹配键，§5.3）
+- `GET  /api/cases/{id}/pending-retro` → 待复盘清单（已发布、窗口到期未回填）
 
 ### 下线（前期不挂 UI；保留实现，gate 在 feature flag 后）
 - `POST /api/cases/{id}/reflection-runs`
@@ -293,6 +317,8 @@ RUBRIC_BUMP_TRANSITIONS = {
 
 ### 成片页（`finished_videos`）
 - 删除/归档时弹一键原因（可跳过）：[脚本不行] [画面不行] [选题不行] [就是没空发] → 写 `RewardSignal.reason`。
+- 已发布视频旁【填数据】：选发布后第几天 + 填原始计数（播放/赞/评论/转发/关注/转化），后端算 rate；从对象进来，运营不碰匹配键（§5.3）。
+- 顶部「待复盘 N 条」提醒，点开即待填列表。
 
 ### 智能体 tab（重定位为只读后视镜）
 - 砍掉：数据源绑定、运行目标、记忆提案审批面板。
@@ -309,7 +335,7 @@ RUBRIC_BUMP_TRANSITIONS = {
 - **验收**：新案例能对 3 版脚本打分排序；采用/成片/发布各落一条 `RewardSignal`；全程零审批。
 
 ### P1 —— 复盘 + 升级（有指标后）
-- `import_metrics` 结算 `ScorePrediction` → 校准池；`evaluate_calibration` + `CalibrationReport`。
+- **人工回填**（§5.3）为主：单条回填端点 + 待复盘清单 + `counts_to_canonical`；回填结算 `ScorePrediction` → 校准池；`evaluate_calibration` + `CalibrationReport`。
 - `fit_weights` + 重排验证门 + `RubricBumpProposal` + 一次确认 UI。
 - 废片原因采集、`stale_unpublished` 惰性奖励。
 - **验收**：构造校准池后，劣化的旧卡能产出一个"新卡更准"的升版提议；盲不变量被测试守护。

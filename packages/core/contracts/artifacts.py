@@ -85,20 +85,12 @@ class CaseContextArtifact(ContractModel):
     recent_video_versions: list[VideoVersion] = Field(default_factory=list)
     performance_summary: dict[str, Any] = Field(default_factory=dict)
     negative_lessons: list[CaseMemory] = Field(default_factory=list)
-    knowledge_items: list[dict[str, Any]] = Field(default_factory=list)
     generated_at: datetime = Field(default_factory=utcnow)
 
 
 class PerformanceAnalysisArtifact(ContractModel):
     case_id: str
     observations: list[dict[str, Any]] = Field(default_factory=list)
-    generated_at: datetime = Field(default_factory=utcnow)
-
-
-class ReflectionReportArtifact(ContractModel):
-    case_id: str
-    insights: list[str] = Field(default_factory=list)
-    memory_proposal_ids: list[str] = Field(default_factory=list)
     generated_at: datetime = Field(default_factory=utcnow)
 
 
@@ -311,7 +303,6 @@ class ArtifactSchemaRegistry:
             ArtifactKind.validated_production_spec: ValidatedProductionSpecArtifact,
             ArtifactKind.case_context: CaseContextArtifact,
             ArtifactKind.case_performance_analysis: PerformanceAnalysisArtifact,
-            ArtifactKind.case_reflection: ReflectionReportArtifact,
             ArtifactKind.script_strategy: ScriptStrategyArtifact,
             ArtifactKind.creative_intent: CreativeIntentArtifact,
             ArtifactKind.audio_alignment_raw: RawAlignmentArtifact,

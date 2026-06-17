@@ -19,8 +19,8 @@ from packages.media.assets import local_object_path
 from packages.production.editor_handoff import EditorHandoffAsset, EditorHandoffBuilder, EditorHandoffInput
 from packages.production.jianying_draft import JianyingDraftBuilder, JianyingDraftInput
 
-def performance_attribution(request: Request, video_version_id: str) -> c.PerformanceAttributionResponse:
 
+def performance_attribution(request: Request, video_version_id: str) -> c.PerformanceAttributionResponse:
     if production_repository(request) is not None:
         attribution = production_repository(request).performance_attribution(video_version_id)
         if attribution is None:
@@ -55,7 +55,6 @@ def _extract_feature_vector(repo, video: c.VideoVersion) -> c.CreativeFeatureVec
 
 
 def case_finished_videos(request: Request, case_id: str, limit: int = 50) -> c.PageResponse[c.FinishedVideo]:
-
     if production_repository(request) is not None:
         values = production_repository(request).list_finished_videos(case_id=case_id, limit=limit)
         return c.PageResponse(items=values, total_hint=len(values), request_id=request_id())
@@ -63,13 +62,12 @@ def case_finished_videos(request: Request, case_id: str, limit: int = 50) -> c.P
 
 
 def finished_video_detail(request: Request, id: str) -> c.FinishedVideoDetail:
-
     if production_repository(request) is not None:
         detail = production_repository(request).finished_video_detail(id)
         if detail is None:
             raise NodeExecutionError(c.ErrorCode.artifact_missing, "Finished video is missing.")
         return detail
-    finished = repository(request).finished_videos[id]
+    finished = _finished_video_or_error(request, id)
     version = next(
         (item for item in repository(request).video_versions.values() if item.finished_video_id == id),
         None,
@@ -79,7 +77,6 @@ def finished_video_detail(request: Request, id: str) -> c.FinishedVideoDetail:
 
 
 def finished_video_preview(request: Request, id: str) -> c.SignedUrlResponse:
-
     if production_repository(request) is not None:
         uri = production_repository(request).artifact_uri_for_finished_video(id)
         if uri is None:
@@ -87,7 +84,7 @@ def finished_video_preview(request: Request, id: str) -> c.SignedUrlResponse:
         if uri:
             return object_store(request).signed_url(uri).model_copy(update={"request_id": request_id()})
         return signed(request, f"finished-videos/{id}/preview.mp4")
-    finished = repository(request).finished_videos[id]
+    finished = _finished_video_or_error(request, id)
     artifact = repository(request).artifacts.get(finished.video_artifact.artifact_id)
     if artifact and artifact.uri:
         return object_store(request).signed_url(artifact.uri).model_copy(update={"request_id": request_id()})
@@ -95,16 +92,43 @@ def finished_video_preview(request: Request, id: str) -> c.SignedUrlResponse:
 
 
 def finished_video_download(request: Request, id: str) -> c.SignedUrlResponse:
-
     return finished_video_preview(request, id)
 
 
-def delete_finished_video(id: str, request: Request) -> c.OkResponse:
+def delete_finished_video(id: str, request: Request, reason: str | None = None) -> c.OkResponse:
     if production_repository(request) is not None:
-        production_repository(request).delete_finished_video(id)
+        case_id = _finished_video_case_id_db(request, id)
+        if case_id is None:
+            raise NodeExecutionError(c.ErrorCode.artifact_missing, "Finished video is missing.")
+        _record_discard_reward(request, case_id, id, reason)
+        if not production_repository(request).delete_finished_video(id):
+            raise NodeExecutionError(c.ErrorCode.artifact_missing, "Finished video is missing.")
         return c.OkResponse(request_id=request_id())
-    repository(request).finished_videos.pop(id, None)
+    finished = _finished_video_or_error(request, id)
+    _record_discard_reward(request, finished.case_id, id, reason)
+    repository(request).finished_videos.pop(id)
     return c.OkResponse(request_id=request_id())
+
+
+def _finished_video_case_id_db(request: Request, finished_video_id: str) -> str | None:
+    detail = production_repository(request).finished_video_detail(finished_video_id)
+    return detail.finished_video.case_id if detail is not None else None
+
+
+def _record_discard_reward(
+    request: Request, case_id: str | None, finished_video_id: str, reason: str | None
+) -> None:
+    """Reward搭车: emit a video_discarded RewardSignal before deletion (§5.2). The
+    reason drives the value (only ``script`` is a negative signal). Best-effort: the
+    learning layer must never block the existing delete flow."""
+    if case_id is None:
+        return
+    from apps.api.services import case_rubric
+
+    try:
+        case_rubric.record_discard_reward(request, case_id, finished_video_id, reason)
+    except Exception:  # pragma: no cover - learning side-channel is best-effort
+        pass
 
 
 def editor_handoff(

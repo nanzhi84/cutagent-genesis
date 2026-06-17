@@ -56,6 +56,8 @@ PATH_VALUES = {
     "experiment_id": "exp_missing",
     "draft_id": "draft_missing",
     "memory_id": "mem_missing",
+    "proposal_id": "bump_missing",
+    "finished_video_id": "fv_missing",
     "video_version_id": "vv_missing",
     "id": "missing",
     "package_id": "pkg_missing",

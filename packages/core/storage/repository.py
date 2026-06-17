@@ -24,27 +24,25 @@ from packages.core.contracts import (
     ArtifactRef,
     AuthUser,
     Budget,
-    CaseAgentRun,
-    CaseAgentSourceBinding,
     CaseDetail,
     CaseMemory,
+    CaseRubric,
     CostRollup,
-    CreativeBrief,
-    CreativePattern,
     FinishedVideo,
+    RewardSignal,
+    RubricBumpProposal,
+    ScorePrediction,
     ImportBatchReport,
     Job,
     MediaInfo,
     MediaAssetRecord,
     MaterialUsageRankingReport,
-    MemoryProposal,
     Money,
     OpsAlertEvent,
     OutboxEvent,
     PerformanceObservation,
     PerformanceScore,
     CreativeFeatureVector,
-    CaseKnowledgeItem,
     PromptBinding,
     PromptExperiment,
     PromptInvocation,
@@ -64,7 +62,6 @@ from packages.core.contracts import (
     PublishDefaults,
     PublishPackage,
     PublishRecord,
-    ReflectionRun,
     RegistrationCodePreview,
     RunEvent,
     ScriptDraft,
@@ -160,20 +157,14 @@ class Repository:
         self.price_items: dict[str, ProviderPriceItem] = {}
         self.provider_invocations: dict[str, ProviderInvocation] = {}
         self.usage_records: dict[str, UsageMeterRecord] = {}
-        self.source_bindings: dict[str, CaseAgentSourceBinding] = {}
-        self.case_agent_runs: dict[str, CaseAgentRun] = {}
-        self.briefs: dict[str, CreativeBrief] = {}
         self.drafts: dict[str, ScriptDraft] = {}
         self.memories: dict[str, CaseMemory] = {}
-        self.memory_proposals: dict[str, MemoryProposal] = {}
-        self.reflection_runs: dict[str, ReflectionRun] = {}
         self.scripts: dict[str, ScriptVersion] = {}
         self.video_versions: dict[str, VideoVersion] = {}
         self.publish_records: dict[str, PublishRecord] = {}
         self.performance_observations: dict[str, PerformanceObservation] = {}
         self.performance_scores: dict[str, PerformanceScore] = {}
         self.feature_vectors: dict[str, CreativeFeatureVector] = {}
-        self.knowledge_items: dict[str, CaseKnowledgeItem] = {}
         self.finished_videos: dict[str, FinishedVideo] = {}
         self.publish_packages: dict[str, PublishPackage] = {}
         self.publish_batches: dict[str, PublishBatchVm] = {}
@@ -190,7 +181,10 @@ class Repository:
         self.audit_events: dict[str, object] = {}
         self.import_reports: dict[str, ImportBatchReport] = {}
         self.outbox: dict[str, OutboxEvent] = {}
-        self.creative_patterns: dict[str, CreativePattern] = {}
+        self.case_rubrics: dict[str, CaseRubric] = {}
+        self.score_predictions: dict[str, ScorePrediction] = {}
+        self.reward_signals: dict[str, RewardSignal] = {}
+        self.rubric_bump_proposals: dict[str, RubricBumpProposal] = {}
         self.idempotency_records: dict[str, dict] = {}
         self.seed()
 

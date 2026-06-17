@@ -8,7 +8,6 @@ from packages.core.contracts import (
     Artifact,
     ArtifactKind,
     ArtifactRef,
-    CaseAgentRunRequest,
     CaseDetail,
     DegradationNotice,
     DigitalHumanVideoRequest,
@@ -103,8 +102,6 @@ def job_row_to_contract(row: JobRow) -> Job:
     request = row.request
     if request_type == JobType.digital_human_video:
         request = DigitalHumanVideoRequest.model_validate(row.request)
-    elif request_type == JobType.case_agent_run:
-        request = CaseAgentRunRequest.model_validate(row.request)
     elif request_type == JobType.publish_batch:
         request = PublishBatchRequest.model_validate(row.request)
     elif request_type == JobType.annotation_batch:

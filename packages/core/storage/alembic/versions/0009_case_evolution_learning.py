@@ -83,10 +83,13 @@ def upgrade() -> None:
     inspector = sa.inspect(bind)
     existing_tables = set(inspector.get_table_names())
 
-    _add_missing_columns(bind, "case_memories", _CASE_MEMORY_COLUMNS)
-    _add_missing_columns(bind, "memory_proposals", _PROPOSAL_COLUMNS)
+    if "case_memories" in existing_tables:
+        _add_missing_columns(bind, "case_memories", _CASE_MEMORY_COLUMNS)
+    if "memory_proposals" in existing_tables:
+        _add_missing_columns(bind, "memory_proposals", _PROPOSAL_COLUMNS)
     _add_missing_columns(bind, "performance_observations", _OBSERVATION_COLUMNS)
-    _add_missing_columns(bind, "reflection_runs", _REFLECTION_COLUMNS)
+    if "reflection_runs" in existing_tables:
+        _add_missing_columns(bind, "reflection_runs", _REFLECTION_COLUMNS)
 
     if "creative_feature_vectors" not in existing_tables:
         op.create_table(
@@ -170,7 +173,8 @@ def upgrade() -> None:
         )
         op.create_index("idx_knowledge_items_case_kind", "case_knowledge_items", ["case_id", "kind"])
 
-    _create_index_if_missing(bind, "idx_case_memories_case_type", "case_memories", ["case_id", "memory_type"])
+    if "case_memories" in existing_tables:
+        _create_index_if_missing(bind, "idx_case_memories_case_type", "case_memories", ["case_id", "memory_type"])
     _create_index_if_missing(bind, "idx_performance_video", "performance_observations", ["video_version_id"])
 
 
@@ -186,7 +190,10 @@ def downgrade() -> None:
     for table in ("case_knowledge_items", "performance_scores", "creative_feature_vectors"):
         if table in existing_tables:
             op.drop_table(table)
-    _drop_columns(bind, "reflection_runs", _REFLECTION_COLUMNS)
+    if "reflection_runs" in existing_tables:
+        _drop_columns(bind, "reflection_runs", _REFLECTION_COLUMNS)
     _drop_columns(bind, "performance_observations", _OBSERVATION_COLUMNS)
-    _drop_columns(bind, "memory_proposals", _PROPOSAL_COLUMNS)
-    _drop_columns(bind, "case_memories", _CASE_MEMORY_COLUMNS)
+    if "memory_proposals" in existing_tables:
+        _drop_columns(bind, "memory_proposals", _PROPOSAL_COLUMNS)
+    if "case_memories" in existing_tables:
+        _drop_columns(bind, "case_memories", _CASE_MEMORY_COLUMNS)

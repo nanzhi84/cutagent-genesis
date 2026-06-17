@@ -133,13 +133,6 @@ class DigitalHumanVideoRequest(ContractModel):
     strictness: StrictnessOptions = Field(default_factory=StrictnessOptions)
 
 
-class CaseAgentRunRequest(ContractModel):
-    schema_version: Literal["case_agent_run_request.v1"] = "case_agent_run_request.v1"
-    case_id: str
-    goal: Literal["brief", "script_draft", "memory_proposal"]
-    source_binding_ids: list[str] = Field(default_factory=list)
-
-
 class PublishBatchRequest(ContractModel):
     schema_version: Literal["publish_batch_request.v1"] = "publish_batch_request.v1"
     publish_package_ids: list[str]
@@ -157,7 +150,7 @@ class AnnotationBatchRequest(ContractModel):
 
 
 JobRequest = Annotated[
-    DigitalHumanVideoRequest | CaseAgentRunRequest | PublishBatchRequest | AnnotationBatchRequest,
+    DigitalHumanVideoRequest | PublishBatchRequest | AnnotationBatchRequest,
     Field(discriminator="schema_version"),
 ]
 

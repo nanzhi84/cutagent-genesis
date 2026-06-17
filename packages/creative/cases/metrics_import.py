@@ -232,3 +232,52 @@ def observation_contract_from_match(
         conversion_rate=canonical.get("conversion_rate"),
         raw_metrics=dict(canonical),
     )
+
+
+def counts_to_canonical(counts: Mapping[str, Any]) -> dict[str, float]:
+    """Fold operator-entered raw counts into the canonical rate fields (§5.3).
+
+    The human backfill form collects raw numbers (views/likes/comments/...), not
+    rates — operators never compute rates. This derives ``*_rate`` from the best
+    available volume denominator (views, else impressions) and passes through the
+    volume fields, so the result plugs straight into ``observation_contract_from_match``
+    + ``compute_performance_score`` exactly like a structured import row would.
+    """
+
+    def _num(key: str) -> float | None:
+        value = counts.get(key)
+        if value in (None, ""):
+            return None
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return None
+
+    views = _num("views")
+    impressions = _num("impressions")
+    denominator = next((v for v in (views, impressions) if v and v > 0), None)
+
+    out: dict[str, float] = {}
+    if impressions is not None:
+        out["impressions"] = impressions
+    if views is not None:
+        out["views"] = views
+    avg_watch = _num("avg_watch_sec")
+    if avg_watch is not None:
+        out["avg_watch_sec"] = avg_watch
+    conversions = _num("conversions")
+    if conversions is not None:
+        out["conversion_count"] = conversions
+
+    if denominator:
+        for rate_field, count_key in (
+            ("like_rate", "likes"),
+            ("comment_rate", "comments"),
+            ("share_rate", "shares"),
+            ("follow_rate", "follows"),
+            ("conversion_rate", "conversions"),
+        ):
+            count = _num(count_key)
+            if count is not None:
+                out[rate_field] = round(min(1.0, count / denominator), 6)
+    return out

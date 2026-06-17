@@ -176,9 +176,7 @@ def test_spec_20_2_13_imported_case_script_and_media_are_frontend_visible():
         case_detail = active_client.get(f"/api/cases/{case_id}")
         assert case_detail.status_code == 200, case_detail.text
         assert case_detail.json()["name"] == "Imported showcase case"
-        knowledge = active_client.get(f"/api/cases/{case_id}/knowledge")
-        assert knowledge.status_code == 200, knowledge.text
-        assert any(item["id"] == script_id for item in knowledge.json()["recent_script_versions"])
+        assert script_id in active_client.app.state.repository.scripts
         media = active_client.get(f"/api/media/assets?case_id={case_id}")
         assert media.status_code == 200, media.text
         assert any(item["asset"]["id"] == media_id for item in media.json()["items"])
@@ -212,8 +210,8 @@ def test_spec_20_2_14_imported_media_can_rerun_annotation_open_editor_and_save_p
         assert detail.json()["asset"]["annotation_status"] == "annotated"
 
 
-def test_spec_20_2_15_imported_finished_publish_performance_reaches_insights():
-    """Spec 20.2 #15: imported finished video, publish record, and performance data reach insights."""
+def test_spec_20_2_15_imported_finished_publish_performance_reaches_performance_api():
+    """Spec 20.2 #15: imported finished video, publish record, and performance data stay queryable."""
     with TestClient(create_app()) as active_client:
         login_admin(active_client)
         finished_video_id = import_one(
@@ -265,9 +263,9 @@ def test_spec_20_2_15_imported_finished_publish_performance_reaches_insights():
         attribution = active_client.get(f"/api/videos/{video_version_id}/performance-attribution")
         assert attribution.status_code == 200, attribution.text
         assert any(item["id"] == performance_id for item in attribution.json()["observations"])
-        insights = active_client.get("/api/cases/case_demo/insights")
-        assert insights.status_code == 200, insights.text
-        assert any("performance" in item["body"].lower() for item in insights.json()["items"])
+        performance = active_client.get("/api/cases/case_demo/performance")
+        assert performance.status_code == 200, performance.text
+        assert any(item["id"] == performance_id for item in performance.json()["observations"])
 
 
 def test_prometheus_metrics_contract_is_exposed():

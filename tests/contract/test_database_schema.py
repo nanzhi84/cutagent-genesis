@@ -36,15 +36,16 @@ REQUIRED_TABLES = {
     "prompt_experiments",
     "script_versions",
     "video_versions",
-    "case_agent_source_bindings",
-    "case_agent_runs",
-    "creative_briefs",
     "script_drafts",
     "case_memories",
-    "memory_proposals",
-    "reflection_runs",
     "publish_records",
     "performance_observations",
+    "creative_feature_vectors",
+    "performance_scores",
+    "case_rubrics",
+    "score_predictions",
+    "reward_signals",
+    "rubric_bump_proposals",
     "finished_videos",
     "publish_packages",
     "publish_batches",
@@ -203,7 +204,7 @@ def test_metadata_compiles_for_postgresql():
     for table in Base.metadata.tables.values():
         for index in table.indexes:
             sql = str(CreateIndex(index).compile(dialect=dialect))
-            assert "CREATE INDEX" in sql
+            assert "CREATE" in sql and "INDEX" in sql
 
 
 def test_artifacts_run_id_indexes_exist():
@@ -213,6 +214,89 @@ def test_artifacts_run_id_indexes_exist():
     assert index_columns["idx_artifacts_run"] == ["run_id"]
     assert "idx_artifacts_run_kind" in index_columns
     assert index_columns["idx_artifacts_run_kind"] == ["run_id", "kind"]
+
+
+def test_case_rubric_indexes_and_uniques_exist():
+    case_rubrics = Base.metadata.tables["case_rubrics"]
+    score_predictions = Base.metadata.tables["score_predictions"]
+    reward_signals = Base.metadata.tables["reward_signals"]
+    rubric_bumps = Base.metadata.tables["rubric_bump_proposals"]
+
+    indexes = {
+        index.name: index
+        for table in (case_rubrics, score_predictions, reward_signals, rubric_bumps)
+        for index in table.indexes
+    }
+    assert [col.name for col in indexes["idx_case_rubrics_case_status"].columns] == [
+        "case_id",
+        "status",
+    ]
+    assert [col.name for col in indexes["idx_score_predictions_case"].columns] == ["case_id"]
+    assert [col.name for col in indexes["idx_score_predictions_draft"].columns] == [
+        "script_draft_id"
+    ]
+    assert [col.name for col in indexes["idx_reward_signals_case"].columns] == ["case_id"]
+    assert [col.name for col in indexes["idx_rubric_bump_case_status"].columns] == [
+        "case_id",
+        "status",
+    ]
+
+    active_unique = indexes["uq_case_rubrics_active_case"]
+    assert active_unique.unique is True
+    assert [col.name for col in active_unique.columns] == ["case_id"]
+    assert active_unique.dialect_options["postgresql"]["where"] is not None
+
+    reward_unique = indexes["uq_reward_signals_case_source_evidence"]
+    assert reward_unique.unique is True
+    assert [col.name for col in reward_unique.columns] == [
+        "case_id",
+        "source_kind",
+        "evidence_ref",
+    ]
+    assert reward_unique.dialect_options["postgresql"]["where"] is not None
+
+
+def test_case_rubric_server_defaults_match_migration_path():
+    tables = Base.metadata.tables
+    expected_defaults = {
+        "case_rubrics": {
+            "schema_version": "v1",
+            "version": "1",
+            "status": "active",
+            "dimensions": "[]",
+            "fitted_from_sample_size": "0",
+            "cold_start": "true",
+        },
+        "score_predictions": {
+            "schema_version": "v1",
+            "rubric_version": "1",
+            "composite": "0",
+            "band": "ok",
+            "dimension_scores": "{}",
+            "reason": "",
+            "locked_at": "now()",
+        },
+        "reward_signals": {
+            "schema_version": "v1",
+            "value": "0",
+            "confidence": "0.5",
+            "occurred_at": "now()",
+        },
+        "rubric_bump_proposals": {
+            "schema_version": "v1",
+            "status": "proposed",
+            "from_version": "1",
+            "old_consistency": "0",
+            "new_consistency": "0",
+            "sample_size": "0",
+            "rationale": "",
+        },
+    }
+    for table_name, columns in expected_defaults.items():
+        for column_name, expected in columns.items():
+            default = tables[table_name].columns[column_name].server_default
+            assert default is not None, f"{table_name}.{column_name}"
+            assert expected in str(default.arg)
 
 
 def test_alembic_artifacts_run_index_revision_exists():
@@ -239,3 +323,19 @@ def test_alembic_selection_ledger_clip_revision_exists():
     assert 'revision = "0012_selection_ledger_clip_id"' in text
     assert 'down_revision = "0011_finished_video_lipsync"' in text
     assert '"clip_id"' in text
+
+
+def test_alembic_case_rubric_indexes_revision_exists():
+    migration = Path("packages/core/storage/alembic/versions/0012_case_rubric.py")
+    assert migration.exists()
+    text = migration.read_text(encoding="utf-8")
+    for name in (
+        "idx_case_rubrics_case_status",
+        "idx_score_predictions_case",
+        "idx_score_predictions_draft",
+        "idx_reward_signals_case",
+        "idx_rubric_bump_case_status",
+        "uq_case_rubrics_active_case",
+        "uq_reward_signals_case_source_evidence",
+    ):
+        assert name in text

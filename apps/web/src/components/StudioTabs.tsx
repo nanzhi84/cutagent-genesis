@@ -6,7 +6,7 @@ export function StudioTabs({ caseId }: { caseId: string }) {
   const tabs = [
     { to: routes.caseStudio(caseId), label: "创作", icon: Edit3, end: true },
     { to: routes.caseProfile(caseId), label: "案例画像", icon: SlidersHorizontal },
-    { to: routes.caseAgent(caseId), label: "数据/智能体", icon: Bot },
+    { to: routes.caseAgent(caseId), label: "评分卡", icon: Bot },
     { to: routes.caseOutputs(caseId), label: "成片", icon: Film },
     { to: routes.casePublish(caseId), label: "发布", icon: RadioTower },
   ];

@@ -4325,343 +4325,6 @@
         }
       }
     },
-    "/api/cases/{case_id}/agent/source-bindings": {
-      "get": {
-        "summary": "Source Bindings",
-        "operationId": "source_bindings_api_cases__case_id__agent_source_bindings_get",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Case Id"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 50,
-              "title": "Limit"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PageResponse_CaseAgentSourceBinding_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "summary": "Create Source Binding",
-        "operationId": "create_source_binding_api_cases__case_id__agent_source_bindings_post",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Case Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSourceBindingRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CaseAgentSourceBinding"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/cases/{case_id}/agent/source-bindings/{binding_id}": {
-      "delete": {
-        "summary": "Delete Source Binding",
-        "operationId": "delete_source_binding_api_cases__case_id__agent_source_bindings__binding_id__delete",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Case Id"
-            }
-          },
-          {
-            "name": "binding_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Binding Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OkResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/cases/{case_id}/agent/import-source": {
-      "post": {
-        "summary": "Import Case Source",
-        "operationId": "import_case_source_api_cases__case_id__agent_import_source_post",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Case Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ImportCaseSourceRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "202": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CaseAgentRun"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/cases/{case_id}/agent/runs": {
-      "post": {
-        "summary": "Start Case Agent Run",
-        "operationId": "start_case_agent_run_api_cases__case_id__agent_runs_post",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Case Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/StartCaseAgentRunRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "202": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CaseAgentRun"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "get": {
-        "summary": "Case Agent Runs",
-        "operationId": "case_agent_runs_api_cases__case_id__agent_runs_get",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Case Id"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 50,
-              "title": "Limit"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PageResponse_CaseAgentRun_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/cases/{case_id}/agent/runs/{run_id}": {
-      "get": {
-        "summary": "Case Agent Run Detail",
-        "operationId": "case_agent_run_detail_api_cases__case_id__agent_runs__run_id__get",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Case Id"
-            }
-          },
-          {
-            "name": "run_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Run Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CaseAgentRunDetail"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/cases/{case_id}/agent/drafts": {
       "get": {
         "summary": "Script Drafts",
@@ -4752,397 +4415,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ScriptVersion"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/cases/{case_id}/agent/memory-proposals": {
-      "get": {
-        "summary": "Memory Proposals",
-        "operationId": "memory_proposals_api_cases__case_id__agent_memory_proposals_get",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Case Id"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 50,
-              "title": "Limit"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PageResponse_MemoryProposal_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/cases/{case_id}/knowledge": {
-      "get": {
-        "summary": "Case Knowledge",
-        "operationId": "case_knowledge_api_cases__case_id__knowledge_get",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Case Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CaseKnowledgeResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/cases/{case_id}/memory": {
-      "get": {
-        "summary": "Case Memory",
-        "operationId": "case_memory_api_cases__case_id__memory_get",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Case Id"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 50,
-              "title": "Limit"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PageResponse_CaseMemory_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/cases/{case_id}/memory/recall": {
-      "get": {
-        "summary": "Recall Memory",
-        "operationId": "recall_memory_api_cases__case_id__memory_recall_get",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Case Id"
-            }
-          },
-          {
-            "name": "mode",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "enum": [
-                "recent",
-                "topic",
-                "platform",
-                "memory_type",
-                "high_performance",
-                "low_performance"
-              ],
-              "type": "string",
-              "default": "recent",
-              "title": "Mode"
-            }
-          },
-          {
-            "name": "topic",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Topic"
-            }
-          },
-          {
-            "name": "platform",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Platform"
-            }
-          },
-          {
-            "name": "memory_type",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "enum": [
-                    "script_pattern",
-                    "video_pattern",
-                    "audience_insight",
-                    "editing_rule",
-                    "negative_lesson"
-                  ],
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Memory Type"
-            }
-          },
-          {
-            "name": "scope_key",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "title": "Scope Key"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 20,
-              "title": "Limit"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MemoryRecallResponse"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/cases/{case_id}/memory/{memory_id}/approve": {
-      "post": {
-        "summary": "Approve Memory",
-        "operationId": "approve_memory_api_cases__case_id__memory__memory_id__approve_post",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Case Id"
-            }
-          },
-          {
-            "name": "memory_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Memory Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ApproveMemoryRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CaseMemory"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/cases/{case_id}/memory/{memory_id}/reject": {
-      "post": {
-        "summary": "Reject Memory",
-        "operationId": "reject_memory_api_cases__case_id__memory__memory_id__reject_post",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Case Id"
-            }
-          },
-          {
-            "name": "memory_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Memory Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RejectMemoryRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MemoryProposal"
                 }
               }
             }
@@ -5258,153 +4530,6 @@
         }
       }
     },
-    "/api/cases/{case_id}/reflection-runs": {
-      "post": {
-        "summary": "Start Reflection",
-        "operationId": "start_reflection_api_cases__case_id__reflection_runs_post",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Case Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/StartReflectionRunRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "202": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ReflectionRun"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/cases/{case_id}/insights": {
-      "get": {
-        "summary": "Case Insights",
-        "operationId": "case_insights_api_cases__case_id__insights_get",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Case Id"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 50,
-              "title": "Limit"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PageResponse_CaseInsightCard_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/cases/{case_id}/creative-patterns": {
-      "get": {
-        "summary": "Creative Patterns",
-        "operationId": "creative_patterns_api_cases__case_id__creative_patterns_get",
-        "parameters": [
-          {
-            "name": "case_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Case Id"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 50,
-              "title": "Limit"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PageResponse_CreativePattern_"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/cases/{case_id}/scripts/generate-with-memory": {
       "post": {
         "summary": "Generate Script With Memory",
@@ -5437,6 +4562,383 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ScriptDraft"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/rubric": {
+      "get": {
+        "summary": "Get Rubric",
+        "operationId": "get_rubric_api_cases__case_id__rubric_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseRubric"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/rubric/calibration": {
+      "get": {
+        "summary": "Calibration",
+        "operationId": "calibration_api_cases__case_id__rubric_calibration_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalibrationReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/rubric/bump-proposal": {
+      "get": {
+        "summary": "Bump Proposal",
+        "operationId": "bump_proposal_api_cases__case_id__rubric_bump_proposal_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/RubricBumpProposal"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Bump Proposal Api Cases  Case Id  Rubric Bump Proposal Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/rubric/bump-proposal/{proposal_id}/accept": {
+      "post": {
+        "summary": "Accept Bump",
+        "operationId": "accept_bump_api_cases__case_id__rubric_bump_proposal__proposal_id__accept_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "proposal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Proposal Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseRubric"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/rubric/bump-proposal/{proposal_id}/reject": {
+      "post": {
+        "summary": "Reject Bump",
+        "operationId": "reject_bump_api_cases__case_id__rubric_bump_proposal__proposal_id__reject_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "proposal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Proposal Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectBumpRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RubricBumpProposal"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/predictions": {
+      "get": {
+        "summary": "Predictions",
+        "operationId": "predictions_api_cases__case_id__predictions_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponse_ScorePrediction_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/finished-videos/{finished_video_id}/metrics": {
+      "post": {
+        "summary": "Backfill Metrics",
+        "operationId": "backfill_metrics_api_cases__case_id__finished_videos__finished_video_id__metrics_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "finished_video_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Finished Video Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MetricsBackfillRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformanceObservation"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/pending-retro": {
+      "get": {
+        "summary": "Pending Retro",
+        "operationId": "pending_retro_api_cases__case_id__pending_retro_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PendingRetroResponse"
                 }
               }
             }
@@ -5591,6 +5093,22 @@
             "schema": {
               "type": "string",
               "title": "Id"
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Reason"
             }
           }
         ],
@@ -8339,24 +7857,6 @@
         ],
         "title": "ApprovalRequest"
       },
-      "ApproveMemoryRequest": {
-        "properties": {
-          "reason": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Reason"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "title": "ApproveMemoryRequest"
-      },
       "ApprovePromptVersionRequest": {
         "properties": {
           "reason": {
@@ -8378,7 +7878,6 @@
           "spec.validated_production",
           "case.context",
           "case.performance_analysis",
-          "case.reflection",
           "script.strategy",
           "creative.intent",
           "audio.tts",
@@ -9144,6 +8643,57 @@
         "title": "BudgetEvaluation",
         "description": "§9.8 预算执行: current-period spend evaluated against a Budget.\n\n``ratio`` = spend / limit (``None`` if the limit is 0). ``exceeded`` flags a\nhard over-limit; ``threshold_crossed`` flags ``ratio >= alert_threshold`` (the\n75/90%-style warning level the OLD quota_monitor produced)."
       },
+      "CalibrationReport": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "rubric_version": {
+            "type": "integer",
+            "title": "Rubric Version",
+            "default": 1
+          },
+          "sample_size": {
+            "type": "integer",
+            "title": "Sample Size",
+            "default": 0
+          },
+          "consistency": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consistency"
+          },
+          "miss_streak": {
+            "type": "integer",
+            "title": "Miss Streak",
+            "default": 0
+          },
+          "pending_retro_count": {
+            "type": "integer",
+            "title": "Pending Retro Count",
+            "default": 0
+          },
+          "bump_recommended": {
+            "type": "boolean",
+            "title": "Bump Recommended",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "case_id"
+        ],
+        "title": "CalibrationReport",
+        "description": "复盘只读报告（§6.3）：校准池规模、排序一致性、连续误判、待复盘数。"
+      },
       "CancelRunRequest": {
         "properties": {
           "reason": {
@@ -9166,225 +8716,6 @@
         "additionalProperties": false,
         "type": "object",
         "title": "CancelRunRequest"
-      },
-      "CaseAgentRun": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          },
-          "created_by": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created By"
-          },
-          "version": {
-            "type": "integer",
-            "title": "Version",
-            "default": 1
-          },
-          "schema_version": {
-            "type": "string",
-            "title": "Schema Version",
-            "default": "v1"
-          },
-          "case_id": {
-            "type": "string",
-            "title": "Case Id"
-          },
-          "goal": {
-            "type": "string",
-            "enum": [
-              "brief",
-              "script_draft",
-              "memory_proposal"
-            ],
-            "title": "Goal"
-          },
-          "status": {
-            "$ref": "#/components/schemas/RunStatus",
-            "default": "created"
-          },
-          "source_binding_ids": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Source Binding Ids"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "id",
-          "case_id",
-          "goal"
-        ],
-        "title": "CaseAgentRun"
-      },
-      "CaseAgentRunDetail": {
-        "properties": {
-          "run": {
-            "$ref": "#/components/schemas/CaseAgentRun"
-          },
-          "briefs": {
-            "items": {
-              "$ref": "#/components/schemas/CreativeBrief"
-            },
-            "type": "array",
-            "title": "Briefs"
-          },
-          "drafts": {
-            "items": {
-              "$ref": "#/components/schemas/ScriptDraft"
-            },
-            "type": "array",
-            "title": "Drafts"
-          },
-          "memory_proposals": {
-            "items": {
-              "$ref": "#/components/schemas/MemoryProposal"
-            },
-            "type": "array",
-            "title": "Memory Proposals"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "run"
-        ],
-        "title": "CaseAgentRunDetail"
-      },
-      "CaseAgentRunRequest": {
-        "properties": {
-          "schema_version": {
-            "type": "string",
-            "const": "case_agent_run_request.v1",
-            "title": "Schema Version",
-            "default": "case_agent_run_request.v1"
-          },
-          "case_id": {
-            "type": "string",
-            "title": "Case Id"
-          },
-          "goal": {
-            "type": "string",
-            "enum": [
-              "brief",
-              "script_draft",
-              "memory_proposal"
-            ],
-            "title": "Goal"
-          },
-          "source_binding_ids": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Source Binding Ids"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "case_id",
-          "goal"
-        ],
-        "title": "CaseAgentRunRequest"
-      },
-      "CaseAgentSourceBinding": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          },
-          "created_by": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created By"
-          },
-          "version": {
-            "type": "integer",
-            "title": "Version",
-            "default": 1
-          },
-          "schema_version": {
-            "type": "string",
-            "title": "Schema Version",
-            "default": "v1"
-          },
-          "case_id": {
-            "type": "string",
-            "title": "Case Id"
-          },
-          "source_type": {
-            "type": "string",
-            "enum": [
-              "url",
-              "text",
-              "file",
-              "manual_note"
-            ],
-            "title": "Source Type"
-          },
-          "source_ref": {
-            "type": "string",
-            "title": "Source Ref"
-          },
-          "title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Title"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "id",
-          "case_id",
-          "source_type",
-          "source_ref"
-        ],
-        "title": "CaseAgentSourceBinding"
       },
       "CaseDetail": {
         "properties": {
@@ -9575,114 +8906,6 @@
         ],
         "title": "CaseDetail"
       },
-      "CaseInsightCard": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          },
-          "created_by": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created By"
-          },
-          "version": {
-            "type": "integer",
-            "title": "Version",
-            "default": 1
-          },
-          "schema_version": {
-            "type": "string",
-            "title": "Schema Version",
-            "default": "v1"
-          },
-          "case_id": {
-            "type": "string",
-            "title": "Case Id"
-          },
-          "title": {
-            "type": "string",
-            "title": "Title"
-          },
-          "body": {
-            "type": "string",
-            "title": "Body"
-          },
-          "severity": {
-            "type": "string",
-            "enum": [
-              "info",
-              "warning",
-              "success"
-            ],
-            "title": "Severity",
-            "default": "info"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "id",
-          "case_id",
-          "title",
-          "body"
-        ],
-        "title": "CaseInsightCard"
-      },
-      "CaseKnowledgeResponse": {
-        "properties": {
-          "case_id": {
-            "type": "string",
-            "title": "Case Id"
-          },
-          "memories": {
-            "items": {
-              "$ref": "#/components/schemas/CaseMemory"
-            },
-            "type": "array",
-            "title": "Memories"
-          },
-          "recent_script_versions": {
-            "items": {
-              "$ref": "#/components/schemas/ScriptVersion"
-            },
-            "type": "array",
-            "title": "Recent Script Versions"
-          },
-          "recent_video_versions": {
-            "items": {
-              "$ref": "#/components/schemas/VideoVersion"
-            },
-            "type": "array",
-            "title": "Recent Video Versions"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "case_id",
-          "memories",
-          "recent_script_versions",
-          "recent_video_versions"
-        ],
-        "title": "CaseKnowledgeResponse"
-      },
       "CaseListItem": {
         "properties": {
           "id": {
@@ -9833,15 +9056,12 @@
           "status": {
             "type": "string",
             "enum": [
-              "proposed",
-              "approved",
               "active",
               "deprecated",
-              "rejected",
               "superseded"
             ],
             "title": "Status",
-            "default": "proposed"
+            "default": "active"
           },
           "memory_type": {
             "type": "string",
@@ -10039,6 +9259,95 @@
           "observations"
         ],
         "title": "CasePerformanceResponse"
+      },
+      "CaseRubric": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "default": 1
+          },
+          "schema_version": {
+            "type": "string",
+            "title": "Schema Version",
+            "default": "v1"
+          },
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "active",
+              "superseded"
+            ],
+            "title": "Status",
+            "default": "active"
+          },
+          "dimensions": {
+            "items": {
+              "$ref": "#/components/schemas/RubricDimension"
+            },
+            "type": "array",
+            "title": "Dimensions"
+          },
+          "fitted_from_sample_size": {
+            "type": "integer",
+            "title": "Fitted From Sample Size",
+            "default": 0
+          },
+          "cold_start": {
+            "type": "boolean",
+            "title": "Cold Start",
+            "default": true
+          },
+          "supersedes_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supersedes Version"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "case_id"
+        ],
+        "title": "CaseRubric",
+        "description": "案例评分卡：一个案例\"什么样的内容更可能成\"的可执行打分公式（§6）。"
       },
       "ChangePasswordRequest": {
         "properties": {
@@ -11529,42 +10838,6 @@
         ],
         "title": "CreateSecretRequest"
       },
-      "CreateSourceBindingRequest": {
-        "properties": {
-          "source_type": {
-            "type": "string",
-            "enum": [
-              "url",
-              "text",
-              "file",
-              "manual_note"
-            ],
-            "title": "Source Type"
-          },
-          "source_ref": {
-            "type": "string",
-            "title": "Source Ref"
-          },
-          "title": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Title"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "source_type",
-          "source_ref"
-        ],
-        "title": "CreateSourceBindingRequest"
-      },
       "CreatedRegistrationCode": {
         "properties": {
           "id": {
@@ -11642,115 +10915,6 @@
           "plaintext_code"
         ],
         "title": "CreatedRegistrationCode"
-      },
-      "CreativeBrief": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          },
-          "created_by": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created By"
-          },
-          "version": {
-            "type": "integer",
-            "title": "Version",
-            "default": 1
-          },
-          "schema_version": {
-            "type": "string",
-            "title": "Schema Version",
-            "default": "v1"
-          },
-          "case_id": {
-            "type": "string",
-            "title": "Case Id"
-          },
-          "summary": {
-            "type": "string",
-            "title": "Summary"
-          },
-          "source_binding_ids": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Source Binding Ids"
-          },
-          "topic": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Topic"
-          },
-          "audience": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Audience"
-          },
-          "key_insights": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Key Insights"
-          },
-          "source_refs": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Source Refs"
-          },
-          "generated_by_run_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Generated By Run Id"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "id",
-          "case_id",
-          "summary"
-        ],
-        "title": "CreativeBrief"
       },
       "CreativeFeatureVector": {
         "properties": {
@@ -11957,77 +11121,6 @@
           "id"
         ],
         "title": "CreativeFeatureVector"
-      },
-      "CreativePattern": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          },
-          "created_by": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created By"
-          },
-          "version": {
-            "type": "integer",
-            "title": "Version",
-            "default": 1
-          },
-          "schema_version": {
-            "type": "string",
-            "title": "Schema Version",
-            "default": "v1"
-          },
-          "case_id": {
-            "type": "string",
-            "title": "Case Id"
-          },
-          "label": {
-            "type": "string",
-            "title": "Label"
-          },
-          "lift": {
-            "anyOf": [
-              {
-                "type": "number"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Lift"
-          },
-          "evidence_count": {
-            "type": "integer",
-            "title": "Evidence Count",
-            "default": 0
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "id",
-          "case_id",
-          "label"
-        ],
-        "title": "CreativePattern"
       },
       "DegradationCode": {
         "type": "string",
@@ -12917,6 +12010,13 @@
               }
             ],
             "title": "Duration"
+          },
+          "variation_count": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Variation Count",
+            "default": 1
           }
         },
         "additionalProperties": false,
@@ -13025,31 +12125,6 @@
           "partially_failed"
         ],
         "title": "ImportBatchStatus"
-      },
-      "ImportCaseSourceRequest": {
-        "properties": {
-          "source_binding_id": {
-            "type": "string",
-            "title": "Source Binding Id"
-          },
-          "provider_profile_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Provider Profile Id"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "source_binding_id"
-        ],
-        "title": "ImportCaseSourceRequest"
       },
       "ImportRowResult": {
         "properties": {
@@ -13193,9 +12268,6 @@
                 "$ref": "#/components/schemas/DigitalHumanVideoRequest"
               },
               {
-                "$ref": "#/components/schemas/CaseAgentRunRequest"
-              },
-              {
                 "$ref": "#/components/schemas/PublishBatchRequest"
               },
               {
@@ -13207,7 +12279,6 @@
               "propertyName": "schema_version",
               "mapping": {
                 "annotation_batch_request.v1": "#/components/schemas/AnnotationBatchRequest",
-                "case_agent_run_request.v1": "#/components/schemas/CaseAgentRunRequest",
                 "digital_human_video_request.v1": "#/components/schemas/DigitalHumanVideoRequest",
                 "publish_batch_request.v1": "#/components/schemas/PublishBatchRequest"
               }
@@ -13300,7 +12371,6 @@
         "type": "string",
         "enum": [
           "digital_human_video",
-          "case_agent_run",
           "publish_batch",
           "annotation_batch"
         ],
@@ -13954,99 +13024,21 @@
         ],
         "title": "MediaAssetReplaceSourceRequest"
       },
-      "MemoryProposal": {
+      "MetricsBackfillRequest": {
         "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          },
-          "created_by": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created By"
-          },
-          "version": {
-            "type": "integer",
-            "title": "Version",
-            "default": 1
-          },
-          "schema_version": {
-            "type": "string",
-            "title": "Schema Version",
-            "default": "v1"
-          },
-          "case_id": {
-            "type": "string",
-            "title": "Case Id"
-          },
-          "status": {
+          "window": {
             "type": "string",
             "enum": [
-              "proposed",
-              "approved",
-              "active",
-              "deprecated",
-              "rejected",
-              "superseded"
+              "1h",
+              "24h",
+              "3d",
+              "7d",
+              "30d"
             ],
-            "title": "Status",
-            "default": "proposed"
+            "title": "Window",
+            "default": "7d"
           },
-          "memory_type": {
-            "type": "string",
-            "enum": [
-              "script_pattern",
-              "video_pattern",
-              "audience_insight",
-              "editing_rule",
-              "negative_lesson"
-            ],
-            "title": "Memory Type",
-            "default": "script_pattern"
-          },
-          "scope": {
-            "$ref": "#/components/schemas/CaseMemoryScope"
-          },
-          "insight": {
-            "type": "string",
-            "title": "Insight"
-          },
-          "evidence": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Evidence"
-          },
-          "confidence": {
-            "type": "number",
-            "maximum": 1.0,
-            "minimum": 0.0,
-            "title": "Confidence",
-            "default": 0.5
-          },
-          "sample_size": {
-            "type": "integer",
-            "title": "Sample Size",
-            "default": 0
-          },
-          "supersedes_memory_id": {
+          "platform": {
             "anyOf": [
               {
                 "type": "string"
@@ -14055,9 +13047,9 @@
                 "type": "null"
               }
             ],
-            "title": "Supersedes Memory Id"
+            "title": "Platform"
           },
-          "proposed_by_reflection_run_id": {
+          "account_id": {
             "anyOf": [
               {
                 "type": "string"
@@ -14066,51 +13058,101 @@
                 "type": "null"
               }
             ],
-            "title": "Proposed By Reflection Run Id"
+            "title": "Account Id"
+          },
+          "views": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Views"
+          },
+          "impressions": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impressions"
+          },
+          "likes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Likes"
+          },
+          "comments": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comments"
+          },
+          "shares": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shares"
+          },
+          "follows": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follows"
+          },
+          "conversions": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversions"
+          },
+          "avg_watch_sec": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Watch Sec"
           }
         },
         "additionalProperties": false,
         "type": "object",
-        "required": [
-          "id",
-          "case_id",
-          "insight"
-        ],
-        "title": "MemoryProposal"
-      },
-      "MemoryRecallResponse": {
-        "properties": {
-          "case_id": {
-            "type": "string",
-            "title": "Case Id"
-          },
-          "mode": {
-            "type": "string",
-            "enum": [
-              "recent",
-              "topic",
-              "platform",
-              "memory_type",
-              "high_performance",
-              "low_performance"
-            ],
-            "title": "Mode"
-          },
-          "memories": {
-            "items": {
-              "$ref": "#/components/schemas/CaseMemory"
-            },
-            "type": "array",
-            "title": "Memories"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "case_id",
-          "mode"
-        ],
-        "title": "MemoryRecallResponse"
+        "title": "MetricsBackfillRequest",
+        "description": "单条人工回填（§5.3）：从具体成片/发布进来，无需匹配键，填后台原始计数。\n\n后端把原始 count 折算成 canonical rate（``counts_to_canonical``）再走与批量\n导入同款的 observation 构建 + ``compute_performance_score``。"
       },
       "MetricsImportRequest": {
         "properties": {
@@ -15057,138 +14099,6 @@
         ],
         "title": "PageResponse[Budget]"
       },
-      "PageResponse_CaseAgentRun_": {
-        "properties": {
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/CaseAgentRun"
-            },
-            "type": "array",
-            "title": "Items"
-          },
-          "next_cursor": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Next Cursor"
-          },
-          "total_hint": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Total Hint"
-          },
-          "request_id": {
-            "type": "string",
-            "title": "Request Id"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "items",
-          "request_id"
-        ],
-        "title": "PageResponse[CaseAgentRun]"
-      },
-      "PageResponse_CaseAgentSourceBinding_": {
-        "properties": {
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/CaseAgentSourceBinding"
-            },
-            "type": "array",
-            "title": "Items"
-          },
-          "next_cursor": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Next Cursor"
-          },
-          "total_hint": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Total Hint"
-          },
-          "request_id": {
-            "type": "string",
-            "title": "Request Id"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "items",
-          "request_id"
-        ],
-        "title": "PageResponse[CaseAgentSourceBinding]"
-      },
-      "PageResponse_CaseInsightCard_": {
-        "properties": {
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/CaseInsightCard"
-            },
-            "type": "array",
-            "title": "Items"
-          },
-          "next_cursor": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Next Cursor"
-          },
-          "total_hint": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Total Hint"
-          },
-          "request_id": {
-            "type": "string",
-            "title": "Request Id"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "items",
-          "request_id"
-        ],
-        "title": "PageResponse[CaseInsightCard]"
-      },
       "PageResponse_CaseListItem_": {
         "properties": {
           "items": {
@@ -15233,50 +14143,6 @@
         ],
         "title": "PageResponse[CaseListItem]"
       },
-      "PageResponse_CaseMemory_": {
-        "properties": {
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/CaseMemory"
-            },
-            "type": "array",
-            "title": "Items"
-          },
-          "next_cursor": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Next Cursor"
-          },
-          "total_hint": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Total Hint"
-          },
-          "request_id": {
-            "type": "string",
-            "title": "Request Id"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "items",
-          "request_id"
-        ],
-        "title": "PageResponse[CaseMemory]"
-      },
       "PageResponse_CostRollup_": {
         "properties": {
           "items": {
@@ -15320,50 +14186,6 @@
           "request_id"
         ],
         "title": "PageResponse[CostRollup]"
-      },
-      "PageResponse_CreativePattern_": {
-        "properties": {
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/CreativePattern"
-            },
-            "type": "array",
-            "title": "Items"
-          },
-          "next_cursor": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Next Cursor"
-          },
-          "total_hint": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Total Hint"
-          },
-          "request_id": {
-            "type": "string",
-            "title": "Request Id"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "items",
-          "request_id"
-        ],
-        "title": "PageResponse[CreativePattern]"
       },
       "PageResponse_FailureTaxonomyEntry_": {
         "properties": {
@@ -15496,50 +14318,6 @@
           "request_id"
         ],
         "title": "PageResponse[MediaAssetCard]"
-      },
-      "PageResponse_MemoryProposal_": {
-        "properties": {
-          "items": {
-            "items": {
-              "$ref": "#/components/schemas/MemoryProposal"
-            },
-            "type": "array",
-            "title": "Items"
-          },
-          "next_cursor": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Next Cursor"
-          },
-          "total_hint": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Total Hint"
-          },
-          "request_id": {
-            "type": "string",
-            "title": "Request Id"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "items",
-          "request_id"
-        ],
-        "title": "PageResponse[MemoryProposal]"
       },
       "PageResponse_OpsAlertRule_": {
         "properties": {
@@ -16112,6 +14890,50 @@
           "request_id"
         ],
         "title": "PageResponse[RunCard]"
+      },
+      "PageResponse_ScorePrediction_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ScorePrediction"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total_hint": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Hint"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "request_id"
+        ],
+        "title": "PageResponse[ScorePrediction]"
       },
       "PageResponse_ScriptDraft_": {
         "properties": {
@@ -16949,6 +15771,132 @@
         "additionalProperties": false,
         "type": "object",
         "title": "PatchVoiceRequest"
+      },
+      "PendingRetroItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "default": 1
+          },
+          "schema_version": {
+            "type": "string",
+            "title": "Schema Version",
+            "default": "v1"
+          },
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "finished_video_id": {
+            "type": "string",
+            "title": "Finished Video Id"
+          },
+          "publish_record_id": {
+            "type": "string",
+            "title": "Publish Record Id"
+          },
+          "video_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Version Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "default": ""
+          },
+          "platform": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "days_since_publish": {
+            "type": "integer",
+            "title": "Days Since Publish",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "case_id",
+          "finished_video_id",
+          "publish_record_id"
+        ],
+        "title": "PendingRetroItem",
+        "description": "一条已发布、回填窗口到期但尚未回填指标的成片（\"待复盘\"）。"
+      },
+      "PendingRetroResponse": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PendingRetroItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "case_id"
+        ],
+        "title": "PendingRetroResponse"
       },
       "PerformanceAttributionResponse": {
         "properties": {
@@ -20429,108 +19377,6 @@
         ],
         "title": "ReferenceExtractorStatusResponse"
       },
-      "ReflectionRun": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          },
-          "created_by": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created By"
-          },
-          "version": {
-            "type": "integer",
-            "title": "Version",
-            "default": 1
-          },
-          "schema_version": {
-            "type": "string",
-            "title": "Schema Version",
-            "default": "v1"
-          },
-          "case_id": {
-            "type": "string",
-            "title": "Case Id"
-          },
-          "status": {
-            "$ref": "#/components/schemas/RunStatus",
-            "default": "created"
-          },
-          "window": {
-            "type": "string",
-            "enum": [
-              "24h",
-              "3d",
-              "7d",
-              "30d"
-            ],
-            "title": "Window",
-            "default": "7d"
-          },
-          "report_artifact_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Report Artifact Id"
-          },
-          "input_observation_ids": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Input Observation Ids"
-          },
-          "input_feature_vector_ids": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Input Feature Vector Ids"
-          },
-          "memory_proposal_ids": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Memory Proposal Ids"
-          },
-          "sample_size": {
-            "type": "integer",
-            "title": "Sample Size",
-            "default": 0
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "id",
-          "case_id"
-        ],
-        "title": "ReflectionRun"
-      },
       "RefreshProviderBalancesRequest": {
         "properties": {
           "reason": {
@@ -20657,19 +19503,23 @@
         ],
         "title": "RegistrationCodePreview"
       },
-      "RejectMemoryRequest": {
+      "RejectBumpRequest": {
         "properties": {
           "reason": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Reason"
           }
         },
         "additionalProperties": false,
         "type": "object",
-        "required": [
-          "reason"
-        ],
-        "title": "RejectMemoryRequest"
+        "title": "RejectBumpRequest"
       },
       "RerunAnnotationRequest": {
         "properties": {
@@ -20819,6 +19669,161 @@
           "reason"
         ],
         "title": "RotateSecretRequest"
+      },
+      "RubricBumpProposal": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "default": 1
+          },
+          "schema_version": {
+            "type": "string",
+            "title": "Schema Version",
+            "default": "v1"
+          },
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "proposed",
+              "accepted",
+              "rejected"
+            ],
+            "title": "Status",
+            "default": "proposed"
+          },
+          "from_version": {
+            "type": "integer",
+            "title": "From Version",
+            "default": 1
+          },
+          "candidate": {
+            "$ref": "#/components/schemas/CaseRubric"
+          },
+          "old_consistency": {
+            "type": "number",
+            "title": "Old Consistency",
+            "default": 0.0
+          },
+          "new_consistency": {
+            "type": "number",
+            "title": "New Consistency",
+            "default": 0.0
+          },
+          "sample_size": {
+            "type": "integer",
+            "title": "Sample Size",
+            "default": 0
+          },
+          "rationale": {
+            "type": "string",
+            "title": "Rationale",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "case_id",
+          "candidate"
+        ],
+        "title": "RubricBumpProposal",
+        "description": "评分卡升版提议（§6.4）：新卡须在校准池上重排更准才生成，人工一次确认。"
+      },
+      "RubricDimension": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "weight": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Weight",
+            "default": 0.0
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "categorical",
+              "numeric"
+            ],
+            "title": "Kind",
+            "default": "categorical"
+          },
+          "value_scores": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Value Scores"
+          },
+          "numeric_low": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Numeric Low"
+          },
+          "numeric_high": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Numeric High"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "label"
+        ],
+        "title": "RubricDimension",
+        "description": "评分卡的一个维度：对齐 CreativeFeatureVector 字段，带权重与取值→分映射。"
       },
       "RunActionResponse": {
         "properties": {
@@ -21355,6 +20360,141 @@
         ],
         "title": "RunStatus"
       },
+      "ScorePrediction": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "default": 1
+          },
+          "schema_version": {
+            "type": "string",
+            "title": "Schema Version",
+            "default": "v1"
+          },
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "script_draft_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Script Draft Id"
+          },
+          "script_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Script Version Id"
+          },
+          "rubric_version": {
+            "type": "integer",
+            "title": "Rubric Version",
+            "default": 1
+          },
+          "composite": {
+            "type": "number",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Composite",
+            "default": 0.0
+          },
+          "band": {
+            "type": "string",
+            "enum": [
+              "top",
+              "ok",
+              "low"
+            ],
+            "title": "Band",
+            "default": "ok"
+          },
+          "dimension_scores": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Dimension Scores"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "default": ""
+          },
+          "locked_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Locked At"
+          },
+          "settled_reward": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Settled Reward"
+          },
+          "settled_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Settled At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "case_id"
+        ],
+        "title": "ScorePrediction",
+        "description": "对一版脚本的盲预测（§6.2）：``locked_at`` 之后 composite/维度分不可改；\n任何 ``performance_scored`` 结算必须晚于 ``locked_at``。"
+      },
       "ScriptDraft": {
         "properties": {
           "id": {
@@ -21707,55 +20847,6 @@
           "request_id"
         ],
         "title": "SignedUrlResponse"
-      },
-      "StartCaseAgentRunRequest": {
-        "properties": {
-          "goal": {
-            "type": "string",
-            "enum": [
-              "brief",
-              "script_draft",
-              "memory_proposal"
-            ],
-            "title": "Goal"
-          },
-          "source_binding_ids": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Source Binding Ids"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "goal"
-        ],
-        "title": "StartCaseAgentRunRequest"
-      },
-      "StartReflectionRunRequest": {
-        "properties": {
-          "window": {
-            "type": "string",
-            "enum": [
-              "24h",
-              "3d",
-              "7d",
-              "30d"
-            ],
-            "title": "Window",
-            "default": "7d"
-          },
-          "force": {
-            "type": "boolean",
-            "title": "Force",
-            "default": false
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "title": "StartReflectionRunRequest"
       },
       "StrictnessOptions": {
         "properties": {

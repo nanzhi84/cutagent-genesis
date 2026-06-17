@@ -1,4 +1,4 @@
-"""Cases domain: case metadata, knowledge/memory, scripts, performance, and the case agent."""
+"""Cases domain: case metadata, scripts, performance, and case rubric learning."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Literal
 from pydantic import Field, JsonValue
 
-from .base import BaseListQuery, ContractModel, EntityMeta, RunStatus, utcnow
+from .base import BaseListQuery, ContractModel, EntityMeta, utcnow
 
 
 class CaseListQuery(BaseListQuery):
@@ -184,11 +184,9 @@ class CreativeFeatureVector(EntityMeta):
 
 
 class CaseMemoryScope(ContractModel):
-    # Legacy single-value dimensions (kept; still emitted/consumed by older UI).
     channel: str | None = None
     audience: str | None = None
     product: str | None = None
-    # §8.3 scope dimensions for recall filtering.
     scope_key: str | None = None
     applies_to_case_ids: list[str] = Field(default_factory=list)
     applies_to_platforms: list[str] = Field(default_factory=list)
@@ -206,7 +204,7 @@ MemoryType = Literal[
 
 class CaseMemory(EntityMeta):
     case_id: str
-    status: Literal["proposed", "approved", "active", "deprecated", "rejected", "superseded"] = "proposed"
+    status: Literal["active", "deprecated", "superseded"] = "active"
     memory_type: MemoryType = "script_pattern"
     scope: CaseMemoryScope = Field(default_factory=CaseMemoryScope)
     insight: str
@@ -214,74 +212,6 @@ class CaseMemory(EntityMeta):
     confidence: float = Field(0.5, ge=0, le=1)
     sample_size: int = 0
     supersedes_memory_id: str | None = None
-
-
-class MemoryProposal(CaseMemory):
-    proposed_by_reflection_run_id: str | None = None
-
-
-MemoryRecallMode = Literal[
-    "recent", "topic", "platform", "memory_type", "high_performance", "low_performance"
-]
-
-
-class MemoryRecallQuery(ContractModel):
-    """§25.8 LoadCaseContextNode retrieval modes for recalling case memories."""
-
-    mode: MemoryRecallMode = "recent"
-    topic: str | None = None
-    platform: str | None = None
-    memory_type: MemoryType | None = None
-    scope_key: str | None = None
-    limit: int = Field(20, ge=1, le=200)
-
-
-class CaseKnowledgeItem(EntityMeta):
-    """§25.8 unified knowledge index row spanning script/video/publish/metric/memory."""
-
-    case_id: str
-    kind: Literal["script", "video", "publish", "metric", "reflection", "memory"]
-    ref_id: str
-    summary: str
-    tags: list[str] = Field(default_factory=list)
-    embedding_ref: str | None = None
-    score: float | None = None
-
-
-class MemoryRecallResponse(ContractModel):
-    case_id: str
-    mode: MemoryRecallMode
-    memories: list[CaseMemory] = Field(default_factory=list)
-
-
-class ReflectionRun(EntityMeta):
-    case_id: str
-    status: RunStatus = RunStatus.created
-    window: Literal["24h", "3d", "7d", "30d"] = "7d"
-    report_artifact_id: str | None = None
-    # §8.3: lineage of what the reflection actually read and produced.
-    input_observation_ids: list[str] = Field(default_factory=list)
-    input_feature_vector_ids: list[str] = Field(default_factory=list)
-    memory_proposal_ids: list[str] = Field(default_factory=list)
-    sample_size: int = 0
-
-
-class CaseAgentSourceBinding(EntityMeta):
-    case_id: str
-    source_type: Literal["url", "text", "file", "manual_note"]
-    source_ref: str
-    title: str | None = None
-
-
-class CreativeBrief(EntityMeta):
-    case_id: str
-    summary: str
-    source_binding_ids: list[str] = Field(default_factory=list)
-    topic: str | None = None
-    audience: str | None = None
-    key_insights: list[str] = Field(default_factory=list)
-    source_refs: list[str] = Field(default_factory=list)
-    generated_by_run_id: str | None = None
 
 
 class ScriptDraft(EntityMeta):
@@ -292,40 +222,6 @@ class ScriptDraft(EntityMeta):
     memory_ids: list[str] = Field(default_factory=list)
 
 
-class CaseAgentRun(EntityMeta):
-    case_id: str
-    goal: Literal["brief", "script_draft", "memory_proposal"]
-    status: RunStatus = RunStatus.created
-    source_binding_ids: list[str] = Field(default_factory=list)
-
-
-class CaseAgentRunQuery(BaseListQuery):
-    status: str | None = None
-
-
-class CreateSourceBindingRequest(ContractModel):
-    source_type: Literal["url", "text", "file", "manual_note"]
-    source_ref: str
-    title: str | None = None
-
-
-class ImportCaseSourceRequest(ContractModel):
-    source_binding_id: str
-    provider_profile_id: str | None = None
-
-
-class StartCaseAgentRunRequest(ContractModel):
-    goal: Literal["brief", "script_draft", "memory_proposal"]
-    source_binding_ids: list[str] = Field(default_factory=list)
-
-
-class CaseAgentRunDetail(ContractModel):
-    run: CaseAgentRun
-    briefs: list[CreativeBrief] = Field(default_factory=list)
-    drafts: list[ScriptDraft] = Field(default_factory=list)
-    memory_proposals: list[MemoryProposal] = Field(default_factory=list)
-
-
 class ScriptDraftQuery(BaseListQuery):
     status: str | None = None
 
@@ -333,25 +229,6 @@ class ScriptDraftQuery(BaseListQuery):
 class AdoptScriptDraftRequest(ContractModel):
     title: str | None = None
     publish_content: str | None = None
-
-
-class MemoryProposalQuery(BaseListQuery):
-    status: str | None = None
-
-
-class ApproveMemoryRequest(ContractModel):
-    reason: str | None = None
-
-
-class RejectMemoryRequest(ContractModel):
-    reason: str
-
-
-class CaseKnowledgeResponse(ContractModel):
-    case_id: str
-    memories: list[CaseMemory]
-    recent_script_versions: list[ScriptVersion]
-    recent_video_versions: list[VideoVersion]
 
 
 class CasePerformanceQuery(ContractModel):
@@ -364,11 +241,6 @@ class CasePerformanceResponse(ContractModel):
     scores: list[PerformanceScore] = Field(default_factory=list)
 
 
-class StartReflectionRunRequest(ContractModel):
-    window: Literal["24h", "3d", "7d", "30d"] = "7d"
-    force: bool = False
-
-
 class GenerateScriptWithMemoryRequest(ContractModel):
     brief: str
     memory_ids: list[str] = Field(default_factory=list)
@@ -377,6 +249,9 @@ class GenerateScriptWithMemoryRequest(ContractModel):
     strategy_tags: list[str] = Field(default_factory=list)
     reference_script: str | None = None
     duration: str | None = None
+    # >1 时生成多版草稿、各自盲打分（§6.2）；默认 1。注意 openapi-typescript 会把带默认值的
+    # 标量字段在 schema.d.ts 标为 required（同 persona_mode/operation），故前端调用须显式传。
+    variation_count: int = Field(1, ge=1, le=5)
 
 
 class ReferenceExtractRequest(ContractModel):
@@ -444,20 +319,6 @@ class PerformanceAttributionResponse(ContractModel):
     contributing_memories: list[CaseMemory] = Field(default_factory=list)
 
 
-class CreativePattern(EntityMeta):
-    case_id: str
-    label: str
-    lift: float | None = None
-    evidence_count: int = 0
-
-
-class CaseInsightCard(EntityMeta):
-    case_id: str
-    title: str
-    body: str
-    severity: Literal["info", "warning", "success"] = "info"
-
-
 MetricsMatchingPolicy = Literal[
     "external_post_id", "platform_item_id", "published_url", "strict_manual"
 ]
@@ -515,3 +376,148 @@ class OceanEngineMetricRow(ContractModel):
     attributes: dict[str, str] = Field(default_factory=dict)
     raw: dict[str, str] = Field(default_factory=dict)
     row_fingerprint: str
+
+
+# ---------------------------------------------------------------------------
+# 评分卡自进化（case_rubric_v1）
+# ---------------------------------------------------------------------------
+
+RubricDimensionKind = Literal["categorical", "numeric"]
+
+
+class RubricDimension(ContractModel):
+    """评分卡的一个维度：对齐 CreativeFeatureVector 字段，带权重与取值→分映射。"""
+
+    key: str  # 对齐 CreativeFeatureVector 字段名，如 "hook_type" / "cut_density"
+    label: str  # 人话维度名，如 "开场强度"
+    weight: float = Field(0.0, ge=0, le=1)
+    kind: RubricDimensionKind = "categorical"
+    # categorical: 取值 → [0,1] 评分表；numeric: [low, high] 线性归一。
+    value_scores: dict[str, float] = Field(default_factory=dict)
+    numeric_low: float | None = None
+    numeric_high: float | None = None
+
+
+class CaseRubric(EntityMeta):
+    """案例评分卡：一个案例"什么样的内容更可能成"的可执行打分公式（§6）。"""
+
+    case_id: str
+    version: int = 1
+    status: Literal["draft", "active", "superseded"] = "active"
+    dimensions: list[RubricDimension] = Field(default_factory=list)
+    fitted_from_sample_size: int = 0
+    cold_start: bool = True
+    supersedes_version: int | None = None
+
+
+ScoreBand = Literal["top", "ok", "low"]
+
+
+class ScorePrediction(EntityMeta):
+    """对一版脚本的盲预测（§6.2）：``locked_at`` 之后 composite/维度分不可改；
+    任何 ``performance_scored`` 结算必须晚于 ``locked_at``。"""
+
+    case_id: str
+    script_draft_id: str | None = None
+    script_version_id: str | None = None
+    rubric_version: int = 1
+    composite: float = Field(0.0, ge=0, le=10)
+    band: ScoreBand = "ok"
+    dimension_scores: dict[str, float] = Field(default_factory=dict)
+    reason: str = ""
+    locked_at: datetime = Field(default_factory=utcnow)
+    settled_reward: float | None = None
+    settled_at: datetime | None = None
+
+
+RewardSourceKind = Literal[
+    "draft_adopted",
+    "draft_pick",
+    "video_produced",
+    "published",
+    "performance_scored",
+    "video_discarded",
+    "stale_unpublished",
+]
+
+DiscardReason = Literal["script", "visual", "topic", "no_time"]
+
+
+class RewardSignal(EntityMeta):
+    """人类选择 / 阶段进展产生的分级奖励信号（§5），评分卡学习的训练标签。"""
+
+    case_id: str
+    script_version_id: str | None = None
+    script_draft_id: str | None = None
+    source_kind: RewardSourceKind
+    value: float = 0.0
+    confidence: float = Field(0.5, ge=0, le=1)
+    evidence_ref: str | None = None
+    reason: DiscardReason | None = None
+    occurred_at: datetime = Field(default_factory=utcnow)
+
+
+class RubricBumpProposal(EntityMeta):
+    """评分卡升版提议（§6.4）：新卡须在校准池上重排更准才生成，人工一次确认。"""
+
+    case_id: str
+    status: Literal["proposed", "accepted", "rejected"] = "proposed"
+    from_version: int = 1
+    candidate: CaseRubric
+    old_consistency: float = 0.0
+    new_consistency: float = 0.0
+    sample_size: int = 0
+    rationale: str = ""
+
+
+class CalibrationReport(ContractModel):
+    """复盘只读报告（§6.3）：校准池规模、排序一致性、连续误判、待复盘数。"""
+
+    case_id: str
+    rubric_version: int = 1
+    sample_size: int = 0
+    consistency: float | None = None
+    miss_streak: int = 0
+    pending_retro_count: int = 0
+    bump_recommended: bool = False
+
+
+class MetricsBackfillRequest(ContractModel):
+    """单条人工回填（§5.3）：从具体成片/发布进来，无需匹配键，填后台原始计数。
+
+    后端把原始 count 折算成 canonical rate（``counts_to_canonical``）再走与批量
+    导入同款的 observation 构建 + ``compute_performance_score``。"""
+
+    window: MetricWindow = "7d"
+    platform: str | None = None
+    account_id: str | None = None
+    views: int | None = None
+    impressions: int | None = None
+    likes: int | None = None
+    comments: int | None = None
+    shares: int | None = None
+    follows: int | None = None
+    conversions: int | None = None
+    avg_watch_sec: float | None = None
+
+
+class PendingRetroItem(EntityMeta):
+    """一条已发布、回填窗口到期但尚未回填指标的成片（"待复盘"）。"""
+
+    case_id: str
+    finished_video_id: str
+    publish_record_id: str
+    video_version_id: str | None = None
+    title: str = ""
+    platform: str | None = None
+    published_at: datetime | None = None
+    days_since_publish: int = 0
+
+
+class PendingRetroResponse(ContractModel):
+    case_id: str
+    items: list[PendingRetroItem] = Field(default_factory=list)
+
+
+class RejectBumpRequest(ContractModel):
+    reason: str | None = None

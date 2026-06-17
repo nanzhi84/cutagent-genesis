@@ -1,243 +1,253 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { useParams } from "react-router-dom";
 import { api } from "../../api/client";
-import { caseAgentApi, type AgentDraft, type AgentRun, type AgentSourceBinding } from "../../api/r6";
-import { AgentDraftsPanel } from "../../components/case-agent/AgentDraftsPanel";
-import { AgentMemoryPanel } from "../../components/case-agent/AgentMemoryPanel";
-import { AgentRunsPanel } from "../../components/case-agent/AgentRunsPanel";
-import { SourceBindingPanel } from "../../components/case-agent/SourceBindingPanel";
+import { caseRubricApi, type ScorePrediction } from "../../api/r6";
 import { EmptyState, ErrorState, LoadingState } from "../../components/State";
 import { StudioTabs } from "../../components/StudioTabs";
+import { TimeText } from "../../components/TimeText";
 import { useToast } from "../../components/Toast";
-import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
-import { usePageVisible } from "../../hooks/usePageVisible";
-import { shortId } from "../../lib/format";
-import { routes } from "../../routes";
 
 export type AdoptedAgentScriptState = {
   adoptedAgentScript?: {
     title: string;
     script: string;
     source: string;
-    // Canonical adopted ScriptVersion id (E-UI): carried through StudioFlow so the
-    // digital-human job submits script_version_id, not only the raw script text.
     scriptVersionId: string | null;
   };
 };
 
 export default function CaseAgentPage() {
   const { caseId = "" } = useParams();
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const toast = useToast();
-  const pageVisible = usePageVisible();
-  const [selectedBindingIds, setSelectedBindingIds] = useState<string[]>([]);
-  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
-  const [goal, setGoal] = useState<AgentRun["goal"]>("script_draft");
-  const [pendingDelete, setPendingDelete] = useState<AgentSourceBinding | null>(null);
 
   const caseDetail = useQuery({
     queryKey: ["case", caseId],
     queryFn: () => api.cases.detail(caseId),
     enabled: Boolean(caseId),
   });
-  const bindings = useQuery({
-    queryKey: ["case-agent", caseId, "bindings"],
-    queryFn: () => caseAgentApi.sourceBindings(caseId, { limit: 80 }),
+  const rubric = useQuery({
+    queryKey: ["case-rubric", caseId, "rubric"],
+    queryFn: () => caseRubricApi.rubric(caseId),
     enabled: Boolean(caseId),
   });
-  const runs = useQuery({
-    queryKey: ["case-agent", caseId, "runs"],
-    queryFn: () => caseAgentApi.runs(caseId, { limit: 30 }),
-    enabled: Boolean(caseId),
-    refetchInterval: pageVisible ? 10_000 : false,
-  });
-  const drafts = useQuery({
-    queryKey: ["case-agent", caseId, "drafts"],
-    queryFn: () => caseAgentApi.drafts(caseId, { limit: 30 }),
+  const calibration = useQuery({
+    queryKey: ["case-rubric", caseId, "calibration"],
+    queryFn: () => caseRubricApi.calibration(caseId),
     enabled: Boolean(caseId),
   });
-  const proposals = useQuery({
-    queryKey: ["case-agent", caseId, "proposals"],
-    queryFn: () => caseAgentApi.memoryProposals(caseId, { limit: 30 }),
+  const bumpProposal = useQuery({
+    queryKey: ["case-rubric", caseId, "bump"],
+    queryFn: () => caseRubricApi.bumpProposal(caseId),
     enabled: Boolean(caseId),
   });
-  const selectedRun = useMemo(
-    () => runs.data?.items.find((run) => run.id === selectedRunId) ?? runs.data?.items[0],
-    [runs.data?.items, selectedRunId],
-  );
-  const runDetail = useQuery({
-    queryKey: ["case-agent", caseId, "run-detail", selectedRun?.id],
-    queryFn: () => caseAgentApi.runDetail(caseId, selectedRun!.id),
-    enabled: Boolean(caseId && selectedRun?.id),
-    refetchInterval: pageVisible ? 10_000 : false,
+  const predictions = useQuery({
+    queryKey: ["case-rubric", caseId, "predictions"],
+    queryFn: () => caseRubricApi.predictions(caseId, { limit: 20 }),
+    enabled: Boolean(caseId),
+  });
+  const pendingRetro = useQuery({
+    queryKey: ["case-rubric", caseId, "pending-retro"],
+    queryFn: () => caseRubricApi.pendingRetro(caseId),
+    enabled: Boolean(caseId),
   });
 
-  useEffect(() => {
-    if (!selectedRunId && runs.data?.items[0]) setSelectedRunId(runs.data.items[0].id);
-  }, [runs.data?.items, selectedRunId]);
-
-  useEffect(() => {
-    const availableIds = new Set(bindings.data?.items.map((item) => item.id) ?? []);
-    setSelectedBindingIds((current) => current.filter((id) => availableIds.has(id)));
-  }, [bindings.data?.items]);
-
-  async function refreshAgentData() {
+  async function refreshRubric() {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["case-agent", caseId, "bindings"] }),
-      queryClient.invalidateQueries({ queryKey: ["case-agent", caseId, "runs"] }),
-      queryClient.invalidateQueries({ queryKey: ["case-agent", caseId, "drafts"] }),
-      queryClient.invalidateQueries({ queryKey: ["case-agent", caseId, "proposals"] }),
+      queryClient.invalidateQueries({ queryKey: ["case-rubric", caseId, "rubric"] }),
+      queryClient.invalidateQueries({ queryKey: ["case-rubric", caseId, "calibration"] }),
+      queryClient.invalidateQueries({ queryKey: ["case-rubric", caseId, "bump"] }),
+      queryClient.invalidateQueries({ queryKey: ["case-rubric", caseId, "predictions"] }),
+      queryClient.invalidateQueries({ queryKey: ["case-rubric", caseId, "pending-retro"] }),
     ]);
   }
 
-  const createBinding = useMutation({
-    mutationFn: (payload: Parameters<typeof caseAgentApi.createSourceBinding>[1]) =>
-      caseAgentApi.createSourceBinding(caseId, payload),
-    onSuccess: async (binding) => {
-      toast.success("数据源绑定已创建", binding.title ?? shortId(binding.id));
-      setSelectedBindingIds((current) => [...new Set([...current, binding.id])]);
-      await queryClient.invalidateQueries({ queryKey: ["case-agent", caseId, "bindings"] });
-    },
-  });
-  const deleteBinding = useMutation({
-    mutationFn: (binding: AgentSourceBinding) => caseAgentApi.deleteSourceBinding(caseId, binding.id),
+  const acceptBump = useMutation({
+    mutationFn: (proposalId: string) => caseRubricApi.acceptBump(caseId, proposalId),
     onSuccess: async () => {
-      toast.success("数据源绑定已删除");
-      setPendingDelete(null);
-      await refreshAgentData();
+      toast.success("评分卡已升版");
+      await refreshRubric();
     },
   });
-  const importSource = useMutation({
-    mutationFn: (binding: AgentSourceBinding) => caseAgentApi.importSource(caseId, { source_binding_id: binding.id }),
-    onSuccess: async (run) => {
-      toast.success("已导入数据源", `运行 ${shortId(run.id)}`);
-      setSelectedRunId(run.id);
-      await refreshAgentData();
-    },
-  });
-  const startRun = useMutation({
-    mutationFn: () => caseAgentApi.startRun(caseId, { goal, source_binding_ids: selectedBindingIds }),
-    onSuccess: async (run) => {
-      toast.success("智能体已启动", `运行 ${shortId(run.id)}`);
-      setSelectedRunId(run.id);
-      await refreshAgentData();
-    },
-  });
-  const adoptDraft = useMutation({
-    mutationFn: (draft: AgentDraft) => caseAgentApi.adoptDraft(caseId, draft.id, { title: draft.title, publish_content: draft.script }),
-    onSuccess: (script, draft) => {
-      toast.success("草稿已采用", "已写入脚本版本，正在回填创作页");
-      navigate(routes.caseStudio(caseId), {
-        state: {
-          adoptedAgentScript: {
-            title: script.title,
-            script: script.script,
-            source: `案例智能体草稿 ${shortId(draft.id)}`,
-            scriptVersionId: script.id,
-          },
-        } satisfies AdoptedAgentScriptState,
-      });
-    },
-  });
-  const approveMemory = useMutation({
-    mutationFn: (proposalId: string) => caseAgentApi.approveMemory(caseId, proposalId, { reason: "前端批准入库" }),
+  const rejectBump = useMutation({
+    mutationFn: (proposalId: string) => caseRubricApi.rejectBump(caseId, proposalId, { reason: "先不用" }),
     onSuccess: async () => {
-      toast.success("记忆提案已批准");
-      await queryClient.invalidateQueries({ queryKey: ["case-agent", caseId, "proposals"] });
-    },
-  });
-  const rejectMemory = useMutation({
-    mutationFn: (proposalId: string) => caseAgentApi.rejectMemory(caseId, proposalId, { reason: "前端拒绝" }),
-    onSuccess: async () => {
-      toast.success("记忆提案已拒绝");
-      await queryClient.invalidateQueries({ queryKey: ["case-agent", caseId, "proposals"] });
+      toast.success("已保留当前评分卡");
+      await refreshRubric();
     },
   });
 
   if (!caseId) return <EmptyState title="未选择案例" detail="请从案例中心进入工作台。" />;
-  const bindingItems = bindings.data?.items ?? [];
-  const runItems = runs.data?.items ?? [];
+  const loading = rubric.isLoading || calibration.isLoading || predictions.isLoading;
+  const predictionItems = predictions.data?.items ?? [];
+  const pendingItems = pendingRetro.data?.items ?? [];
 
   return (
     <section className="pageStack">
       <header className="pageHeader">
         <div>
-          <h1>数据 / 智能体</h1>
-          <p>{caseDetail.data?.name ?? "绑定案例数据源，运行智能体，采用草稿并处理记忆提案。"}</p>
+          <h1>评分卡</h1>
+          <p>{caseDetail.data?.name ?? "案例评分卡、盲预测与复盘状态。"}</p>
         </div>
       </header>
       <StudioTabs caseId={caseId} />
-      {caseDetail.error ? <ErrorState error={caseDetail.error} /> : null}
-      {bindings.error ? <ErrorState error={bindings.error} /> : null}
-      {runs.error ? <ErrorState error={runs.error} /> : null}
-      {drafts.error ? <ErrorState error={drafts.error} /> : null}
-      {proposals.error ? <ErrorState error={proposals.error} /> : null}
-      {bindings.isLoading && runs.isLoading ? <LoadingState label="加载案例智能体" /> : null}
 
-      <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
-        <SourceBindingPanel
-          bindings={bindingItems}
-          isLoading={bindings.isLoading}
-          selectedIds={selectedBindingIds}
-          isCreating={createBinding.isPending}
-          busyBindingId={importSource.variables?.id ?? null}
-          onSelect={(bindingId, selected) =>
-            setSelectedBindingIds((current) =>
-              selected ? [...new Set([...current, bindingId])] : current.filter((id) => id !== bindingId),
-            )
-          }
-          onCreate={(payload) => createBinding.mutateAsync(payload)}
-          onImport={(binding) => importSource.mutate(binding)}
-          onDelete={setPendingDelete}
-        />
+      {[caseDetail, rubric, calibration, bumpProposal, predictions, pendingRetro].map((query, index) =>
+        query.error ? <ErrorState error={query.error} key={index} /> : null,
+      )}
+      {loading ? <LoadingState label="加载评分卡" /> : null}
 
-        <div className="grid content-start gap-4">
-          <AgentRunsPanel
-            runs={runItems}
-            detail={runDetail.data}
-            selectedRunId={selectedRun?.id ?? null}
-            selectedBindingCount={selectedBindingIds.length}
-            isLoading={runs.isLoading}
-            isDetailLoading={runDetail.isLoading}
-            isStarting={startRun.isPending}
-            goal={goal}
-            onGoalChange={setGoal}
-            onSelectRun={setSelectedRunId}
-            onStartRun={() => startRun.mutate()}
-          />
-          <div className="grid items-start gap-4 lg:grid-cols-2">
-            <AgentDraftsPanel
-              drafts={drafts.data?.items ?? []}
-              isLoading={drafts.isLoading}
-              adoptingDraftId={adoptDraft.variables?.id ?? null}
-              onAdopt={(draft) => adoptDraft.mutate(draft)}
-            />
-            <AgentMemoryPanel
-              proposals={proposals.data?.items ?? []}
-              isLoading={proposals.isLoading}
-              busyProposalId={(approveMemory.variables ?? rejectMemory.variables) || null}
-              onApprove={(proposal) => approveMemory.mutate(proposal.id)}
-              onReject={(proposal) => rejectMemory.mutate(proposal.id)}
-            />
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.3fr)_minmax(320px,0.7fr)]">
+        <section className="card grid gap-4">
+          <div className="sectionHeader">
+            <div>
+              <h2>Case Rubric v{rubric.data?.version ?? "-"}</h2>
+              <p>{rubric.data?.cold_start ? "冷启动评分卡" : "已基于奖励信号校准"}</p>
+            </div>
+            <span className="badge-info">{rubric.data?.status ?? "active"}</span>
           </div>
-        </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            {(rubric.data?.dimensions ?? []).map((dimension) => (
+              <div className="rounded-lg border border-border/70 p-3" key={dimension.key}>
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <h3 className="text-sm font-semibold text-text-primary">{dimension.label}</h3>
+                  <span className="font-mono text-xs text-text-secondary">{Math.round(dimension.weight * 100)}%</span>
+                </div>
+                <p className="text-xs text-text-tertiary">{dimension.key}</p>
+                {Object.keys(dimension.value_scores ?? {}).length ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {Object.entries(dimension.value_scores ?? {}).map(([value, score]) => (
+                      <span className="badge-info" key={value}>
+                        {value}: {Math.round(Number(score) * 100)}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="card grid gap-4">
+          <div className="sectionHeader">
+            <div>
+              <h2>复盘</h2>
+              <p>{calibration.data?.bump_recommended ? "建议升版" : "当前无需升版"}</p>
+            </div>
+            <span className="badge-info">{calibration.data?.sample_size ?? 0} 样本</span>
+          </div>
+          <Metric label="排序一致性" value={formatConsistency(calibration.data?.consistency)} />
+          <Metric label="连续误判" value={`${calibration.data?.miss_streak ?? 0}`} />
+          <Metric label="待复盘" value={`${calibration.data?.pending_retro_count ?? pendingItems.length}`} />
+          {bumpProposal.data ? (
+            <div className="border-t border-border/60 pt-4">
+              <h3 className="text-sm font-semibold text-text-primary">升版提议</h3>
+              <p className="mt-2 text-sm leading-relaxed text-text-secondary">{bumpProposal.data.rationale}</p>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-text-secondary">
+                <span>旧一致性 {formatConsistency(bumpProposal.data.old_consistency)}</span>
+                <span>新一致性 {formatConsistency(bumpProposal.data.new_consistency)}</span>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  className="btn-primary"
+                  type="button"
+                  disabled={acceptBump.isPending || rejectBump.isPending}
+                  onClick={() => acceptBump.mutate(bumpProposal.data!.id)}
+                >
+                  {acceptBump.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                  <span>接受升版</span>
+                </button>
+                <button
+                  className="btn-secondary"
+                  type="button"
+                  disabled={acceptBump.isPending || rejectBump.isPending}
+                  onClick={() => rejectBump.mutate(bumpProposal.data!.id)}
+                >
+                  <XCircle className="h-4 w-4" />
+                  <span>先不用</span>
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </section>
       </div>
 
-      <ConfirmDialog
-        isOpen={Boolean(pendingDelete)}
-        onClose={() => setPendingDelete(null)}
-        onConfirm={() => {
-          if (pendingDelete) deleteBinding.mutate(pendingDelete);
-        }}
-        isLoading={deleteBinding.isPending}
-        type="danger"
-        title="确认删除数据源绑定"
-        message="删除后，后续智能体运行不会再引用该数据源。已生成的运行、草稿和记忆不会被删除。"
-        consequences={["不会删除历史运行和已采用脚本", "若误删，需要重新创建绑定并导入", "正在进行的运行不会被前端强制中断"]}
-        confirmText="确认删除"
-      />
+      <section className="card grid gap-4">
+        <div className="sectionHeader">
+          <div>
+            <h2>最近盲预测</h2>
+            <p>创作页生成的脚本会在这里留下评分记录。</p>
+          </div>
+          <span className="badge-info">{predictionItems.length} 条</span>
+        </div>
+        {predictionItems.length === 0 ? <EmptyState title="暂无盲预测" detail="从创作页生成脚本后会自动出现。" /> : null}
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {predictionItems.map((prediction) => (
+            <PredictionCard prediction={prediction} key={prediction.id} />
+          ))}
+        </div>
+      </section>
+
+      <section className="card grid gap-4">
+        <div className="sectionHeader">
+          <div>
+            <h2>待复盘</h2>
+            <p>发布窗口到期但尚未回填指标的成片。</p>
+          </div>
+          <span className="badge-info">{pendingItems.length} 条</span>
+        </div>
+        {pendingItems.length === 0 ? <EmptyState title="暂无待复盘" detail="有发布记录且窗口到期后会自动进入列表。" /> : null}
+        <div className="divide-y divide-border/60">
+          {pendingItems.map((item) => (
+            <article className="grid gap-1 py-3 first:pt-0 last:pb-0" key={item.id}>
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-sm font-semibold text-text-primary">{item.title || item.finished_video_id}</h3>
+                <span className="text-xs text-text-tertiary">{item.days_since_publish} 天</span>
+              </div>
+              <p className="text-xs text-text-secondary">
+                {item.platform ?? "unknown"} · <TimeText value={item.published_at} />
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
     </section>
   );
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between rounded-lg border border-border/70 px-3 py-2">
+      <span className="text-sm text-text-secondary">{label}</span>
+      <strong className="font-mono text-sm text-text-primary">{value}</strong>
+    </div>
+  );
+}
+
+function PredictionCard({ prediction }: { prediction: ScorePrediction }) {
+  return (
+    <article className="rounded-lg border border-border/70 p-3">
+      <div className="mb-2 flex items-start justify-between gap-3">
+        <span className="badge-info">{bandLabel(prediction.band)}</span>
+        <span className="font-mono text-sm text-text-primary">{prediction.composite.toFixed(1)}</span>
+      </div>
+      <p className="line-clamp-3 text-sm leading-relaxed text-text-secondary">{prediction.reason || "暂无理由"}</p>
+      <div className="mt-3 flex items-center justify-between gap-3 text-xs text-text-tertiary">
+        <TimeText value={prediction.locked_at} />
+        <span>{prediction.settled_reward == null ? "未结算" : `奖励 ${prediction.settled_reward.toFixed(2)}`}</span>
+      </div>
+    </article>
+  );
+}
+
+function bandLabel(value: string) {
+  if (value === "top") return "最看好";
+  if (value === "ok") return "还不错";
+  return "一般";
+}
+
+function formatConsistency(value: number | null | undefined) {
+  if (value == null) return "-";
+  return `${Math.round(value * 100)}%`;
 }

@@ -18,6 +18,7 @@ from sqlalchemy import (
     UniqueConstraint,
     create_engine,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.engine import Engine, make_url
@@ -51,7 +52,9 @@ class Base(DeclarativeBase):
 
 
 class TimestampMixin:
-    schema_version: Mapped[str] = mapped_column(String(16), nullable=False, default="v1")
+    schema_version: Mapped[str] = mapped_column(
+        String(16), nullable=False, default="v1", server_default="v1"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )
@@ -550,40 +553,6 @@ class VideoVersionRow(TimestampMixin, Base):
     style_plan_artifact_id: Mapped[str] = mapped_column(String, nullable=False)
 
 
-class CaseAgentSourceBindingRow(TimestampMixin, Base):
-    __tablename__ = "case_agent_source_bindings"
-
-    id: Mapped[str] = mapped_column(String, primary_key=True)
-    case_id: Mapped[str] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
-    source_type: Mapped[str] = mapped_column(String, nullable=False)
-    source_ref: Mapped[str] = mapped_column(Text, nullable=False)
-    title: Mapped[str | None] = mapped_column(String)
-
-
-class CaseAgentRunRow(TimestampMixin, Base):
-    __tablename__ = "case_agent_runs"
-
-    id: Mapped[str] = mapped_column(String, primary_key=True)
-    case_id: Mapped[str] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
-    goal: Mapped[str] = mapped_column(String, nullable=False)
-    status: Mapped[str] = mapped_column(String, nullable=False)
-    source_binding_ids: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False, default=list)
-
-
-class CreativeBriefRow(TimestampMixin, Base):
-    __tablename__ = "creative_briefs"
-
-    id: Mapped[str] = mapped_column(String, primary_key=True)
-    case_id: Mapped[str] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
-    summary: Mapped[str] = mapped_column(Text, nullable=False)
-    source_binding_ids: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False, default=list)
-    topic: Mapped[str | None] = mapped_column(Text)
-    audience: Mapped[str | None] = mapped_column(Text)
-    key_insights: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False, default=list)
-    source_refs: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False, default=list)
-    generated_by_run_id: Mapped[str | None] = mapped_column(String)
-
-
 class ScriptDraftRow(TimestampMixin, Base):
     __tablename__ = "script_drafts"
 
@@ -614,37 +583,6 @@ class CaseMemoryRow(TimestampMixin, Base):
     embedding: Mapped[object | None] = mapped_column(Vector(1536))
 
     __table_args__ = (CheckConstraint("confidence >= 0 AND confidence <= 1", name="confidence_range"),)
-
-
-class MemoryProposalRow(TimestampMixin, Base):
-    __tablename__ = "memory_proposals"
-
-    id: Mapped[str] = mapped_column(String, primary_key=True)
-    case_id: Mapped[str] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
-    status: Mapped[str] = mapped_column(String, nullable=False)
-    memory_type: Mapped[str] = mapped_column(String, nullable=False, default="script_pattern")
-    scope: Mapped[dict] = mapped_column(JSONB, nullable=False)
-    scope_key: Mapped[str | None] = mapped_column(String)
-    insight: Mapped[str] = mapped_column(Text, nullable=False)
-    evidence: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False, default=list)
-    confidence: Mapped[float] = mapped_column(Float, nullable=False)
-    sample_size: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    supersedes_memory_id: Mapped[str | None] = mapped_column(String)
-    proposed_by_reflection_run_id: Mapped[str | None] = mapped_column(String)
-
-
-class ReflectionRunRow(TimestampMixin, Base):
-    __tablename__ = "reflection_runs"
-
-    id: Mapped[str] = mapped_column(String, primary_key=True)
-    case_id: Mapped[str] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
-    status: Mapped[str] = mapped_column(String, nullable=False)
-    window: Mapped[str] = mapped_column(String, nullable=False)
-    report_artifact_id: Mapped[str | None] = mapped_column(ForeignKey("artifacts.id"))
-    input_observation_ids: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False, default=list)
-    input_feature_vector_ids: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False, default=list)
-    memory_proposal_ids: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False, default=list)
-    sample_size: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
 
 class PublishRecordRow(TimestampMixin, Base):
@@ -727,17 +665,91 @@ class PerformanceScoreRow(TimestampMixin, Base):
     excluded_reason: Mapped[str | None] = mapped_column(String)
 
 
-class CaseKnowledgeItemRow(TimestampMixin, Base):
-    __tablename__ = "case_knowledge_items"
+class CaseRubricRow(TimestampMixin, Base):
+    __tablename__ = "case_rubrics"
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     case_id: Mapped[str] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
-    kind: Mapped[str] = mapped_column(String, nullable=False)
-    ref_id: Mapped[str] = mapped_column(String, nullable=False)
-    summary: Mapped[str] = mapped_column(Text, nullable=False)
-    tags: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=False, default=list)
-    embedding_ref: Mapped[str | None] = mapped_column(String)
-    score: Mapped[float | None] = mapped_column(Float)
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1, server_default="1")
+    status: Mapped[str] = mapped_column(
+        String, nullable=False, default="active", server_default="active"
+    )
+    dimensions: Mapped[list] = mapped_column(
+        JSONB, nullable=False, default=list, server_default="[]"
+    )
+    fitted_from_sample_size: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    cold_start: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=True, server_default=text("true")
+    )
+    supersedes_version: Mapped[int | None] = mapped_column(Integer)
+
+
+class ScorePredictionRow(TimestampMixin, Base):
+    __tablename__ = "score_predictions"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    case_id: Mapped[str] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
+    script_draft_id: Mapped[str | None] = mapped_column(String)
+    script_version_id: Mapped[str | None] = mapped_column(String)
+    rubric_version: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=1, server_default="1"
+    )
+    composite: Mapped[float] = mapped_column(Float, nullable=False, default=0, server_default="0")
+    band: Mapped[str] = mapped_column(String, nullable=False, default="ok", server_default="ok")
+    dimension_scores: Mapped[dict] = mapped_column(
+        JSONB, nullable=False, default=dict, server_default="{}"
+    )
+    reason: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default="")
+    locked_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+    settled_reward: Mapped[float | None] = mapped_column(Float)
+    settled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class RewardSignalRow(TimestampMixin, Base):
+    __tablename__ = "reward_signals"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    case_id: Mapped[str] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
+    script_version_id: Mapped[str | None] = mapped_column(String)
+    script_draft_id: Mapped[str | None] = mapped_column(String)
+    source_kind: Mapped[str] = mapped_column(String, nullable=False)
+    value: Mapped[float] = mapped_column(Float, nullable=False, default=0, server_default="0")
+    confidence: Mapped[float] = mapped_column(
+        Float, nullable=False, default=0.5, server_default="0.5"
+    )
+    evidence_ref: Mapped[str | None] = mapped_column(String)
+    reason: Mapped[str | None] = mapped_column(String)
+    occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
+    )
+
+
+class RubricBumpProposalRow(TimestampMixin, Base):
+    __tablename__ = "rubric_bump_proposals"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    case_id: Mapped[str] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
+    status: Mapped[str] = mapped_column(
+        String, nullable=False, default="proposed", server_default="proposed"
+    )
+    from_version: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=1, server_default="1"
+    )
+    candidate: Mapped[dict] = mapped_column(JSONB, nullable=False)
+    old_consistency: Mapped[float] = mapped_column(
+        Float, nullable=False, default=0, server_default="0"
+    )
+    new_consistency: Mapped[float] = mapped_column(
+        Float, nullable=False, default=0, server_default="0"
+    )
+    sample_size: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    rationale: Mapped[str] = mapped_column(Text, nullable=False, default="", server_default="")
 
 
 class FinishedVideoRow(TimestampMixin, Base):
@@ -1014,7 +1026,25 @@ Index("idx_feature_vectors_case", CreativeFeatureVectorRow.case_id)
 Index("idx_feature_vectors_video", CreativeFeatureVectorRow.video_version_id)
 Index("idx_performance_scores_case", PerformanceScoreRow.case_id, PerformanceScoreRow.window)
 Index("idx_performance_scores_observation", PerformanceScoreRow.observation_id)
-Index("idx_knowledge_items_case_kind", CaseKnowledgeItemRow.case_id, CaseKnowledgeItemRow.kind)
+Index("idx_case_rubrics_case_status", CaseRubricRow.case_id, CaseRubricRow.status)
+Index(
+    "uq_case_rubrics_active_case",
+    CaseRubricRow.case_id,
+    unique=True,
+    postgresql_where=CaseRubricRow.status == "active",
+)
+Index("idx_score_predictions_case", ScorePredictionRow.case_id)
+Index("idx_score_predictions_draft", ScorePredictionRow.script_draft_id)
+Index("idx_reward_signals_case", RewardSignalRow.case_id)
+Index(
+    "uq_reward_signals_case_source_evidence",
+    RewardSignalRow.case_id,
+    RewardSignalRow.source_kind,
+    RewardSignalRow.evidence_ref,
+    unique=True,
+    postgresql_where=RewardSignalRow.evidence_ref.isnot(None),
+)
+Index("idx_rubric_bump_case_status", RubricBumpProposalRow.case_id, RubricBumpProposalRow.status)
 Index("idx_outbox_pending", OutboxEventRow.status, OutboxEventRow.available_at, OutboxEventRow.created_at, OutboxEventRow.id)
 Index("idx_failure_taxonomy_class", FailureTaxonomyRow.failure_class, FailureTaxonomyRow.created_at)
 Index("idx_failure_taxonomy_run", FailureTaxonomyRow.run_id)

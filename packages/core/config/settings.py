@@ -51,6 +51,12 @@ def _env_int(name: str, default: int) -> int:
     return int(value) if value is not None else default
 
 
+def _env_float(name: str, default: float) -> float:
+    """Return the env var parsed as float, or ``default`` when unset."""
+    value = os.getenv(name)
+    return float(value) if value is not None else default
+
+
 def _env_int_blank_default(name: str, default: int) -> int:
     """Like :func:`_env_int` but an unset OR blank var falls back to ``default``.
 
@@ -324,6 +330,33 @@ class ProviderSettings(BaseModel):
     enforce_provider_host_allowlist: bool = False
 
 
+class LearningSettings(BaseModel):
+    """Case-rubric self-evolution knobs (``settings.learning.*``, §5/§6).
+
+    Reward-shaping values and bump thresholds live here (not as scattered magic
+    numbers) so a deployment can tune the learning loop without code changes."""
+
+    model_config = ConfigDict(frozen=True)
+
+    # CUTAGENT_LEARNING_RETRO_WINDOW_DAYS: a published video enters "待复盘" this
+    # many days after publish (the blind-prediction settle window). Default 3.
+    retro_window_days: int = 3
+    # Reward shaping (§5.2): stage rewards rise with how far a script advanced; a
+    # discarded-because-script is the only negative human signal (others don't
+    # blame the script). Values are normalized into a comparable range.
+    reward_draft_adopted: float = 0.2
+    reward_draft_pick: float = -0.05
+    reward_video_produced: float = 0.4
+    reward_published: float = 0.7
+    reward_video_discarded_script: float = -0.3
+    reward_stale_unpublished: float = -0.1
+    # Bump gate (§6.4): a bump needs enough calibration samples AND either a
+    # ranking consistency below the floor or a run of same-direction mispredicts.
+    bump_min_samples: int = 5
+    bump_miss_streak: int = 3
+    bump_consistency_floor: float = 0.6
+
+
 class Settings(BaseModel):
     """Typed, immutable snapshot of all infrastructure configuration.
 
@@ -343,6 +376,7 @@ class Settings(BaseModel):
     api: ApiSettings = Field(default_factory=ApiSettings)
     balance: BalanceSettings = Field(default_factory=BalanceSettings)
     providers: ProviderSettings = Field(default_factory=ProviderSettings)
+    learning: LearningSettings = Field(default_factory=LearningSettings)
     # Optional shared coordination backend (cross-process limiter / fanout /
     # ephemeral token store). When unset, those layers stay per-process. See
     # packages/ai/gateway/provider_limiter.py and packages/core/observability/events.py.
@@ -481,6 +515,24 @@ def build_settings() -> Settings:
                 "CUTAGENT_ENFORCE_PROVIDER_HOST_ALLOWLIST"
             )
             == "1",
+        ),
+        learning=LearningSettings(
+            retro_window_days=_env_int("CUTAGENT_LEARNING_RETRO_WINDOW_DAYS", 3),
+            reward_draft_adopted=_env_float("CUTAGENT_LEARNING_REWARD_DRAFT_ADOPTED", 0.2),
+            reward_draft_pick=_env_float("CUTAGENT_LEARNING_REWARD_DRAFT_PICK", -0.05),
+            reward_video_produced=_env_float("CUTAGENT_LEARNING_REWARD_VIDEO_PRODUCED", 0.4),
+            reward_published=_env_float("CUTAGENT_LEARNING_REWARD_PUBLISHED", 0.7),
+            reward_video_discarded_script=_env_float(
+                "CUTAGENT_LEARNING_REWARD_VIDEO_DISCARDED_SCRIPT", -0.3
+            ),
+            reward_stale_unpublished=_env_float(
+                "CUTAGENT_LEARNING_REWARD_STALE_UNPUBLISHED", -0.1
+            ),
+            bump_min_samples=_env_int("CUTAGENT_LEARNING_BUMP_MIN_SAMPLES", 5),
+            bump_miss_streak=_env_int("CUTAGENT_LEARNING_BUMP_MISS_STREAK", 3),
+            bump_consistency_floor=_env_float(
+                "CUTAGENT_LEARNING_BUMP_CONSISTENCY_FLOOR", 0.6
+            ),
         ),
         redis_url=os.getenv("CUTAGENT_REDIS_URL"),
     )

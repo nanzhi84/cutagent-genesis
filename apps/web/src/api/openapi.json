@@ -17456,7 +17456,7 @@
           "platform"
         ],
         "title": "PlatformAccount",
-        "description": "A publish account discoverable through the platform adapter (§28.3\nplatform-accounts). UNVERIFIED against the live 小V猫 app; the sandbox adapter\nreturns a deterministic stub set."
+        "description": "A publish account discoverable through the platform adapter (§28.3\nplatform-accounts). The sandbox adapter returns a deterministic stub set."
       },
       "PlatformAccountList": {
         "properties": {

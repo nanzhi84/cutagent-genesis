@@ -18,7 +18,7 @@ async function assertR4ApiSurface(file: File) {
   });
   const batch = await api.publishing.createBatch({
     publish_package_ids: [packageFromFinishedVideo.id],
-    platform_targets: ["xiaovmao"],
+    platform_targets: ["douyin"],
   });
   const listedBatches = await api.publishing.batches({ limit: 20 });
   const detail = await api.publishing.batch(batch.id);
@@ -51,7 +51,7 @@ async function assertR4ApiSurface(file: File) {
 
 function assertR4DraftModel(item: PublishBatchItem, attemptDetail: PublishAttemptDetail) {
   const draft = buildDraftFromItem(item);
-  titleLimitForPlatforms(["douyin", "xiaovmao"]) satisfies number;
+  titleLimitForPlatforms(["douyin", "kuaishou"]) satisfies number;
   draft.title satisfies string;
   draft.platforms[0] satisfies string | undefined;
   attemptDetail.attempt.adapter_id satisfies string;

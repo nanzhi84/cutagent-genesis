@@ -57,13 +57,13 @@ def test_publish_run_ids_handles_detached_package():
 
 
 def _attempt(status: PublishAttemptStatus, package_id: str) -> tuple[PublishBatchVm, PublishBatchItemVm, PublishAttempt]:
-    item = PublishBatchItemVm(id="item_1", publish_package_id=package_id, platform="xiaovmao", title="t")
+    item = PublishBatchItemVm(id="item_1", publish_package_id=package_id, platform="douyin", title="t")
     batch = PublishBatchVm(id="batch_1", items=[item])
     attempt = PublishAttempt(
         id="att_1",
         batch_id=batch.id,
         item_id=item.id,
-        platforms=["xiaovmao"],
+        platforms=["douyin"],
         status=status,
         adapter_id="sandbox.publish",
     )

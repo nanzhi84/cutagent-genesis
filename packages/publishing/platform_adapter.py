@@ -1,28 +1,23 @@
-"""PublishPlatformAdapter port + adapters (§2.1 must-retain 小V猫 / M6c).
+"""PublishPlatformAdapter port + adapters.
 
 The publish subsystem talks to platforms through the ``PublishPlatformAdapter``
-port. Two implementations ship:
+port. ``SandboxPublishAdapter`` (``adapter_id="sandbox.publish"``) is the only
+implementation today: an in-process state-machine adapter that walks the
+publish_item/publish_batch lifecycle and records ``PublishAttempt`` rows WITHOUT
+touching any external platform. It is the default and the only adapter exercised
+by tests.
 
-- ``SandboxPublishAdapter`` (``adapter_id="sandbox.publish"``): the existing
-  in-process state-machine adapter. It walks the publish_item/publish_batch
-  lifecycle and records ``PublishAttempt`` rows WITHOUT touching any external
-  platform. This is the default and the only adapter exercised by tests.
-
-- ``XiaoVmaoPublishAdapter`` (``adapter_id="xiaovmao.cdp"``): a port of the origin
-  CDP driver (digital-human-Cutagent ``app/services/publishers/xiaovmao_adapter.py``)
-  that drives the 小V猫 Electron app over its CDP endpoint. The driver/connector
-  scaffolding is present and faithful to the origin, but it is **UNVERIFIED
-  against the live 小V猫 app/platforms** and is NEVER reached by tests. It runs
-  out-of-process and requires the real desktop app + logged-in platform accounts.
-
-``select_adapter`` chooses the adapter from an explicit override, then the
-``CUTAGENT_PUBLISH_ADAPTER`` feature flag, defaulting to the sandbox adapter so
-production stays a safe no-op until the connector is wired and verified.
+Real browser-automation adapters (抖音/视频号/快手/小红书) register in
+``_PUBLISH_ADAPTERS`` as they land. ``select_adapter`` chooses the adapter from an
+explicit override, then the ``CUTAGENT_PUBLISH_ADAPTER`` feature flag, defaulting
+to the sandbox adapter so production stays a safe no-op until a real adapter is
+wired.
 """
 
 from __future__ import annotations
 
 import os
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Protocol
@@ -30,23 +25,6 @@ from typing import Protocol
 from packages.core.contracts import PlatformAccount
 
 SANDBOX_ADAPTER_ID = "sandbox.publish"
-XIAOVMAO_ADAPTER_ID = "xiaovmao.cdp"
-
-# 小V猫 platform-id mapping (origin PLATFORM_KEY_MAP / PLATFORM_NAME_MAP).
-XIAOVMAO_PLATFORM_KEY_MAP = {
-    "douyin": "Douyin",
-    "kuaishou": "KuaiShou",
-    "shipinhao": "Channels",
-    "xiaohongshu": "XiaoHongShu",
-    "bilibili": "Bilibili",
-}
-XIAOVMAO_PLATFORM_NAME_MAP = {
-    "douyin": "抖音",
-    "kuaishou": "快手",
-    "shipinhao": "视频号",
-    "xiaohongshu": "小红书",
-    "bilibili": "哔哩哔哩",
-}
 
 
 @dataclass(frozen=True)
@@ -145,71 +123,19 @@ class SandboxPublishAdapter:
         )
 
 
-@dataclass
-class XiaoVmaoPublishAdapter:
-    """小V猫 CDP adapter (M6c).
-
-    UNVERIFIED: this adapter drives the real 小V猫 Electron desktop app over its
-    CDP endpoint and submits to real 抖音/快手/视频号/小红书 accounts. It requires
-    the desktop app + logged-in accounts and is intended to run out-of-process
-    (e.g. on the publishing host / mac mini), NOT inside the API request path and
-    NOT inside tests. ``publish`` raises ``XiaoVmaoUnavailableError`` whenever the
-    real driver dependencies are missing so callers degrade to manual review,
-    never silently to a fake success.
-    """
-
-    adapter_id: str = XIAOVMAO_ADAPTER_ID
-    host: str = "127.0.0.1"
-    port: int = 9222
-
-    def probe_accounts(
-        self,
-        *,
-        account_group: str | None = None,
-        case_name: str | None = None,
-    ) -> tuple[list[PlatformAccount], bool, str | None]:
-        try:
-            from packages.publishing.connectors.xiaovmao_cdp import probe_xiaovmao_accounts
-        except Exception as exc:  # pragma: no cover - optional connector deps
-            return [], False, f"小V猫 connector unavailable: {exc}"
-        return probe_xiaovmao_accounts(
-            host=self.host,
-            port=self.port,
-            account_group=account_group,
-            case_name=case_name,
-        )
-
-    def publish(self, payload: PublishPayload) -> PublishOutcome:
-        # UNVERIFIED real-platform path. The connector raises when the desktop app
-        # / accounts are not reachable; we surface that as a non-success outcome
-        # rather than fabricating a publish.
-        try:
-            from packages.publishing.connectors.xiaovmao_cdp import (
-                XiaoVmaoUnavailableError,
-                publish_via_xiaovmao,
-            )
-        except Exception as exc:  # pragma: no cover - optional connector deps
-            return PublishOutcome(
-                success=False,
-                adapter_id=self.adapter_id,
-                error_message=f"小V猫 connector unavailable: {exc}",
-            )
-        try:
-            return publish_via_xiaovmao(payload, host=self.host, port=self.port)
-        except XiaoVmaoUnavailableError as exc:  # pragma: no cover - real-platform path
-            return PublishOutcome(
-                success=False,
-                adapter_id=self.adapter_id,
-                error_message=str(exc),
-            )
+# Registered publish adapters by id. Real browser-automation adapters
+# (抖音/视频号/快手/小红书) register here as they land in the publishing roadmap.
+_PUBLISH_ADAPTERS: dict[str, Callable[[], PublishPlatformAdapter]] = {
+    SANDBOX_ADAPTER_ID: SandboxPublishAdapter,
+}
 
 
 def resolve_adapter_id(explicit: str | None = None) -> str:
     """Resolve the publish adapter id: explicit override > feature flag > sandbox.
 
-    ``CUTAGENT_PUBLISH_ADAPTER`` selects the production adapter (e.g.
-    ``xiaovmao.cdp``). Default is the sandbox adapter so production publishing
-    stays a safe, explicit no-op until the M6c connector is verified.
+    ``CUTAGENT_PUBLISH_ADAPTER`` selects a production adapter once one is wired.
+    Default is the sandbox adapter so production publishing stays a safe, explicit
+    no-op until a real platform adapter is registered.
     """
     if explicit:
         return explicit
@@ -217,7 +143,10 @@ def resolve_adapter_id(explicit: str | None = None) -> str:
 
 
 def select_adapter(explicit: str | None = None) -> PublishPlatformAdapter:
-    adapter_id = resolve_adapter_id(explicit)
-    if adapter_id == XIAOVMAO_ADAPTER_ID:
-        return XiaoVmaoPublishAdapter()
-    return SandboxPublishAdapter()
+    """Select a publish adapter by id, defaulting to sandbox.
+
+    Unknown/unimplemented ids fall back to the sandbox adapter so publishing never
+    silently hits a non-existent adapter.
+    """
+    factory = _PUBLISH_ADAPTERS.get(resolve_adapter_id(explicit), SandboxPublishAdapter)
+    return factory()

@@ -43,7 +43,7 @@ def create_publish_batch(active_client, finished_video_id: str):
     assert package.status_code == 201, package.text
     batch = active_client.post(
         "/api/publish/batches",
-        json={"publish_package_ids": [package.json()["id"]], "platform_targets": ["xiaovmao"]},
+        json={"publish_package_ids": [package.json()["id"]], "platform_targets": ["douyin"]},
     )
     assert batch.status_code == 201, batch.text
     return batch.json()
@@ -117,7 +117,7 @@ def test_case_reflection_memory_approval_and_publish_flow():
     ).json()
     batch = client.post(
         "/api/publish/batches",
-        json={"publish_package_ids": [package["id"]], "platform_targets": ["xiaovmao"]},
+        json={"publish_package_ids": [package["id"]], "platform_targets": ["douyin"]},
     ).json()
     submitted = client.post(f"/api/publish/batches/{batch['id']}/submit", json={"dry_run": False}).json()
     assert submitted["status"] == "completed"

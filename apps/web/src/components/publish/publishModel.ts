@@ -29,7 +29,6 @@ export type SourcePoolItem =
 export const PUBLISH_STEPS = ["选来源", "编辑", "发布"] as const;
 
 export const PLATFORM_OPTIONS = [
-  { value: "xiaovmao", label: "小V猫", pending: true },
   { value: "douyin", label: "抖音" },
   { value: "kuaishou", label: "快手" },
   { value: "shipinhao", label: "视频号" },
@@ -42,12 +41,11 @@ const TITLE_LIMITS: Record<string, number> = {
   kuaishou: 16,
   shipinhao: 16,
   xiaohongshu: 16,
-  xiaovmao: 16,
   bilibili: 30,
 };
 
 export const defaultBatchDefaults: BatchDefaults = {
-  platforms: ["xiaovmao"],
+  platforms: ["douyin"],
   scheduleMode: "immediate",
   scheduledAt: "",
   tagsInput: "",

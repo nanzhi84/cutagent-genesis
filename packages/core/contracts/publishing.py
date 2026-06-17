@@ -47,9 +47,9 @@ class PublishDefaults(ContractModel):
     description: str = ""
     hashtags: list[str] = Field(default_factory=list)
     # §23.7 PublishDefaults parity: per-batch publish payload knobs the platform
-    # adapter (M6c) consumes. ``tags`` supersedes the legacy ``hashtags`` vestige
-    # (kept for backwards-compatibility of stored rows). ``account_group`` drives
-    # multi-account routing (which 小V猫 account publishes for this Case).
+    # adapter consumes. ``tags`` supersedes the legacy ``hashtags`` vestige (kept
+    # for backwards-compatibility of stored rows). ``account_group`` drives
+    # multi-account routing (which platform account publishes for this Case).
     mode: Literal["immediate", "scheduled"] = "immediate"
     scheduled_at: datetime | None = None
     tags: list[str] = Field(default_factory=list)
@@ -244,8 +244,7 @@ class PreviewCoverFrameResult(ContractModel):
 
 class PlatformAccount(ContractModel):
     """A publish account discoverable through the platform adapter (§28.3
-    platform-accounts). UNVERIFIED against the live 小V猫 app; the sandbox adapter
-    returns a deterministic stub set."""
+    platform-accounts). The sandbox adapter returns a deterministic stub set."""
 
     uid: str
     platform: str

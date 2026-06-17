@@ -242,7 +242,7 @@ def test_spec_20_2_15_imported_finished_publish_performance_reaches_insights():
                 "external_id": "publish_ext",
                 "case_id": "case_demo",
                 "video_version_id": video_version_id,
-                "platform": "xiaovmao",
+                "platform": "douyin",
                 "status": "published",
             },
         )

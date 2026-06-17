@@ -1,12 +1,10 @@
 """Account-group filtering + account matching + scheduled-at validation.
 
-Faithful, side-effect-free port of the pure-logic helpers from the origin
-``XiaoVmaoPublisherAdapter`` (``_filter_accounts_by_group`` / ``_group_match_tokens``
-/ ``_match_account`` / ``_account_group_haystack``) and
-``PublishService._normalize_scheduled_at`` / ``_normalize_publish_tags`` in
-digital-human-Cutagent. These drive multi-account routing (which 小V猫 account
-publishes for which Case/platform — §2.1 must-retain) and Asia/Shanghai
-scheduling (§23.7), independent of any live CDP automation.
+Side-effect-free pure-logic helpers (``_filter_accounts_by_group`` /
+``_group_match_tokens`` / ``_match_account`` / ``_account_group_haystack`` and
+``normalize_scheduled_at`` / ``normalize_publish_tags``). These drive
+multi-account routing (which platform account publishes for which Case/platform)
+and Asia/Shanghai scheduling (§23.7), independent of any live publish automation.
 """
 
 from __future__ import annotations

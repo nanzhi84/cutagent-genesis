@@ -1,18 +1,17 @@
 # packages/publishing
 
-发布与分发领域（spec §13，隔离边界）：把发布物（package/batch/item/attempt/record）落库并按状态机推进，同时承载平台适配、文案/封面生成、账号匹配，以及小V猫真机 connector。**不是只有仓储。**
+发布与分发领域（spec §13，隔离边界）：把发布物（package/batch/item/attempt/record）落库并按状态机推进，同时承载平台适配、文案/封面生成、账号匹配。**不是只有仓储。**
 
 ## 职责
 - 持久化：`sqlalchemy_repository.py` 的 `SqlAlchemyPublishingRepository` —— package/batch/item/attempt 的 CRUD、`submit_batch` 状态机、§9.5 漏斗事件落库。
-- 平台适配：`platform_adapter.py` 的 `PublishPlatformAdapter` 端口 + `SandboxPublishAdapter` / `XiaoVmaoPublishAdapter`，经 `select_adapter()` / `resolve_adapter_id()` 选择实现。
-- 真机驱动：`connectors/xiaovmao_cdp.py` —— 小V猫 CDP **进程外**真机 connector（M6c，代码自标 UNVERIFIED）。
+- 平台适配：`platform_adapter.py` 的 `PublishPlatformAdapter` 端口 + `SandboxPublishAdapter`，经 `select_adapter()` / `resolve_adapter_id()` 选择实现。
+- 真实平台适配（路线图）：浏览器自动化适配器（抖音/视频号/快手/小红书）将注册进 `platform_adapter.py` 的 `_PUBLISH_ADAPTERS`，替换当前 sandbox no-op。
 - 文案/封面：`copy_node.py`（§28.3 generate-copy：`generate_publish_copy`/`derive_publish_copy` + `LlmChatPort` + 确定性 fallback）、`cover_node.py`（generate-cover / preview-cover-frame：`generate_publish_cover`/`preview_cover_frame` + `AiCoverPort`）。
 - 账号：`account_matching.py` —— 账号组过滤、账号匹配、`normalize_scheduled_at`/`normalize_publish_tags`。
 
 ## 关键文件
 - `sqlalchemy_repository.py` / `sqlalchemy_mappers.py` —— 仓储 + Row→contract 映射。
-- `platform_adapter.py` —— adapter 端口与 Sandbox/小V猫 实现、`select_adapter`。
-- `connectors/xiaovmao_cdp.py` —— 小V猫真机 CDP 驱动（进程外、UNVERIFIED）。
+- `platform_adapter.py` —— adapter 端口与 `SandboxPublishAdapter` 实现、`select_adapter` / `_PUBLISH_ADAPTERS` 注册表。
 - `copy_node.py` / `cover_node.py` —— 文案 / 封面生成（LLM/AI 端口 + fallback）。
 - `account_matching.py` —— 账号匹配与发布参数校验。
 
@@ -27,5 +26,5 @@
 - `pytest tests/integration/test_sqlalchemy_publishing.py`、`tests/api/test_publishing_funnel.py`
 
 ## 注意 / 坑
-- `connectors/xiaovmao_cdp.py` 是 UNVERIFIED 真机驱动（进程外、依赖 CDP），勿当作已验证的生产路径。
+- 目前仅 `SandboxPublishAdapter`（不触达真实平台）；真实发布适配器尚未落地，生产发布默认 no-op。
 - 改发布相关 contract 后须重生成 openapi.json + schema.d.ts。

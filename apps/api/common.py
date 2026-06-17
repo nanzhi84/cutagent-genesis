@@ -15,7 +15,11 @@ from packages.core.storage.sqlalchemy_idempotency import SqlAlchemyIdempotencyRe
 from packages.core.storage.sqlalchemy_secrets import SqlAlchemySecretRepository
 from packages.core.storage.sqlalchemy_uploads import SqlAlchemyUploadRepository
 from packages.core.workflow import NodeExecutionError, WorkflowRuntimeAdapter
-from packages.creative.cases import SqlAlchemyCaseLearningRepository, SqlAlchemyCaseRepository
+from packages.creative.cases import (
+    SqlAlchemyCaseLearningRepository,
+    SqlAlchemyCaseRepository,
+    SqlAlchemyCaseRubricRepository,
+)
 from packages.media import SqlAlchemyMediaRepository
 from packages.ops import SqlAlchemyOpsRepository
 from packages.production import SqlAlchemyProductionRepository
@@ -61,6 +65,10 @@ def case_repository(request: Request) -> SqlAlchemyCaseRepository | None:
 
 def case_learning_repository(request: Request) -> SqlAlchemyCaseLearningRepository | None:
     return request.app.state.sqlalchemy_case_learning_repository
+
+
+def case_rubric_repository(request: Request) -> SqlAlchemyCaseRubricRepository | None:
+    return request.app.state.sqlalchemy_case_rubric_repository
 
 
 def upload_repository(request: Request) -> SqlAlchemyUploadRepository | None:

@@ -377,7 +377,8 @@ class GenerateScriptWithMemoryRequest(ContractModel):
     strategy_tags: list[str] = Field(default_factory=list)
     reference_script: str | None = None
     duration: str | None = None
-    # >1 时生成多版草稿、各自盲打分（§6.2）；默认 1 保持向后兼容。
+    # >1 时生成多版草稿、各自盲打分（§6.2）；默认 1。注意 openapi-typescript 会把带默认值的
+    # 标量字段在 schema.d.ts 标为 required（同 persona_mode/operation），故前端调用须显式传。
     variation_count: int = Field(1, ge=1, le=5)
 
 

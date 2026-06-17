@@ -99,12 +99,38 @@ def finished_video_download(request: Request, id: str) -> c.SignedUrlResponse:
     return finished_video_preview(request, id)
 
 
-def delete_finished_video(id: str, request: Request) -> c.OkResponse:
+def delete_finished_video(id: str, request: Request, reason: str | None = None) -> c.OkResponse:
     if production_repository(request) is not None:
+        case_id = _finished_video_case_id_db(request, id)
+        _record_discard_reward(request, case_id, id, reason)
         production_repository(request).delete_finished_video(id)
         return c.OkResponse(request_id=request_id())
+    finished = repository(request).finished_videos.get(id)
+    case_id = finished.case_id if finished is not None else None
+    _record_discard_reward(request, case_id, id, reason)
     repository(request).finished_videos.pop(id, None)
     return c.OkResponse(request_id=request_id())
+
+
+def _finished_video_case_id_db(request: Request, finished_video_id: str) -> str | None:
+    detail = production_repository(request).finished_video_detail(finished_video_id)
+    return detail.finished_video.case_id if detail is not None else None
+
+
+def _record_discard_reward(
+    request: Request, case_id: str | None, finished_video_id: str, reason: str | None
+) -> None:
+    """Reward搭车: emit a video_discarded RewardSignal before deletion (§5.2). The
+    reason drives the value (only ``script`` is a negative signal). Best-effort: the
+    learning layer must never block the existing delete flow."""
+    if case_id is None:
+        return
+    from apps.api.services import case_rubric
+
+    try:
+        case_rubric.record_discard_reward(request, case_id, finished_video_id, reason)
+    except Exception:  # pragma: no cover - learning side-channel is best-effort
+        pass
 
 
 def editor_handoff(

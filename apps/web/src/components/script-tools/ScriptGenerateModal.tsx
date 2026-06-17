@@ -146,6 +146,7 @@ export function ScriptGenerateModal({
               index,
             }),
             memory_ids: [],
+            variation_count: 1,
             persona_mode: scene,
             operation,
             strategy_tags: selectedTags,

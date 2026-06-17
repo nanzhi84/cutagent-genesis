@@ -304,6 +304,7 @@ def adopt_script_draft(
         )
         if script is None:
             raise NodeExecutionError(c.ErrorCode.validation_invalid_options, "Script draft is missing.")
+        _record_adopt_reward(request, case_id, draft_id, script.id)
         return script
     draft = repository(request).drafts[draft_id]
     script = c.ScriptVersion(
@@ -315,7 +316,22 @@ def adopt_script_draft(
     )
     repository(request).scripts[script.id] = script
     repository(request).drafts[draft.id] = draft.model_copy(update={"status": "adopted", "updated_at": c.utcnow()})
+    _record_adopt_reward(request, case_id, draft_id, script.id)
     return script
+
+
+def _record_adopt_reward(request: Request, case_id: str, draft_id: str, script_version_id: str) -> None:
+    """Reward搭车: emit a draft_adopted RewardSignal + link the blind prediction (§5.2).
+
+    Defensive: the rubric loop is an additive learning layer — a failure here must
+    never break the (existing) adopt flow.
+    """
+    from apps.api.services import case_rubric
+
+    try:
+        case_rubric.record_adopt_reward(request, case_id, draft_id, script_version_id)
+    except Exception:  # pragma: no cover - learning side-channel is best-effort
+        pass
 
 
 def memory_proposals(request: Request, case_id: str, limit: int = 50) -> c.PageResponse[c.MemoryProposal]:
@@ -648,11 +664,13 @@ def generate_script_with_memory(
             reference_script=payload.reference_script,
             duration=payload.duration,
         )
-        return case_learning_repository(request).generate_script_with_memory(
+        draft = case_learning_repository(request).generate_script_with_memory(
             case_id=case_id,
             payload=payload,
             script_override=provider_script,
         )
+        _score_drafts(request, case_id, draft)
+        return draft
     memories = [repo.memories[mid].insight for mid in payload.memory_ids if mid in repo.memories]
     provider_script = generate_script_with_llm(
         case_id,
@@ -671,4 +689,16 @@ def generate_script_with_memory(
         memory_ids=payload.memory_ids,
     )
     repo.drafts[draft.id] = draft
+    _score_drafts(request, case_id, draft)
     return draft
+
+
+def _score_drafts(request: Request, case_id: str, draft: c.ScriptDraft) -> None:
+    """Reward搭车: blind-score the freshly created draft (§6.2). Best-effort additive
+    layer — a failure must never break the existing生成 flow."""
+    from apps.api.services import case_rubric
+
+    try:
+        case_rubric.score_drafts(request, case_id, [draft])
+    except Exception:  # pragma: no cover - learning side-channel is best-effort
+        pass

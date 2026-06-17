@@ -31,6 +31,7 @@ async function r6AgentContract(caseId: string, videoId: string) {
     memory_ids: [],
     persona_mode: "hard_ad",
     operation: "generate",
+    variation_count: 1,
   });
   const handoff: EditorHandoffResult = await editorHandoffApi.createEditorHandoff(videoId, { format: "zip" });
   await editorHandoffApi.createJianyingDraft(videoId, { template_id: "jianying_default" });

@@ -40,9 +40,9 @@ def finished_video_download(request: Request, id: str) -> c.SignedUrlResponse:
 
 
 @router.delete("/api/finished-videos/{id}", response_model=c.OkResponse)
-def delete_finished_video(id: str, request: Request) -> c.OkResponse:
+def delete_finished_video(id: str, request: Request, reason: str | None = None) -> c.OkResponse:
     require_role(request, c.UserRole.admin)
-    return service.delete_finished_video(id, request)
+    return service.delete_finished_video(id, request, reason=reason)
 
 
 @router.post(

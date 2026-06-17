@@ -1707,6 +1707,142 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/cases/{case_id}/rubric": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Rubric */
+        get: operations["get_rubric_api_cases__case_id__rubric_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cases/{case_id}/rubric/calibration": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Calibration */
+        get: operations["calibration_api_cases__case_id__rubric_calibration_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cases/{case_id}/rubric/bump-proposal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bump Proposal */
+        get: operations["bump_proposal_api_cases__case_id__rubric_bump_proposal_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cases/{case_id}/rubric/bump-proposal/{proposal_id}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Accept Bump */
+        post: operations["accept_bump_api_cases__case_id__rubric_bump_proposal__proposal_id__accept_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cases/{case_id}/rubric/bump-proposal/{proposal_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Bump */
+        post: operations["reject_bump_api_cases__case_id__rubric_bump_proposal__proposal_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cases/{case_id}/predictions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Predictions */
+        get: operations["predictions_api_cases__case_id__predictions_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cases/{case_id}/finished-videos/{finished_video_id}/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Backfill Metrics */
+        post: operations["backfill_metrics_api_cases__case_id__finished_videos__finished_video_id__metrics_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/cases/{case_id}/pending-retro": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Pending Retro */
+        get: operations["pending_retro_api_cases__case_id__pending_retro_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/videos/{video_version_id}/performance-attribution": {
         parameters: {
             query?: never;
@@ -2982,6 +3118,41 @@ export interface components {
              */
             exceeded: boolean;
         };
+        /**
+         * CalibrationReport
+         * @description 复盘只读报告（§6.3）：校准池规模、排序一致性、连续误判、待复盘数。
+         */
+        CalibrationReport: {
+            /** Case Id */
+            case_id: string;
+            /**
+             * Rubric Version
+             * @default 1
+             */
+            rubric_version: number;
+            /**
+             * Sample Size
+             * @default 0
+             */
+            sample_size: number;
+            /** Consistency */
+            consistency?: number | null;
+            /**
+             * Miss Streak
+             * @default 0
+             */
+            miss_streak: number;
+            /**
+             * Pending Retro Count
+             * @default 0
+             */
+            pending_retro_count: number;
+            /**
+             * Bump Recommended
+             * @default false
+             */
+            bump_recommended: boolean;
+        };
         /** CancelRunRequest */
         CancelRunRequest: {
             /** Reason */
@@ -3381,6 +3552,58 @@ export interface components {
             observations: components["schemas"]["PerformanceObservation"][];
             /** Scores */
             scores?: components["schemas"]["PerformanceScore"][];
+        };
+        /**
+         * CaseRubric
+         * @description 案例评分卡：一个案例"什么样的内容更可能成"的可执行打分公式（§6）。
+         */
+        CaseRubric: {
+            /** Id */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
+            /**
+             * Schema Version
+             * @default v1
+             */
+            schema_version: string;
+            /** Case Id */
+            case_id: string;
+            /**
+             * Status
+             * @default active
+             * @enum {string}
+             */
+            status: "draft" | "active" | "superseded";
+            /** Dimensions */
+            dimensions?: components["schemas"]["RubricDimension"][];
+            /**
+             * Fitted From Sample Size
+             * @default 0
+             */
+            fitted_from_sample_size: number;
+            /**
+             * Cold Start
+             * @default true
+             */
+            cold_start: boolean;
+            /** Supersedes Version */
+            supersedes_version?: number | null;
         };
         /** ChangePasswordRequest */
         ChangePasswordRequest: {
@@ -4479,6 +4702,11 @@ export interface components {
             reference_script?: string | null;
             /** Duration */
             duration?: string | null;
+            /**
+             * Variation Count
+             * @default 1
+             */
+            variation_count: number;
         };
         /** GovernedActionRequest */
         GovernedActionRequest: {
@@ -4904,6 +5132,41 @@ export interface components {
             mode: "recent" | "topic" | "platform" | "memory_type" | "high_performance" | "low_performance";
             /** Memories */
             memories?: components["schemas"]["CaseMemory"][];
+        };
+        /**
+         * MetricsBackfillRequest
+         * @description 单条人工回填（§5.3）：从具体成片/发布进来，无需匹配键，填后台原始计数。
+         *
+         *     后端把原始 count 折算成 canonical rate（``counts_to_canonical``）再走与批量
+         *     导入同款的 observation 构建 + ``compute_performance_score``。
+         */
+        MetricsBackfillRequest: {
+            /**
+             * Window
+             * @default 7d
+             * @enum {string}
+             */
+            window: "1h" | "24h" | "3d" | "7d" | "30d";
+            /** Platform */
+            platform?: string | null;
+            /** Account Id */
+            account_id?: string | null;
+            /** Views */
+            views?: number | null;
+            /** Impressions */
+            impressions?: number | null;
+            /** Likes */
+            likes?: number | null;
+            /** Comments */
+            comments?: number | null;
+            /** Shares */
+            shares?: number | null;
+            /** Follows */
+            follows?: number | null;
+            /** Conversions */
+            conversions?: number | null;
+            /** Avg Watch Sec */
+            avg_watch_sec?: number | null;
         };
         /**
          * MetricsImportRequest
@@ -5538,6 +5801,17 @@ export interface components {
             /** Request Id */
             request_id: string;
         };
+        /** PageResponse[ScorePrediction] */
+        PageResponse_ScorePrediction_: {
+            /** Items */
+            items: components["schemas"]["ScorePrediction"][];
+            /** Next Cursor */
+            next_cursor?: string | null;
+            /** Total Hint */
+            total_hint?: number | null;
+            /** Request Id */
+            request_id: string;
+        };
         /** PageResponse[ScriptDraft] */
         PageResponse_ScriptDraft_: {
             /** Items */
@@ -5709,6 +5983,65 @@ export interface components {
             display_name?: string | null;
             /** Enabled */
             enabled?: boolean | null;
+        };
+        /**
+         * PendingRetroItem
+         * @description 一条已发布、回填窗口到期但尚未回填指标的成片（"待复盘"）。
+         */
+        PendingRetroItem: {
+            /** Id */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
+            /**
+             * Schema Version
+             * @default v1
+             */
+            schema_version: string;
+            /** Case Id */
+            case_id: string;
+            /** Finished Video Id */
+            finished_video_id: string;
+            /** Publish Record Id */
+            publish_record_id: string;
+            /** Video Version Id */
+            video_version_id?: string | null;
+            /**
+             * Title
+             * @default
+             */
+            title: string;
+            /** Platform */
+            platform?: string | null;
+            /** Published At */
+            published_at?: string | null;
+            /**
+             * Days Since Publish
+             * @default 0
+             */
+            days_since_publish: number;
+        };
+        /** PendingRetroResponse */
+        PendingRetroResponse: {
+            /** Case Id */
+            case_id: string;
+            /** Items */
+            items?: components["schemas"]["PendingRetroItem"][];
         };
         /** PerformanceAttributionResponse */
         PerformanceAttributionResponse: {
@@ -7274,6 +7607,11 @@ export interface components {
              */
             created_at: string;
         };
+        /** RejectBumpRequest */
+        RejectBumpRequest: {
+            /** Reason */
+            reason?: string | null;
+        };
         /** RejectMemoryRequest */
         RejectMemoryRequest: {
             /** Reason */
@@ -7342,6 +7680,99 @@ export interface components {
             plaintext_secret: string;
             /** Reason */
             reason: string;
+        };
+        /**
+         * RubricBumpProposal
+         * @description 评分卡升版提议（§6.4）：新卡须在校准池上重排更准才生成，人工一次确认。
+         */
+        RubricBumpProposal: {
+            /** Id */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
+            /**
+             * Schema Version
+             * @default v1
+             */
+            schema_version: string;
+            /** Case Id */
+            case_id: string;
+            /**
+             * Status
+             * @default proposed
+             * @enum {string}
+             */
+            status: "proposed" | "accepted" | "rejected";
+            /**
+             * From Version
+             * @default 1
+             */
+            from_version: number;
+            candidate: components["schemas"]["CaseRubric"];
+            /**
+             * Old Consistency
+             * @default 0
+             */
+            old_consistency: number;
+            /**
+             * New Consistency
+             * @default 0
+             */
+            new_consistency: number;
+            /**
+             * Sample Size
+             * @default 0
+             */
+            sample_size: number;
+            /**
+             * Rationale
+             * @default
+             */
+            rationale: string;
+        };
+        /**
+         * RubricDimension
+         * @description 评分卡的一个维度：对齐 CreativeFeatureVector 字段，带权重与取值→分映射。
+         */
+        RubricDimension: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /**
+             * Weight
+             * @default 0
+             */
+            weight: number;
+            /**
+             * Kind
+             * @default categorical
+             * @enum {string}
+             */
+            kind: "categorical" | "numeric";
+            /** Value Scores */
+            value_scores?: {
+                [key: string]: number;
+            };
+            /** Numeric Low */
+            numeric_low?: number | null;
+            /** Numeric High */
+            numeric_high?: number | null;
         };
         /** RunActionResponse */
         RunActionResponse: {
@@ -7506,6 +7937,77 @@ export interface components {
          * @enum {string}
          */
         RunStatus: "created" | "admitted" | "running" | "cancelling" | "succeeded" | "failed" | "cancelled";
+        /**
+         * ScorePrediction
+         * @description 对一版脚本的盲预测（§6.2）：``locked_at`` 之后 composite/维度分不可改；
+         *     任何 ``performance_scored`` 结算必须晚于 ``locked_at``。
+         */
+        ScorePrediction: {
+            /** Id */
+            id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at?: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at?: string;
+            /** Created By */
+            created_by?: string | null;
+            /**
+             * Version
+             * @default 1
+             */
+            version: number;
+            /**
+             * Schema Version
+             * @default v1
+             */
+            schema_version: string;
+            /** Case Id */
+            case_id: string;
+            /** Script Draft Id */
+            script_draft_id?: string | null;
+            /** Script Version Id */
+            script_version_id?: string | null;
+            /**
+             * Rubric Version
+             * @default 1
+             */
+            rubric_version: number;
+            /**
+             * Composite
+             * @default 0
+             */
+            composite: number;
+            /**
+             * Band
+             * @default ok
+             * @enum {string}
+             */
+            band: "top" | "ok" | "low";
+            /** Dimension Scores */
+            dimension_scores?: {
+                [key: string]: number;
+            };
+            /**
+             * Reason
+             * @default
+             */
+            reason: string;
+            /**
+             * Locked At
+             * Format: date-time
+             */
+            locked_at?: string;
+            /** Settled Reward */
+            settled_reward?: number | null;
+            /** Settled At */
+            settled_at?: string | null;
+        };
         /** ScriptDraft */
         ScriptDraft: {
             /** Id */
@@ -12162,6 +12664,267 @@ export interface operations {
             };
         };
     };
+    get_rubric_api_cases__case_id__rubric_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseRubric"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    calibration_api_cases__case_id__rubric_calibration_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalibrationReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bump_proposal_api_cases__case_id__rubric_bump_proposal_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RubricBumpProposal"] | null;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    accept_bump_api_cases__case_id__rubric_bump_proposal__proposal_id__accept_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaseRubric"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_bump_api_cases__case_id__rubric_bump_proposal__proposal_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+                proposal_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectBumpRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RubricBumpProposal"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    predictions_api_cases__case_id__predictions_get: {
+        parameters: {
+            query?: {
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PageResponse_ScorePrediction_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    backfill_metrics_api_cases__case_id__finished_videos__finished_video_id__metrics_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+                finished_video_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MetricsBackfillRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PerformanceObservation"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    pending_retro_api_cases__case_id__pending_retro_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                case_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PendingRetroResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     performance_attribution_api_videos__video_version_id__performance_attribution_get: {
         parameters: {
             query?: never;
@@ -12259,7 +13022,9 @@ export interface operations {
     };
     delete_finished_video_api_finished_videos__id__delete: {
         parameters: {
-            query?: never;
+            query?: {
+                reason?: string | null;
+            };
             header?: never;
             path: {
                 id: string;

@@ -15,6 +15,7 @@ from apps.api.dependencies import (
 from apps.api.routers import (
     auth,
     case_agent,
+    case_rubric,
     cases,
     cost_estimate,
     creative,
@@ -53,7 +54,11 @@ from packages.core.storage.sqlalchemy_idempotency import SqlAlchemyIdempotencyRe
 from packages.core.storage.sqlalchemy_secrets import SqlAlchemySecretRepository
 from packages.core.storage.sqlalchemy_uploads import SqlAlchemyUploadRepository
 from packages.core.workflow import NodeExecutionError, load_workflow_runtime_settings
-from packages.creative.cases import SqlAlchemyCaseLearningRepository, SqlAlchemyCaseRepository
+from packages.creative.cases import (
+    SqlAlchemyCaseLearningRepository,
+    SqlAlchemyCaseRepository,
+    SqlAlchemyCaseRubricRepository,
+)
 from packages.media import SqlAlchemyMediaRepository
 from packages.ops import BudgetEnforcementGuard, SqlAlchemyOpsRepository
 from packages.ops.circuit_breaker import ProviderCircuitBreaker
@@ -75,6 +80,7 @@ ROUTER_MODULES = (
     prompts,
     providers,
     case_agent,
+    case_rubric,
     finished_videos,
     publishing,
     ops,
@@ -133,6 +139,7 @@ def configure_app_state(app: FastAPI, *, session_factory=None) -> None:
     if session_factory is None:
         app.state.sqlalchemy_case_repository = None
         app.state.sqlalchemy_case_learning_repository = None
+        app.state.sqlalchemy_case_rubric_repository = None
         app.state.sqlalchemy_upload_repository = None
         app.state.sqlalchemy_media_repository = None
         app.state.sqlalchemy_prompt_repository = None
@@ -149,6 +156,7 @@ def configure_app_state(app: FastAPI, *, session_factory=None) -> None:
     else:
         app.state.sqlalchemy_case_repository = SqlAlchemyCaseRepository(session_factory)
         app.state.sqlalchemy_case_learning_repository = SqlAlchemyCaseLearningRepository(session_factory)
+        app.state.sqlalchemy_case_rubric_repository = SqlAlchemyCaseRubricRepository(session_factory)
         app.state.sqlalchemy_upload_repository = SqlAlchemyUploadRepository(session_factory)
         app.state.sqlalchemy_media_repository = SqlAlchemyMediaRepository(session_factory, app.state.object_store)
         app.state.sqlalchemy_prompt_repository = SqlAlchemyPromptRepository(session_factory)

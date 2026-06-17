@@ -5454,6 +5454,383 @@
         }
       }
     },
+    "/api/cases/{case_id}/rubric": {
+      "get": {
+        "summary": "Get Rubric",
+        "operationId": "get_rubric_api_cases__case_id__rubric_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseRubric"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/rubric/calibration": {
+      "get": {
+        "summary": "Calibration",
+        "operationId": "calibration_api_cases__case_id__rubric_calibration_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalibrationReport"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/rubric/bump-proposal": {
+      "get": {
+        "summary": "Bump Proposal",
+        "operationId": "bump_proposal_api_cases__case_id__rubric_bump_proposal_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/RubricBumpProposal"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Bump Proposal Api Cases  Case Id  Rubric Bump Proposal Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/rubric/bump-proposal/{proposal_id}/accept": {
+      "post": {
+        "summary": "Accept Bump",
+        "operationId": "accept_bump_api_cases__case_id__rubric_bump_proposal__proposal_id__accept_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "proposal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Proposal Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseRubric"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/rubric/bump-proposal/{proposal_id}/reject": {
+      "post": {
+        "summary": "Reject Bump",
+        "operationId": "reject_bump_api_cases__case_id__rubric_bump_proposal__proposal_id__reject_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "proposal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Proposal Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RejectBumpRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RubricBumpProposal"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/predictions": {
+      "get": {
+        "summary": "Predictions",
+        "operationId": "predictions_api_cases__case_id__predictions_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 50,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageResponse_ScorePrediction_"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/finished-videos/{finished_video_id}/metrics": {
+      "post": {
+        "summary": "Backfill Metrics",
+        "operationId": "backfill_metrics_api_cases__case_id__finished_videos__finished_video_id__metrics_post",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          },
+          {
+            "name": "finished_video_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Finished Video Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MetricsBackfillRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerformanceObservation"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cases/{case_id}/pending-retro": {
+      "get": {
+        "summary": "Pending Retro",
+        "operationId": "pending_retro_api_cases__case_id__pending_retro_get",
+        "parameters": [
+          {
+            "name": "case_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Case Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PendingRetroResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/videos/{video_version_id}/performance-attribution": {
       "get": {
         "summary": "Performance Attribution",
@@ -5591,6 +5968,22 @@
             "schema": {
               "type": "string",
               "title": "Id"
+            }
+          },
+          {
+            "name": "reason",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Reason"
             }
           }
         ],
@@ -9144,6 +9537,57 @@
         "title": "BudgetEvaluation",
         "description": "§9.8 预算执行: current-period spend evaluated against a Budget.\n\n``ratio`` = spend / limit (``None`` if the limit is 0). ``exceeded`` flags a\nhard over-limit; ``threshold_crossed`` flags ``ratio >= alert_threshold`` (the\n75/90%-style warning level the OLD quota_monitor produced)."
       },
+      "CalibrationReport": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "rubric_version": {
+            "type": "integer",
+            "title": "Rubric Version",
+            "default": 1
+          },
+          "sample_size": {
+            "type": "integer",
+            "title": "Sample Size",
+            "default": 0
+          },
+          "consistency": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consistency"
+          },
+          "miss_streak": {
+            "type": "integer",
+            "title": "Miss Streak",
+            "default": 0
+          },
+          "pending_retro_count": {
+            "type": "integer",
+            "title": "Pending Retro Count",
+            "default": 0
+          },
+          "bump_recommended": {
+            "type": "boolean",
+            "title": "Bump Recommended",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "case_id"
+        ],
+        "title": "CalibrationReport",
+        "description": "复盘只读报告（§6.3）：校准池规模、排序一致性、连续误判、待复盘数。"
+      },
       "CancelRunRequest": {
         "properties": {
           "reason": {
@@ -10039,6 +10483,95 @@
           "observations"
         ],
         "title": "CasePerformanceResponse"
+      },
+      "CaseRubric": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "default": 1
+          },
+          "schema_version": {
+            "type": "string",
+            "title": "Schema Version",
+            "default": "v1"
+          },
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "active",
+              "superseded"
+            ],
+            "title": "Status",
+            "default": "active"
+          },
+          "dimensions": {
+            "items": {
+              "$ref": "#/components/schemas/RubricDimension"
+            },
+            "type": "array",
+            "title": "Dimensions"
+          },
+          "fitted_from_sample_size": {
+            "type": "integer",
+            "title": "Fitted From Sample Size",
+            "default": 0
+          },
+          "cold_start": {
+            "type": "boolean",
+            "title": "Cold Start",
+            "default": true
+          },
+          "supersedes_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supersedes Version"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "case_id"
+        ],
+        "title": "CaseRubric",
+        "description": "案例评分卡：一个案例\"什么样的内容更可能成\"的可执行打分公式（§6）。"
       },
       "ChangePasswordRequest": {
         "properties": {
@@ -12917,6 +13450,13 @@
               }
             ],
             "title": "Duration"
+          },
+          "variation_count": {
+            "type": "integer",
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Variation Count",
+            "default": 1
           }
         },
         "additionalProperties": false,
@@ -14111,6 +14651,136 @@
           "mode"
         ],
         "title": "MemoryRecallResponse"
+      },
+      "MetricsBackfillRequest": {
+        "properties": {
+          "window": {
+            "type": "string",
+            "enum": [
+              "1h",
+              "24h",
+              "3d",
+              "7d",
+              "30d"
+            ],
+            "title": "Window",
+            "default": "7d"
+          },
+          "platform": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform"
+          },
+          "account_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Id"
+          },
+          "views": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Views"
+          },
+          "impressions": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Impressions"
+          },
+          "likes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Likes"
+          },
+          "comments": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comments"
+          },
+          "shares": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shares"
+          },
+          "follows": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follows"
+          },
+          "conversions": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversions"
+          },
+          "avg_watch_sec": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Watch Sec"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "MetricsBackfillRequest",
+        "description": "单条人工回填（§5.3）：从具体成片/发布进来，无需匹配键，填后台原始计数。\n\n后端把原始 count 折算成 canonical rate（``counts_to_canonical``）再走与批量\n导入同款的 observation 构建 + ``compute_performance_score``。"
       },
       "MetricsImportRequest": {
         "properties": {
@@ -16113,6 +16783,50 @@
         ],
         "title": "PageResponse[RunCard]"
       },
+      "PageResponse_ScorePrediction_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ScorePrediction"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total_hint": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Hint"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "request_id"
+        ],
+        "title": "PageResponse[ScorePrediction]"
+      },
       "PageResponse_ScriptDraft_": {
         "properties": {
           "items": {
@@ -16949,6 +17663,132 @@
         "additionalProperties": false,
         "type": "object",
         "title": "PatchVoiceRequest"
+      },
+      "PendingRetroItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "default": 1
+          },
+          "schema_version": {
+            "type": "string",
+            "title": "Schema Version",
+            "default": "v1"
+          },
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "finished_video_id": {
+            "type": "string",
+            "title": "Finished Video Id"
+          },
+          "publish_record_id": {
+            "type": "string",
+            "title": "Publish Record Id"
+          },
+          "video_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Video Version Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title",
+            "default": ""
+          },
+          "platform": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Platform"
+          },
+          "published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Published At"
+          },
+          "days_since_publish": {
+            "type": "integer",
+            "title": "Days Since Publish",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "case_id",
+          "finished_video_id",
+          "publish_record_id"
+        ],
+        "title": "PendingRetroItem",
+        "description": "一条已发布、回填窗口到期但尚未回填指标的成片（\"待复盘\"）。"
+      },
+      "PendingRetroResponse": {
+        "properties": {
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PendingRetroItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "case_id"
+        ],
+        "title": "PendingRetroResponse"
       },
       "PerformanceAttributionResponse": {
         "properties": {
@@ -20657,6 +21497,24 @@
         ],
         "title": "RegistrationCodePreview"
       },
+      "RejectBumpRequest": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "RejectBumpRequest"
+      },
       "RejectMemoryRequest": {
         "properties": {
           "reason": {
@@ -20819,6 +21677,161 @@
           "reason"
         ],
         "title": "RotateSecretRequest"
+      },
+      "RubricBumpProposal": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "default": 1
+          },
+          "schema_version": {
+            "type": "string",
+            "title": "Schema Version",
+            "default": "v1"
+          },
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "proposed",
+              "accepted",
+              "rejected"
+            ],
+            "title": "Status",
+            "default": "proposed"
+          },
+          "from_version": {
+            "type": "integer",
+            "title": "From Version",
+            "default": 1
+          },
+          "candidate": {
+            "$ref": "#/components/schemas/CaseRubric"
+          },
+          "old_consistency": {
+            "type": "number",
+            "title": "Old Consistency",
+            "default": 0.0
+          },
+          "new_consistency": {
+            "type": "number",
+            "title": "New Consistency",
+            "default": 0.0
+          },
+          "sample_size": {
+            "type": "integer",
+            "title": "Sample Size",
+            "default": 0
+          },
+          "rationale": {
+            "type": "string",
+            "title": "Rationale",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "case_id",
+          "candidate"
+        ],
+        "title": "RubricBumpProposal",
+        "description": "评分卡升版提议（§6.4）：新卡须在校准池上重排更准才生成，人工一次确认。"
+      },
+      "RubricDimension": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "weight": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Weight",
+            "default": 0.0
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "categorical",
+              "numeric"
+            ],
+            "title": "Kind",
+            "default": "categorical"
+          },
+          "value_scores": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Value Scores"
+          },
+          "numeric_low": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Numeric Low"
+          },
+          "numeric_high": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Numeric High"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "label"
+        ],
+        "title": "RubricDimension",
+        "description": "评分卡的一个维度：对齐 CreativeFeatureVector 字段，带权重与取值→分映射。"
       },
       "RunActionResponse": {
         "properties": {
@@ -21354,6 +22367,141 @@
           "cancelled"
         ],
         "title": "RunStatus"
+      },
+      "ScorePrediction": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version",
+            "default": 1
+          },
+          "schema_version": {
+            "type": "string",
+            "title": "Schema Version",
+            "default": "v1"
+          },
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "script_draft_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Script Draft Id"
+          },
+          "script_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Script Version Id"
+          },
+          "rubric_version": {
+            "type": "integer",
+            "title": "Rubric Version",
+            "default": 1
+          },
+          "composite": {
+            "type": "number",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Composite",
+            "default": 0.0
+          },
+          "band": {
+            "type": "string",
+            "enum": [
+              "top",
+              "ok",
+              "low"
+            ],
+            "title": "Band",
+            "default": "ok"
+          },
+          "dimension_scores": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "type": "object",
+            "title": "Dimension Scores"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason",
+            "default": ""
+          },
+          "locked_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Locked At"
+          },
+          "settled_reward": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Settled Reward"
+          },
+          "settled_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Settled At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "case_id"
+        ],
+        "title": "ScorePrediction",
+        "description": "对一版脚本的盲预测（§6.2）：``locked_at`` 之后 composite/维度分不可改；\n任何 ``performance_scored`` 结算必须晚于 ``locked_at``。"
       },
       "ScriptDraft": {
         "properties": {

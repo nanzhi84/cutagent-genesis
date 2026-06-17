@@ -1148,6 +1148,64 @@ def test_runninghub_heygem_submit_surfaces_queue_limit_and_retries(tmp_path, med
     assert run_calls == 3
 
 
+def test_runninghub_heygem_submit_does_not_retry_transport_error(tmp_path, media_fixture_factory):
+    """A transport error (timeout / reset / network 5xx) on the task-CREATING
+    /run endpoint must NOT be retried: /run carries no idempotency key, so a
+    request that already created (and billed) a task server-side before its
+    response was lost would be duplicated by a retry. Only explicit capacity
+    codes (415/421), which reject before task creation, are retried. Upload/poll
+    still retry transport errors — only the billable /run submit is exempt."""
+    source_video = media_fixture_factory.video(duration_sec=1.0, filename="portrait.mp4")
+    source_audio = media_fixture_factory.audio(duration_sec=1.0, filename="speech.wav")
+    run_calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal run_calls
+        if request.url.path == "/openapi/v2/media/upload/binary":
+            return httpx.Response(200, json={"data": {"fileName": "input.bin"}})
+        if request.url.path == "/task/openapi/ai-app/run":
+            run_calls += 1
+            raise httpx.TimeoutException("slow", request=request)
+        return httpx.Response(404, text=str(request.url))
+
+    repository, gateway = _gateway(tmp_path, httpx.MockTransport(handler))
+    video_stored = store_file(gateway.object_store, source_video, purpose="test-video")  # type: ignore[arg-type]
+    audio_stored = store_file(gateway.object_store, source_audio, purpose="test-audio")  # type: ignore[arg-type]
+    secret_ref = gateway.secret_store.put("runninghub-key")  # type: ignore[union-attr]
+    profile = _profile(
+        repository,
+        provider_id="runninghub.heygem",
+        capability="lipsync.video",
+        model_id="heygem-webapp",
+        secret_ref=secret_ref,
+        default_options={
+            "base_url": "https://www.runninghub.ai",
+            "webapp_id": "webapp-1",
+            "video_node_id": "video-node",
+            "audio_node_id": "audio-node",
+            "retry_base_delay": 0,
+        },
+    )
+
+    invocation, result = gateway.invoke(
+        ProviderCall(
+            case_id="case_demo",
+            provider_profile_id=profile.id,
+            capability_id="lipsync.video",
+            input={
+                "portrait_uri": video_stored.ref.uri,
+                "audio_uri": audio_stored.ref.uri,
+                "duration_sec": 1.0,
+            },
+        )
+    )
+
+    assert result is None
+    assert invocation.status == ProviderStatus.timed_out
+    # The non-idempotent create is sent exactly once on a transport error.
+    assert run_calls == 1
+
+
 def test_runninghub_heygem_submit_surfaces_insufficient_balance_without_retry(
     tmp_path, media_fixture_factory
 ):

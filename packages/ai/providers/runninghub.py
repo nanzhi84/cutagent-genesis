@@ -419,13 +419,16 @@ def _mark(error: ProviderRuntimeError, *, retryable: bool) -> ProviderRuntimeErr
 
 
 def _runninghub_submit_retryable(error: ProviderRuntimeError) -> bool:
-    """Retry decision for the submit loop: honour the explicit capacity tag set
-    by :func:`_runninghub_submit_error`, and otherwise (transport/HTTP errors
-    raised by ``request``) fall back to the default transport retry rule."""
-    tag = getattr(error, "rh_retryable", None)
-    if tag is not None:
-        return tag
-    return error.code in {ErrorCode.provider_remote_failed, ErrorCode.provider_timeout}
+    """Retry decision for the submit loop: honour ONLY the explicit capacity tag
+    set by :func:`_runninghub_submit_error` (415/421/500/1000 -> True; auth /
+    balance / unrecognised -> False).
+
+    Transport/HTTP errors raised by ``request`` (timeout, reset, network 5xx) are
+    deliberately NOT retried here: the /run submit creates — and bills — a task
+    and carries no idempotency key, so re-sending it after a lost response would
+    duplicate the task. Upload/poll are idempotent and still retry transport
+    errors via the default rule in :meth:`_with_retry`; only /run is exempt."""
+    return bool(getattr(error, "rh_retryable", False))
 
 
 def _nested_get(payload: dict[str, Any], *keys: str) -> Any:

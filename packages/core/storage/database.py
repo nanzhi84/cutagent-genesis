@@ -828,6 +828,55 @@ class PublishAttemptRow(TimestampMixin, Base):
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class ClientRow(TimestampMixin, Base):
+    __tablename__ = "clients"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    remark: Mapped[str] = mapped_column(String, nullable=False, default="", server_default="")
+    status: Mapped[str] = mapped_column(String, nullable=False, default="active", server_default="active")
+
+
+class PublishAccountRow(TimestampMixin, Base):
+    __tablename__ = "publish_accounts"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    client_id: Mapped[str] = mapped_column(ForeignKey("clients.id", ondelete="CASCADE"), nullable=False)
+    platform: Mapped[str] = mapped_column(String, nullable=False)
+    account_name: Mapped[str] = mapped_column(String, nullable=False)
+    platform_uid: Mapped[str | None] = mapped_column(String)
+    # Reference into the SecretStore for the encrypted browser session (storage_state);
+    # the session payload is NEVER stored in this row.
+    session_secret_ref: Mapped[str | None] = mapped_column(String)
+    session_status: Mapped[str] = mapped_column(
+        String, nullable=False, default="never_logged_in", server_default="never_logged_in"
+    )
+    session_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_validated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String, nullable=False, default="active", server_default="active")
+
+    __table_args__ = (
+        UniqueConstraint(
+            "client_id", "platform", "account_name", name="uq_publish_accounts_client_platform_name"
+        ),
+    )
+
+
+class CasePublishTargetRow(TimestampMixin, Base):
+    __tablename__ = "case_publish_targets"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    case_id: Mapped[str] = mapped_column(ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
+    account_id: Mapped[str] = mapped_column(
+        ForeignKey("publish_accounts.id", ondelete="CASCADE"), nullable=False
+    )
+    enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default=text("true"))
+
+    __table_args__ = (
+        UniqueConstraint("case_id", "account_id", name="uq_case_publish_targets_case_account"),
+    )
+
+
 class YieldFunnelEventRow(TimestampMixin, Base):
     __tablename__ = "yield_funnel_events"
 

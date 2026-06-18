@@ -236,7 +236,7 @@ def submit_publish_batch(
     batch = repo.publish_batches.get(batch_id)
     if batch is None:
         return not_found_response("Publish batch not found")
-    # Resolve the publish adapter (sandbox by default; xiaovmao.cdp via the
+    # Resolve the publish adapter (sandbox by default; a production adapter via the
     # CUTAGENT_PUBLISH_ADAPTER feature flag or an explicit override) and normalize
     # the Asia/Shanghai schedule (§23.7). A 'scheduled' submit yields scheduled
     # attempts that have not yet published.
@@ -574,8 +574,8 @@ def platform_accounts(
     request: Request, account_group: str | None = None, case_name: str | None = None, adapter_id: str | None = None
 ) -> c.PlatformAccountList:
     """List publish accounts discoverable through the resolved platform adapter
-    (§28.3 platform-accounts). The 小V猫 adapter requires the live desktop app
-    (UNVERIFIED); the sandbox adapter returns a deterministic stub set."""
+    (§28.3 platform-accounts). The sandbox adapter returns a deterministic stub
+    set until a real platform adapter is wired."""
     adapter = select_adapter(adapter_id)
     accounts, available, reason = adapter.probe_accounts(account_group=account_group, case_name=case_name)
     return c.PlatformAccountList(

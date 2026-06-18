@@ -1,13 +1,11 @@
-"""PublishPlatformAdapter port: sandbox behavior, feature-flag selection, xiaovmao skeleton."""
+"""PublishPlatformAdapter port: sandbox behavior + feature-flag adapter selection."""
 
 from __future__ import annotations
 
 from packages.publishing.platform_adapter import (
     SANDBOX_ADAPTER_ID,
-    XIAOVMAO_ADAPTER_ID,
     PublishPayload,
     SandboxPublishAdapter,
-    XiaoVmaoPublishAdapter,
     resolve_adapter_id,
     select_adapter,
 )
@@ -19,16 +17,24 @@ def test_resolve_adapter_id_defaults_to_sandbox(monkeypatch):
 
 
 def test_resolve_adapter_id_honors_explicit_and_flag(monkeypatch):
-    assert resolve_adapter_id("xiaovmao.cdp") == "xiaovmao.cdp"
-    monkeypatch.setenv("CUTAGENT_PUBLISH_ADAPTER", "xiaovmao.cdp")
-    assert resolve_adapter_id() == "xiaovmao.cdp"
+    assert resolve_adapter_id("douyin.web") == "douyin.web"
+    monkeypatch.setenv("CUTAGENT_PUBLISH_ADAPTER", "douyin.web")
+    assert resolve_adapter_id() == "douyin.web"
 
 
-def test_select_adapter_returns_xiaovmao_when_flagged(monkeypatch):
-    monkeypatch.setenv("CUTAGENT_PUBLISH_ADAPTER", "xiaovmao.cdp")
+def test_select_adapter_defaults_to_sandbox(monkeypatch):
+    monkeypatch.delenv("CUTAGENT_PUBLISH_ADAPTER", raising=False)
     adapter = select_adapter()
-    assert isinstance(adapter, XiaoVmaoPublishAdapter)
-    assert adapter.adapter_id == XIAOVMAO_ADAPTER_ID
+    assert isinstance(adapter, SandboxPublishAdapter)
+    assert adapter.adapter_id == SANDBOX_ADAPTER_ID
+
+
+def test_select_adapter_falls_back_to_sandbox_for_unregistered_id(monkeypatch):
+    # No production adapter is registered yet; an unknown id must fall back to the
+    # sandbox adapter rather than hitting a non-existent adapter.
+    monkeypatch.setenv("CUTAGENT_PUBLISH_ADAPTER", "douyin.web")
+    adapter = select_adapter()
+    assert isinstance(adapter, SandboxPublishAdapter)
 
 
 def test_sandbox_adapter_publishes_successfully():
@@ -63,13 +69,3 @@ def test_sandbox_adapter_probe_accounts_returns_stub_set():
     assert available is True
     assert reason is None
     assert {a.platform for a in accounts} == {"douyin", "kuaishou", "shipinhao", "xiaohongshu"}
-
-
-def test_xiaovmao_adapter_publish_degrades_when_app_unreachable():
-    # UNVERIFIED real-platform adapter: with no live 小V猫 app reachable, publish
-    # must return a non-success outcome (never fabricate a publish).
-    adapter = XiaoVmaoPublishAdapter(host="127.0.0.1", port=59999)
-    outcome = adapter.publish(PublishPayload(title="t", platforms=("douyin",)))
-    assert outcome.success is False
-    assert outcome.adapter_id == XIAOVMAO_ADAPTER_ID
-    assert outcome.error_message

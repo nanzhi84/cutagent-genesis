@@ -21,7 +21,6 @@ from packages.publishing.platform_adapter import (
     PublishPayload,
     PublishPlatformAdapter,
     SandboxPublishAdapter,
-    XiaoVmaoPublishAdapter,
     resolve_adapter_id,
     select_adapter,
 )
@@ -43,7 +42,6 @@ __all__ = [
     "PublishPayload",
     "PublishPlatformAdapter",
     "SandboxPublishAdapter",
-    "XiaoVmaoPublishAdapter",
     "resolve_adapter_id",
     "select_adapter",
 ]

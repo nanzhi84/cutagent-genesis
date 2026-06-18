@@ -261,7 +261,7 @@ export default function PublishCenterPage() {
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-status-warning/25 bg-status-warning/10 px-4 py-3 text-sm text-status-warning">
         <span className="inline-flex items-center gap-2">
           <RadioTower className="h-4 w-4" />
-          小V猫真实发布需在发布主机启用 CUTAGENT_PUBLISH_ADAPTER 适配器（未对真实平台验证）。
+          真实发布需在发布主机启用 CUTAGENT_PUBLISH_ADAPTER 适配器（未对真实平台验证）。
         </span>
         <span>当前默认走沙盒适配器：发布文案、封面（截帧回退）与定时/标签/地点均已生效。</span>
       </div>

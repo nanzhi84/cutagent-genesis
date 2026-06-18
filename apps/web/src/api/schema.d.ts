@@ -5592,8 +5592,7 @@ export interface components {
         /**
          * PlatformAccount
          * @description A publish account discoverable through the platform adapter (§28.3
-         *     platform-accounts). UNVERIFIED against the live 小V猫 app; the sandbox adapter
-         *     returns a deterministic stub set.
+         *     platform-accounts). The sandbox adapter returns a deterministic stub set.
          */
         PlatformAccount: {
             /** Uid */

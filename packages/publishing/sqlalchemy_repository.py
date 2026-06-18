@@ -245,8 +245,8 @@ class SqlAlchemyPublishingRepository:
                     "At least one publish item must be selected.",
                 )
 
-            # Resolve the publish adapter (sandbox by default; xiaovmao.cdp via
-            # CUTAGENT_PUBLISH_ADAPTER or an explicit override) and normalize the
+            # Resolve the publish adapter (sandbox by default; a production adapter
+            # via CUTAGENT_PUBLISH_ADAPTER or an explicit override) and normalize the
             # Asia/Shanghai schedule. ``scheduled`` produces a 'scheduled' attempt.
             adapter = select_adapter(payload.adapter_id)
             scheduled_at = normalize_scheduled_at(payload.mode, payload.scheduled_at)

@@ -42,35 +42,27 @@ def summarize_window(
 
     dxs: list[float] = []
     dys: list[float] = []
-    rotations: list[float] = []
     for pair in pairs:
-        dx, dy, rot = _coerce_pair(pair)
+        dx, dy = _coerce_pair(pair)
         dxs.append(dx)
         dys.append(dy)
-        rotations.append(abs(rot))
 
     count = len(dxs)
     if count == 0:
         return {
             "pairs": 0,
             "duration_sec": 0.0,
-            "mag_p50": 0.0,
-            "mag_p90": 0.0,
             "mag_p95": 0.0,
-            "max": 0.0,
             "active_ratio": 0.0,
             "hard_ratio": 0.0,
             "max_active_run": 0,
             "cum_x_range": 0.0,
             "cum_y_range": 0.0,
-            "net_x": 0.0,
             "net_y": 0.0,
             "straightness_ratio": 0.0,
             "direction_flip_ratio": 0.0,
             "jerk_p90": 0.0,
             "residual_to_p95_ratio": 0.0,
-            "rot_p95_deg": 0.0,
-            "path_length": 0.0,
         }
 
     mags = [math.hypot(dx, dy) for dx, dy in zip(dxs, dys, strict=True)]
@@ -100,23 +92,17 @@ def summarize_window(
     return {
         "pairs": count,
         "duration_sec": round(count / sample_fps, _TIME_DECIMALS),
-        "mag_p50": round(_percentile(mags, 50), 3),
-        "mag_p90": round(_percentile(mags, 90), 3),
         "mag_p95": round(p95, 3),
-        "max": round(max(mags), 3),
         "active_ratio": round(sum(active) / count, 3),
         "hard_ratio": round(sum(hard) / count, 3),
         "max_active_run": max_active_run,
         "cum_x_range": round(max(cumulative_x) - min(cumulative_x), 3),
         "cum_y_range": round(max(cumulative_y) - min(cumulative_y), 3),
-        "net_x": round(net_x, 3),
         "net_y": round(net_y, 3),
         "straightness_ratio": round(straightness, 3),
         "direction_flip_ratio": round(direction_flip_ratio, 3),
         "jerk_p90": round(_percentile(jerk, 90), 3),
         "residual_to_p95_ratio": round(residual_p90 / (p95 + 1e-6), 3),
-        "rot_p95_deg": round(_percentile(rotations, 95), 4),
-        "path_length": round(path_length, 3),
     }
 
 
@@ -426,12 +412,11 @@ def detect_motion_events(
             return []
 
         pair_estimates: list[dict[str, float]] = []
-        for (previous_time, previous), (current_time, current) in zip(frames, frames[1:]):
+        for (_previous_time, previous), (current_time, current) in zip(frames, frames[1:]):
             estimate = _estimate_pair(cv2, np, previous, current)
             if estimate is None:
                 continue
             estimate["time"] = float(current_time)
-            estimate["previous_time"] = float(previous_time)
             pair_estimates.append(estimate)
         if not pair_estimates:
             return []
@@ -656,7 +641,7 @@ def _estimate_pair(cv2_module, np_module, previous, current) -> dict[str, float]
     if len(good0) < 12:
         return None
 
-    matrix, inliers = cv2_module.estimateAffinePartial2D(
+    matrix, _inliers = cv2_module.estimateAffinePartial2D(
         good0,
         good1,
         method=cv2_module.RANSAC,
@@ -667,35 +652,20 @@ def _estimate_pair(cv2_module, np_module, previous, current) -> dict[str, float]
     if matrix is None:
         flow = good1 - good0
         dx, dy = np_module.median(flow, axis=0)
-        rotation = 0.0
-        inlier_ratio = 0.0
     else:
         dx = float(matrix[0, 2])
         dy = float(matrix[1, 2])
-        rotation = math.degrees(math.atan2(float(matrix[1, 0]), float(matrix[0, 0])))
-        inlier_ratio = float(inliers.mean()) if inliers is not None else 0.0
 
-    return {
-        "dx": float(dx),
-        "dy": float(dy),
-        "rot_deg": float(rotation),
-        "mag": float(math.hypot(float(dx), float(dy))),
-        "inlier_ratio": inlier_ratio,
-        "tracks": float(len(good0)),
-    }
+    return {"dx": float(dx), "dy": float(dy)}
 
 
-def _resolve_thresholds(
-    thresholds: Mapping[str, Any] | None = None,
-    **overrides: Any,
-) -> dict[str, Any]:
+def _resolve_thresholds(thresholds: Mapping[str, Any] | None = None) -> dict[str, Any]:
     try:
         resolved = build_settings().motion_guard.model_dump()
     except Exception:
         resolved = MotionGuardSettings().model_dump()
     if thresholds:
         resolved.update({key: value for key, value in thresholds.items() if value is not None})
-    resolved.update({key: value for key, value in overrides.items() if value is not None})
     return resolved
 
 
@@ -709,16 +679,12 @@ def _load_cv2_numpy():
     return cv2, np
 
 
-def _coerce_pair(pair: tuple[float, float, float] | Mapping[str, Any]) -> tuple[float, float, float]:
+def _coerce_pair(pair: tuple[float, float] | Mapping[str, Any]) -> tuple[float, float]:
     if isinstance(pair, Mapping):
-        return (
-            _as_float(pair.get("dx"), 0.0),
-            _as_float(pair.get("dy"), 0.0),
-            _as_float(pair.get("rot_deg"), 0.0),
-        )
-    if len(pair) < 3:
-        return (0.0, 0.0, 0.0)
-    return (_as_float(pair[0], 0.0), _as_float(pair[1], 0.0), _as_float(pair[2], 0.0))
+        return (_as_float(pair.get("dx"), 0.0), _as_float(pair.get("dy"), 0.0))
+    if len(pair) < 2:
+        return (0.0, 0.0)
+    return (_as_float(pair[0], 0.0), _as_float(pair[1], 0.0))
 
 
 def _percentile(values: Sequence[float], percentile: float) -> float:

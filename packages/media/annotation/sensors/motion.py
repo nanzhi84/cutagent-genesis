@@ -401,6 +401,9 @@ def detect_motion_events(
         cv2, np = _load_cv2_numpy()
         if cv2 is None or np is None:
             return []
+        # Pin OpenCV's global RNG so RANSAC affine estimation is reproducible:
+        # material selection must be deterministic, never random (project invariant).
+        cv2.setRNGSeed(0)
         frames, duration = _read_motion_frames(
             cv2,
             np,

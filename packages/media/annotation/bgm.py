@@ -1,25 +1,26 @@
-"""BGM / audio asset annotation: objective features + LLM semantic mood/scene.
+"""BGM / audio asset annotation: librosa-timed usage windows + gated audio listen.
 
 The unified visual annotation runner (:mod:`packages.media.annotation.runner`) is
 keyed on a readable *video* path and only fills portrait/b-roll semantic fields --
 it physically cannot annotate a BGM asset. This module is the audio counterpart so
 the must-retain '素材 AI 标注' flow covers the BGM library: it produces an
-:class:`~packages.core.contracts.AnnotationV4` whose ``quality_report["bgm"]``
-carries the BGM-specific semantics (mood / genre / energy / bpm / tempo_bucket /
-scene_fit / avoid_scene / agent_caption) the editing-agent BGM selection consumes.
+:class:`~packages.core.contracts.AnnotationV4` carrying ``bgm_usage_windows``
+(1-3 recommended excerpts with precise seconds + role/mood/scene) plus a beat grid
+in ``quality_report["bgm"]`` that the editing-agent BGM selection consumes.
 
-Two halves, mirroring the visual path's sensors + gated VLM split:
+Two halves, mirroring the visual path's deterministic sensors + gated semantic split
+(sensors own all timestamps; the semantic model only listens, never reports seconds):
 
-- **objective features** (key-free, deterministic): BPM / energy / tempo_bucket via
-  ``librosa`` when it is installed, and integrated loudness (LUFS) via ffmpeg's
-  ``loudnorm`` analysis pass. ``librosa`` is an OPTIONAL dependency imported lazily;
-  when it is absent we skip the librosa-derived features and keep the ffmpeg LUFS
-  reading -- the annotation still completes, just without bpm/energy/tempo_bucket.
-- **LLM semantic** (gated, paid): an ``llm.chat`` call that infers mood / genre /
-  scene_fit / avoid_scene from the objective features + the asset name. Gated behind
-  a real profile + active secret exactly like the VLM path; without one the run
-  DEGRADES to a sensor-only ``llm_unconfigured`` annotation and never fabricates
-  semantics.
+- **objective features** (key-free, deterministic): BPM / energy / tempo_bucket /
+  beat grid / drops / candidate windows via ``librosa`` when it is installed, and
+  integrated loudness (LUFS) via ffmpeg's ``loudnorm`` pass. ``librosa`` is an
+  OPTIONAL dependency imported lazily; when it is absent there are no windows/beats
+  and the annotation degrades (LUFS-only), never crashing the runner.
+- **audio semantic** (gated, paid): a per-window ``audio.understanding`` call
+  (Qwen-Omni) that listens to each excerpt and fills mood / scene_fit / avoid_scene /
+  role / reason. Gated behind a real profile + active secret exactly like the VLM
+  path; without one (or when a clip's audio URL can't be produced) the window stays
+  sensor-only and no semantics are fabricated.
 
 No real network in tests: the gateway and the feature extractor are injected, so a
 mock gateway / mock features exercise every branch with zero IO.
@@ -54,10 +55,8 @@ LLM_UNCONFIGURED = "llm_unconfigured"
 # Marker for when audio feature extraction yielded nothing usable.
 FEATURES_UNAVAILABLE = "features_unavailable"
 
-# Discrete tempo buckets (clamp LLM output / derive from BPM).
+# Discrete tempo buckets (derive from BPM).
 BGM_TEMPO_BUCKETS = frozenset({"slow", "mid", "fast"})
-# LLM semantic fields that must be present for a COMPLETED annotation.
-_REQUIRED_SEMANTIC_FIELDS = ("mood", "genre")
 
 
 @dataclass
@@ -70,36 +69,6 @@ class BgmAnnotationResult:
 
 
 # Profile gating (same gate as the VLM path: real + enabled + active secret)
-def resolve_llm_profile(
-    gateway: ProviderGateway,
-    *,
-    candidate_profiles: list[ProviderProfile],
-    explicit_profile: ProviderProfile | None = None,
-) -> ProviderProfile | None:
-    """Return a usable real ``llm.chat`` profile, or None to degrade."""
-    ordered = [p for p in (explicit_profile, *candidate_profiles) if p is not None]
-    seen: set[str] = set()
-    for profile in ordered:
-        if profile.id in seen:
-            continue
-        seen.add(profile.id)
-        if _is_real_llm_profile(gateway, profile):
-            return profile
-    return None
-
-
-def _is_real_llm_profile(gateway: ProviderGateway, profile: ProviderProfile) -> bool:
-    if profile.capability != "llm.chat" or not profile.enabled:
-        return False
-    if profile.provider_id == "sandbox":
-        return False
-    if profile.provider_id not in gateway.plugins:
-        return False
-    if profile.secret_ref and not gateway._secret_is_active(profile.secret_ref):
-        return False
-    return True
-
-
 def resolve_audio_profile(
     gateway: ProviderGateway,
     *,
@@ -603,99 +572,6 @@ def _role_from_hint(
     return fallback
 
 
-# LLM semantic call (paid, gated) + normalization
-def _semantic_with_llm(
-    *,
-    gateway: ProviderGateway,
-    profile: ProviderProfile,
-    asset_id: str,
-    case_id: str,
-    asset_title: str,
-    features: dict[str, Any],
-    invocation_ids: list[str],
-) -> dict[str, Any]:
-    prompt = _build_semantic_prompt(asset_id=asset_id, asset_title=asset_title, features=features)
-    invocation, result = gateway.invoke(
-        ProviderCall(
-            case_id=case_id,
-            provider_profile_id=profile.id,
-            capability_id="llm.chat",
-            input={"prompt": prompt, "asset_id": asset_id},
-            idempotency_key=f"bgm-anno-{asset_id}",
-        )
-    )
-    invocation_ids.append(invocation.id)
-    if result is None or invocation.error is not None:
-        message = invocation.error.message if invocation.error else "BGM LLM provider failed."
-        raise RuntimeError(message)
-    content = _content_from_output(result.output)
-    data = _extract_json_object(content)
-    if not isinstance(data, dict):
-        raise ValueError("BGM LLM annotation could not be parsed as a JSON object.")
-    return data
-
-
-def _build_semantic_prompt(*, asset_id: str, asset_title: str, features: dict[str, Any]) -> str:
-    payload = {
-        "bgm_id": asset_id,
-        "bgm_name": asset_title,
-        "objective_features": {
-            "bpm": features.get("bpm"),
-            "energy": features.get("energy"),
-            "tempo_bucket": features.get("tempo_bucket"),
-            "loudness_lufs": features.get("loudness_lufs"),
-        },
-        "required_schema": {
-            "mood": "one short mood label, e.g. inspirational/tense/calm/upbeat",
-            "genre": "one short genre label, e.g. ambient/edm/pop/orchestral",
-            "scene_fit": ["2-6 short Chinese scenes this BGM fits"],
-            "avoid_scene": ["0-4 short Chinese scenes to avoid"],
-            "agent_caption": "one Chinese sentence for editing-agent BGM selection",
-        },
-    }
-    return (
-        "你是短视频 BGM 资产标注员。结合给定的客观音频特征(BPM/能量/速度桶/响度)"
-        "与曲名常识推断情绪、曲风与适配场景，只返回一个合法 JSON 对象，"
-        "不要输出 markdown、解释或多余文字。\n"
-        f"{json.dumps(payload, ensure_ascii=False)}"
-    )
-
-
-def _normalize_semantics(raw: dict[str, Any], *, features: dict[str, Any]) -> dict[str, Any]:
-    """Validate + normalize LLM semantics; raise when required fields are absent."""
-    data = raw if isinstance(raw, dict) else {}
-    for name in _REQUIRED_SEMANTIC_FIELDS:
-        if not str(data.get(name) or "").strip():
-            raise ValueError(f"BGM annotation missing required field: {name}")
-    mood = str(data.get("mood")).strip()
-    genre = str(data.get("genre")).strip()
-    scene_fit = _compact_str_list(data.get("scene_fit"), 6)
-    avoid_scene = _compact_str_list(data.get("avoid_scene"), 4)
-    agent_caption = str(data.get("agent_caption") or "").strip()
-
-    # tempo_bucket is objective-derived when available; otherwise accept the LLM's
-    # value only if it is a legal bucket (never fabricate an illegal one).
-    tempo_bucket = str(features.get("tempo_bucket") or "").strip()
-    if tempo_bucket not in BGM_TEMPO_BUCKETS:
-        llm_bucket = str(data.get("tempo_bucket") or "").strip().lower()
-        tempo_bucket = llm_bucket if llm_bucket in BGM_TEMPO_BUCKETS else ""
-
-    retrieval_text = " ".join(
-        part for part in (mood, genre, tempo_bucket, agent_caption, *scene_fit) if part
-    )
-    semantics = {
-        "mood": mood,
-        "genre": genre,
-        "scene_fit": scene_fit,
-        "avoid_scene": avoid_scene,
-        "agent_caption": agent_caption,
-        "retrieval_text": retrieval_text,
-    }
-    if tempo_bucket:
-        semantics["tempo_bucket"] = tempo_bucket
-    return semantics
-
-
 def _compact_str_list(value: Any, limit: int) -> list[str]:
     if not isinstance(value, list):
         return []
@@ -749,7 +625,6 @@ def _extract_json_object(raw: str) -> dict | None:
 def _bgm_quality_report(
     *,
     features: dict[str, Any],
-    semantics: dict[str, Any] | None,
     status: str,
     windows: list[BgmUsageWindowV4] | None = None,
     error: str | None = None,
@@ -787,20 +662,6 @@ def _bgm_quality_report(
                     ),
                 }
             )
-    if semantics:
-        bgm.update(
-            {
-                "mood": semantics.get("mood"),
-                "genre": semantics.get("genre"),
-                "scene_fit": semantics.get("scene_fit", []),
-                "avoid_scene": semantics.get("avoid_scene", []),
-                "agent_caption": semantics.get("agent_caption", ""),
-                "retrieval_text": semantics.get("retrieval_text", ""),
-            }
-        )
-        if semantics.get("tempo_bucket"):
-            bgm["tempo_bucket"] = semantics["tempo_bucket"]
-        bgm["source"] = "librosa+llm" if features.get("librosa_available") else "ffmpeg+llm"
     if error:
         bgm["error"] = error
     return {"bgm": bgm}
@@ -822,20 +683,6 @@ def _meta(
     )
 
 
-def _completed_annotation(
-    *,
-    asset_id: str,
-    case_id: str,
-    duration: float,
-    features: dict[str, Any],
-    semantics: dict[str, Any],
-) -> AnnotationV4:
-    return AnnotationV4(
-        meta=_meta(asset_id, case_id, duration, AnnotationStatus.completed),
-        quality_report=_bgm_quality_report(features=features, semantics=semantics, status="ok"),
-    )
-
-
 def _annotation_with_windows(
     *,
     asset_id: str,
@@ -850,7 +697,6 @@ def _annotation_with_windows(
         bgm_usage_windows=windows,
         quality_report=_bgm_quality_report(
             features=features,
-            semantics=None,
             windows=windows,
             status=status,
         ),
@@ -867,23 +713,7 @@ def _degraded_annotation(
 ) -> AnnotationV4:
     return AnnotationV4(
         meta=_meta(asset_id, case_id, duration, AnnotationStatus.failed),
-        quality_report=_bgm_quality_report(features=features, semantics=None, status=reason),
-    )
-
-
-def _failed_annotation(
-    *,
-    asset_id: str,
-    case_id: str,
-    duration: float,
-    features: dict[str, Any],
-    error: str,
-) -> AnnotationV4:
-    return AnnotationV4(
-        meta=_meta(asset_id, case_id, duration, AnnotationStatus.failed),
-        quality_report=_bgm_quality_report(
-            features=features, semantics=None, status="failed", error=error
-        ),
+        quality_report=_bgm_quality_report(features=features, status=reason),
     )
 
 
@@ -893,7 +723,6 @@ __all__ = [
     "extract_audio_features",
     "measure_loudness_lufs",
     "resolve_audio_profile",
-    "resolve_llm_profile",
     "LLM_UNCONFIGURED",
     "FEATURES_UNAVAILABLE",
     "BGM_TEMPO_BUCKETS",

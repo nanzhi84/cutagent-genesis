@@ -120,7 +120,9 @@ class _FakeMediaRepo:
         annotation_status,
         usable,
         case_id=None,
+        editable_paths=None,
     ):
+        paths = list(editable_paths or ["/labels", "/usable", "/title"])
         self.persisted.append(
             {
                 "asset_id": asset_id,
@@ -129,6 +131,7 @@ class _FakeMediaRepo:
                 "annotation_status": annotation_status,
                 "usable": usable,
                 "case_id": case_id,
+                "editable_paths": paths,
             }
         )
         return c.AnnotationEditorVm(
@@ -136,7 +139,7 @@ class _FakeMediaRepo:
             etag="etag_bgm",
             canonical=canonical,
             projection=projection,
-            editable_paths=["/labels", "/usable", "/title", "/canonical/bgm_usage_windows"],
+            editable_paths=paths,
         )
 
 
@@ -171,3 +174,4 @@ def test_sqlalchemy_bgm_rerun_uses_audio_understanding_profile_and_urlizer(monke
     assert callable(calls[0]["audio_url_for_window"])
     assert media_repo.persisted[0]["projection"]["bgm_usage_windows"][0]["segment_id"] == "win_drop"
     assert media_repo.persisted[0]["projection"]["bgm"]["beats"] == [12.0, 16.0, 20.0]
+    assert "/canonical/bgm_usage_windows" in media_repo.persisted[0]["editable_paths"]

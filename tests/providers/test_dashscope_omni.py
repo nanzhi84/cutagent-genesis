@@ -14,8 +14,12 @@ from packages.core.storage.repository import Repository
 from packages.core.storage.secret_store import LocalSecretStore
 
 
-def _sse(lines: list[dict]) -> bytes:
+def _sse(lines: list[dict], *, usage: dict | None = None) -> bytes:
     chunks = [f"data: {json.dumps(piece, ensure_ascii=False)}\n\n" for piece in lines]
+    if usage is not None:
+        chunks.append(
+            f"data: {json.dumps({'choices': [], 'usage': usage}, ensure_ascii=False)}\n\n"
+        )
     chunks.append("data: [DONE]\n\n")
     return "".join(chunks).encode()
 
@@ -50,18 +54,21 @@ def test_omni_streams_and_parses_json(tmp_path):
         [
             {"choices": [{"delta": {"content": "{\"mood\":"}}]},
             {"choices": [{"delta": {"content": " \"燃\", \"scene_fit\": [\"高光\"]}"}}]},
-        ]
+        ],
+        usage={"prompt_tokens": 21, "completion_tokens": 8, "total_tokens": 29},
     )
 
     def handler(request: httpx.Request) -> httpx.Response:
         payload = json.loads(request.content)
         assert payload["stream"] is True
+        assert payload["stream_options"] == {"include_usage": True}
         assert payload["modalities"] == ["text"]
         assert payload["model"] == "qwen3.5-omni-plus"
         content = payload["messages"][0]["content"]
         assert any(part.get("type") == "input_audio" for part in content)
         audio_part = next(part for part in content if part.get("type") == "input_audio")
         assert audio_part["input_audio"]["data"] == "https://x/clip.mp3"
+        assert audio_part["input_audio"]["format"] == "mp3"
         return httpx.Response(200, content=body)
 
     provider = DashScopeOmniProvider(httpx.Client(transport=httpx.MockTransport(handler)))
@@ -79,7 +86,10 @@ def test_omni_streams_and_parses_json(tmp_path):
     assert result.output["content"] == '{"mood": "燃", "scene_fit": ["高光"]}'
     assert result.output["intent"]["mood"] == "燃"
     assert result.output["intent"]["scene_fit"] == ["高光"]
+    assert result.input_tokens == 21
+    assert result.output_tokens == 8
     assert result.raw_usage["provider_response"]["streamed"] is True
+    assert result.raw_usage["provider_response"]["usage"]["total_tokens"] == 29
 
 
 def test_omni_rejects_wrong_capability(tmp_path):

@@ -179,21 +179,27 @@ class DashScopeOmniProvider:
                     ErrorCode.provider_unsupported_option,
                     "audio_uri is required.",
                 )
+            audio_format = str(call.input.get("audio_format") or "mp3").lstrip(".").lower()
             messages = [
                 {
                     "role": "user",
                     "content": [
                         {"type": "text", "text": prompt},
-                        {"type": "input_audio", "input_audio": {"data": audio_uri}},
+                        {
+                            "type": "input_audio",
+                            "input_audio": {"data": audio_uri, "format": audio_format},
+                        },
                     ],
                 }
             ]
-        content = _chat_completion_stream(self.client, call, context, messages)
+        content, usage = _chat_completion_stream(self.client, call, context, messages)
         intent = _parse_json_object(content)
         return ProviderResult(
             output={"content": content, "intent": intent or {"text": content}},
+            input_tokens=int(usage.get("prompt_tokens") or 0),
+            output_tokens=int(usage.get("completion_tokens") or 0),
             audio_seconds=float(call.input.get("audio_seconds") or 0.0),
-            raw_usage={"provider_response": {"streamed": True}},
+            raw_usage={"provider_response": {"streamed": True, "usage": usage}},
         )
 
 
@@ -225,15 +231,17 @@ def _chat_completion_stream(
     call: ProviderCall,
     context: ProviderInvocationContext,
     messages: list,
-) -> str:
+) -> tuple[str, dict[str, Any]]:
     api_key = require_secret(context)
     payload = {
         "model": context.profile.model_id,
         "messages": messages,
         "modalities": ["text"],
         "stream": True,
+        "stream_options": {"include_usage": True},
     }
     parts: list[str] = []
+    usage: dict[str, Any] = {}
     with client.stream(
         "POST",
         _chat_url(context.profile.default_options),
@@ -258,12 +266,15 @@ def _chat_completion_stream(
             except json.JSONDecodeError:
                 continue
             choices = chunk.get("choices") or []
+            raw_usage = chunk.get("usage")
+            if isinstance(raw_usage, dict):
+                usage = raw_usage
             if choices and isinstance(choices[0], dict):
                 delta = choices[0].get("delta") or {}
                 piece = delta.get("content")
                 if isinstance(piece, str):
                     parts.append(piece)
-    return "".join(parts)
+    return "".join(parts), usage
 
 
 def _chat_url(options: dict[str, Any]) -> str:

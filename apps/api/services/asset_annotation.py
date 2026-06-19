@@ -402,6 +402,7 @@ def _run_sqlalchemy_bgm_annotation(
         annotation_status=annotation_status,
         usable=usable,
         case_id=asset.case_id,
+        editable_paths=["/labels", "/usable", "/title", "/canonical/bgm_usage_windows"],
     )
     if editor is None:
         return c.AnnotationRunResponse(asset_id=asset.id, run_id=None, status="failed")

@@ -15,7 +15,7 @@ from apps.api.common import (
 from packages.core import contracts as c
 from packages.core.storage.repository import new_id
 from packages.media.assets import local_object_path
-from packages.media.video.ffmpeg import probe_media
+from packages.media.video.ffmpeg import FfmpegCommandError, probe_media
 
 def import_batch(payload: c.CreateImportBatchRequest, request: Request) -> c.ImportBatchReport:
     if production_repository(request) is not None:
@@ -300,7 +300,7 @@ def _probe_import_media_if_local(request: Request, uri: str) -> c.MediaInfo | No
         return None
     try:
         return probe_media(local_object_path(object_store(request), uri))
-    except Exception:
+    except (FfmpegCommandError, OSError, ValueError):
         return None
 
 

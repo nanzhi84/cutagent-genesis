@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import shutil
 
 from packages.core.storage.object_store import (
     LocalObjectStore,
@@ -181,5 +180,3 @@ def test_s3_upload_file_copies_into_disk_cache(tmp_path):
     # Resolving the path again hits the warm cache (no download).
     assert store._path(stored.ref) == cache_path
     assert client.download_file_calls == []
-    # shutil is exercised; keep the import live.
-    assert callable(shutil.copyfile)

@@ -53,7 +53,7 @@ def read_first_sheet(xlsx_path: str | Path) -> list[dict[str, str]]:
         raise FileNotFoundError(path)
     try:
         import openpyxl
-    except Exception as exc:  # pragma: no cover - exercised only without openpyxl
+    except ImportError as exc:  # pragma: no cover - exercised only without openpyxl
         raise XlsxUnsupportedError(
             "openpyxl is required to parse OceanEngine XLSX exports"
         ) from exc

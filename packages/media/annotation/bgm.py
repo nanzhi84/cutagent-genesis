@@ -42,6 +42,8 @@ from packages.core.contracts import (
     AnnotationStatus,
     AnnotationV4,
     AnnotationVersion,
+    BgmSegmentRole,
+    BgmUsageWindowV4,
     ProviderProfile,
 )
 
@@ -88,6 +90,36 @@ def resolve_llm_profile(
 
 def _is_real_llm_profile(gateway: ProviderGateway, profile: ProviderProfile) -> bool:
     if profile.capability != "llm.chat" or not profile.enabled:
+        return False
+    if profile.provider_id == "sandbox":
+        return False
+    if profile.provider_id not in gateway.plugins:
+        return False
+    if profile.secret_ref and not gateway._secret_is_active(profile.secret_ref):
+        return False
+    return True
+
+
+def resolve_audio_profile(
+    gateway: ProviderGateway,
+    *,
+    candidate_profiles: list[ProviderProfile],
+    explicit_profile: ProviderProfile | None = None,
+) -> ProviderProfile | None:
+    """Return a usable real ``audio.understanding`` profile, or None to degrade."""
+    ordered = [p for p in (explicit_profile, *candidate_profiles) if p is not None]
+    seen: set[str] = set()
+    for profile in ordered:
+        if profile.id in seen:
+            continue
+        seen.add(profile.id)
+        if _is_real_audio_profile(gateway, profile):
+            return profile
+    return None
+
+
+def _is_real_audio_profile(gateway: ProviderGateway, profile: ProviderProfile) -> bool:
+    if profile.capability != "audio.understanding" or not profile.enabled:
         return False
     if profile.provider_id == "sandbox":
         return False
@@ -350,16 +382,11 @@ def annotate_bgm(
     duration: float,
     asset_title: str = "",
     gateway: ProviderGateway,
-    llm_profile: ProviderProfile | None,
+    audio_profile: ProviderProfile | None,
+    audio_url_for_window: Callable[[float, float], str | None] | None = None,
     feature_extractor: Callable[[str | Path], dict[str, Any]] | None = None,
 ) -> BgmAnnotationResult:
-    """Annotate one BGM/audio asset, gating the paid LLM path behind a real profile.
-
-    ``feature_extractor`` is injectable so tests run without real ffmpeg / librosa.
-    Without a real ``llm.chat`` profile the run DEGRADES: objective features are
-    still recorded, but no semantic mood/genre is fabricated and the annotation is
-    marked ``llm_unconfigured`` / failed.
-    """
+    """Annotate one BGM/audio asset into objective windows plus optional audio semantics."""
     extractor = feature_extractor or extract_audio_features
     try:
         features = dict(extractor(audio_path) or {})
@@ -367,51 +394,213 @@ def annotate_bgm(
         logger.warning("[bgm] feature extraction errored for %s: %s", asset_id, exc)
         features = {}
 
-    if llm_profile is None:
+    raw_windows = features.get("candidate_windows") or []
+    if not raw_windows:
         annotation = _degraded_annotation(
             asset_id=asset_id,
             case_id=case_id,
             duration=duration,
             features=features,
-            reason=LLM_UNCONFIGURED,
-        )
-        return BgmAnnotationResult(annotation=annotation, llm_configured=False)
-
-    invocation_ids: list[str] = []
-    try:
-        raw = _semantic_with_llm(
-            gateway=gateway,
-            profile=llm_profile,
-            asset_id=asset_id,
-            case_id=case_id,
-            asset_title=asset_title,
-            features=features,
-            invocation_ids=invocation_ids,
-        )
-        semantics = _normalize_semantics(raw, features=features)
-    except Exception as exc:
-        logger.warning("[bgm] LLM semantic annotation failed for %s: %s", asset_id, exc)
-        annotation = _failed_annotation(
-            asset_id=asset_id,
-            case_id=case_id,
-            duration=duration,
-            features=features,
-            error=str(exc),
+            reason=FEATURES_UNAVAILABLE,
         )
         return BgmAnnotationResult(
-            annotation=annotation, llm_configured=True, provider_invocation_ids=invocation_ids
+            annotation=annotation,
+            llm_configured=audio_profile is not None,
         )
 
-    annotation = _completed_annotation(
+    invocation_ids: list[str] = []
+    windows = _sensor_windows(raw_windows)
+    if audio_profile is not None and audio_url_for_window is not None:
+        enriched: list[BgmUsageWindowV4] = []
+        for index, window in enumerate(windows):
+            updated, invocation_id = _listen_to_window(
+                gateway=gateway,
+                profile=audio_profile,
+                asset_id=asset_id,
+                case_id=case_id,
+                asset_title=asset_title,
+                features=features,
+                window=window,
+                index=index,
+                audio_url_for_window=audio_url_for_window,
+            )
+            if invocation_id:
+                invocation_ids.append(invocation_id)
+            enriched.append(updated)
+        windows = enriched
+
+    if any(window.source == "sensor+audio" for window in windows):
+        status = "ok"
+    elif audio_profile is None:
+        status = LLM_UNCONFIGURED
+    else:
+        status = "sensor"
+    annotation = _annotation_with_windows(
         asset_id=asset_id,
         case_id=case_id,
         duration=duration,
         features=features,
-        semantics=semantics,
+        windows=windows,
+        status=status,
     )
     return BgmAnnotationResult(
-        annotation=annotation, llm_configured=True, provider_invocation_ids=invocation_ids
+        annotation=annotation,
+        llm_configured=audio_profile is not None,
+        provider_invocation_ids=invocation_ids,
     )
+
+
+def _sensor_windows(raw_windows: list[Any]) -> list[BgmUsageWindowV4]:
+    windows: list[BgmUsageWindowV4] = []
+    for index, raw in enumerate(raw_windows):
+        if not isinstance(raw, dict):
+            continue
+        start = float(raw.get("start") or 0.0)
+        end = float(raw.get("end") or 0.0)
+        windows.append(
+            BgmUsageWindowV4(
+                segment_id=f"bgm_window_{index + 1}",
+                start=start,
+                end=end,
+                duration=round(end - start, 3),
+                role=_role_from_hint(raw.get("role_hint")),
+                drop_anchor_sec=raw.get("drop_anchor"),
+                energy=float(raw.get("energy") or 0.0),
+                source="sensor",
+            )
+        )
+    return windows
+
+
+def _listen_to_window(
+    *,
+    gateway: ProviderGateway,
+    profile: ProviderProfile,
+    asset_id: str,
+    case_id: str,
+    asset_title: str,
+    features: dict[str, Any],
+    window: BgmUsageWindowV4,
+    index: int,
+    audio_url_for_window: Callable[[float, float], str | None],
+) -> tuple[BgmUsageWindowV4, str | None]:
+    try:
+        audio_uri = audio_url_for_window(window.start, window.end)
+    except Exception as exc:
+        logger.warning("[bgm] audio window URL failed for %s/%s: %s", asset_id, index, exc)
+        return window, None
+    if not audio_uri:
+        return window, None
+    try:
+        invocation, result = gateway.invoke(
+            ProviderCall(
+                case_id=case_id,
+                provider_profile_id=profile.id,
+                capability_id="audio.understanding",
+                input={
+                    "prompt": _build_window_prompt(
+                        asset_title=asset_title,
+                        window=window,
+                        features=features,
+                    ),
+                    "audio_uri": audio_uri,
+                    "audio_seconds": window.duration,
+                    "asset_id": asset_id,
+                    "segment_id": window.segment_id,
+                },
+                idempotency_key=f"bgm-omni-{asset_id}-{index}",
+            )
+        )
+    except Exception as exc:
+        logger.warning("[bgm] audio semantic annotation failed for %s/%s: %s", asset_id, index, exc)
+        return window, None
+    if result is None or invocation.error is not None:
+        return window, invocation.id
+    intent = _intent_from_output(result.output)
+    if not intent:
+        return window, invocation.id
+    semantics = _normalize_window_semantics(intent, role_hint=window.role)
+    return (
+        window.model_copy(
+            update={
+                "mood": semantics["mood"],
+                "scene_fit": semantics["scene_fit"],
+                "avoid_scene": semantics["avoid_scene"],
+                "role": semantics["role"],
+                "reason": semantics["reason"],
+                "source": "sensor+audio",
+            }
+        ),
+        invocation.id,
+    )
+
+
+def _build_window_prompt(
+    *,
+    asset_title: str,
+    window: BgmUsageWindowV4,
+    features: dict[str, Any],
+) -> str:
+    payload = {
+        "bgm_name": asset_title,
+        "window": {
+            "start": window.start,
+            "end": window.end,
+            "energy": window.energy,
+            "has_drop": window.drop_anchor_sec is not None,
+        },
+        "track": {
+            "bpm": features.get("bpm"),
+            "tempo_bucket": features.get("tempo_bucket"),
+            "loudness_lufs": features.get("loudness_lufs"),
+        },
+        "required_schema": {
+            "mood": "一个简短情绪词",
+            "role": "hook|climax|outro|general",
+            "scene_fit": ["2-6 个该片段适配的中文短视频场景"],
+            "avoid_scene": ["0-4 个应避免的中文场景"],
+            "reason": "一句中文推荐理由",
+        },
+    }
+    return (
+        "你在听一段BGM片段。结合你听到的音乐与给定信息，推断情绪/用途/适配场景，"
+        "只返回一个合法 JSON 对象，不要 markdown 或多余文字。\n"
+        f"{json.dumps(payload, ensure_ascii=False)}"
+    )
+
+
+def _intent_from_output(output: dict[str, Any]) -> dict[str, Any]:
+    intent = output.get("intent") if isinstance(output, dict) else None
+    if isinstance(intent, dict):
+        return intent
+    content = _content_from_output(output)
+    return _extract_json_object(content) or {}
+
+
+def _normalize_window_semantics(
+    raw: dict[str, Any],
+    *,
+    role_hint: BgmSegmentRole,
+) -> dict[str, Any]:
+    data = raw if isinstance(raw, dict) else {}
+    return {
+        "mood": str(data.get("mood") or "").strip(),
+        "scene_fit": _compact_str_list(data.get("scene_fit"), 6),
+        "avoid_scene": _compact_str_list(data.get("avoid_scene"), 4),
+        "role": _role_from_hint(data.get("role"), fallback=role_hint),
+        "reason": str(data.get("reason") or "").strip(),
+    }
+
+
+def _role_from_hint(
+    value: Any,
+    *,
+    fallback: BgmSegmentRole = BgmSegmentRole.general,
+) -> BgmSegmentRole:
+    text = str(value or "").strip().lower()
+    if text in {role.value for role in BgmSegmentRole}:
+        return BgmSegmentRole(text)
+    return fallback
 
 
 # LLM semantic call (paid, gated) + normalization
@@ -562,6 +751,7 @@ def _bgm_quality_report(
     features: dict[str, Any],
     semantics: dict[str, Any] | None,
     status: str,
+    windows: list[BgmUsageWindowV4] | None = None,
     error: str | None = None,
 ) -> dict[str, Any]:
     bgm: dict[str, Any] = {
@@ -571,7 +761,32 @@ def _bgm_quality_report(
         "tempo_bucket": features.get("tempo_bucket"),
         "loudness_lufs": features.get("loudness_lufs"),
         "librosa_available": bool(features.get("librosa_available")),
+        "beats": features.get("beats") or [],
+        "drops": features.get("drops") or [],
     }
+    if windows is not None:
+        bgm["candidate_window_count"] = len(windows)
+        bgm["source"] = (
+            "sensor+audio" if any(w.source == "sensor+audio" for w in windows) else "sensor"
+        )
+        semantic_window = next((w for w in windows if w.source == "sensor+audio"), None)
+        if semantic_window is not None:
+            bgm.update(
+                {
+                    "mood": semantic_window.mood,
+                    "scene_fit": semantic_window.scene_fit,
+                    "avoid_scene": semantic_window.avoid_scene,
+                    "retrieval_text": " ".join(
+                        part
+                        for part in (
+                            semantic_window.mood,
+                            semantic_window.reason,
+                            *semantic_window.scene_fit,
+                        )
+                        if part
+                    ),
+                }
+            )
     if semantics:
         bgm.update(
             {
@@ -591,7 +806,12 @@ def _bgm_quality_report(
     return {"bgm": bgm}
 
 
-def _meta(asset_id: str, case_id: str, duration: float, status: AnnotationStatus) -> AnnotationMetaV4:
+def _meta(
+    asset_id: str,
+    case_id: str,
+    duration: float,
+    status: AnnotationStatus,
+) -> AnnotationMetaV4:
     return AnnotationMetaV4(
         annotation_version=AnnotationVersion.v4,
         asset_id=asset_id,
@@ -613,6 +833,27 @@ def _completed_annotation(
     return AnnotationV4(
         meta=_meta(asset_id, case_id, duration, AnnotationStatus.completed),
         quality_report=_bgm_quality_report(features=features, semantics=semantics, status="ok"),
+    )
+
+
+def _annotation_with_windows(
+    *,
+    asset_id: str,
+    case_id: str,
+    duration: float,
+    features: dict[str, Any],
+    windows: list[BgmUsageWindowV4],
+    status: str,
+) -> AnnotationV4:
+    return AnnotationV4(
+        meta=_meta(asset_id, case_id, duration, AnnotationStatus.completed),
+        bgm_usage_windows=windows,
+        quality_report=_bgm_quality_report(
+            features=features,
+            semantics=None,
+            windows=windows,
+            status=status,
+        ),
     )
 
 
@@ -651,6 +892,7 @@ __all__ = [
     "annotate_bgm",
     "extract_audio_features",
     "measure_loudness_lufs",
+    "resolve_audio_profile",
     "resolve_llm_profile",
     "LLM_UNCONFIGURED",
     "FEATURES_UNAVAILABLE",

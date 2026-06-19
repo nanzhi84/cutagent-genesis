@@ -39,9 +39,7 @@ LEGACY_PROMPT_VARIABLE_HINTS: dict[str, tuple[str, ...]] = {
 # a binding for a template a node actually renders today, so we never imply
 # coverage that does not exist:
 #   - ai_cover_prompt (PublishCover.ai_cover) -> ExportFinishedVideo AI cover node.
-# The migrate_real_prompts script seeds the richer per-variant bindings
-# (CaseAgentScriptGenerate.{persona}.{operation}, MediaAssetAnnotation.broll.*)
-# against a live DB; this default seed only covers the in-memory runtime path.
+# This default seed only covers the in-memory runtime path.
 SEEDED_TEMPLATE_NODE_BINDINGS: dict[str, str] = {
     "prompt_cover_ai_cover": "PublishCover.ai_cover",
 }

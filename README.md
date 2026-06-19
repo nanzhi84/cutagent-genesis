@@ -75,11 +75,10 @@ packages/
   production/   生产流水线（16 节点）、复用、字幕、剪映草稿、编辑器交接
   publishing/   发布仓储与平台适配、文案/封面生成
   ops/          成品率漏斗、余额/对账、预算/告警、Ops 仓储
-  migrations/   遗留资产导入助手（**非** Alembic；DB 迁移在 packages/core/storage/alembic）
 tests/          按域组织的 pytest（约 140 文件）：api/core/creative/media/.../integration/temporal/golden/contract
 scripts/        bootstrap_database · migrate · export_openapi · gc_objectstore · dev_up.sh · ci_gate.sh 等
 deploy/         Temporal 动态配置（无 k8s/terraform 清单）
-docs/           Spec、ROADMAP、milestones/、ops/、audit/
+docs/           Spec、ops/
 ```
 
 每个 `apps/*`、`packages/*` 和 `tests/` 目录下都有一份精简的 `CLAUDE.md`，说明该模块用途与约定。
@@ -226,8 +225,6 @@ scripts/ci_gate.sh
 | --- | --- |
 | `scripts/gc_objectstore.py --max-age-hours 24 --apply` | 回收旧的生成类对象（不带 `--apply` 为 dry-run）；见 [`docs/ops/objectstore-gc.md`](docs/ops/objectstore-gc.md) |
 | `scripts/migrate.py` | 仅执行 Alembic `upgrade head` |
-| `scripts/migrate_legacy_assets.py` | 把遗留 OSS 资产索引导入为 import 批次（dry-run，默认 `--api-base http://127.0.0.1:8021`，`--apply` 落地） |
-| `scripts/migrate_real_prompts.py` / `scripts/backfill_media_fields.py` / `scripts/generate_keyframes.py` | 一次性数据迁移/回填 |
 
 阿里云 OSS 后端（云 ASR strict 时间戳对齐）配置见 [`docs/ops/objectstore-oss.md`](docs/ops/objectstore-oss.md)。
 

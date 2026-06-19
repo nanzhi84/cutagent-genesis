@@ -4,7 +4,7 @@ from collections.abc import Iterable
 from typing import TypeVar
 from uuid import uuid4
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from packages.core.registration_codes import hash_registration_code
 from packages.core.storage.prompt_groups import seed_prompt_groups
@@ -347,9 +347,7 @@ class Repository:
         self.prompt_templates[template.id] = template
         self.prompt_versions[version.id] = version
         self.prompt_bindings[binding.id] = binding
-        # Publishing Copy Node (§2.1 must-retain): generates publish copy
-        # (title / publish_content / cover_title / cover_subtitle). The
-        # publish_copy.output schema is enforced by registry.validate_output.
+        # Publishing copy output is load-bearing and validated by the prompt registry.
         copy_template = PromptTemplate(
             id="prompt_publishing_copy",
             name="Publishing Copy Generator",
@@ -656,7 +654,7 @@ class Repository:
             return None
         try:
             return AnnotationV4.model_validate(vm.canonical)
-        except Exception:
+        except ValidationError:
             return None
 
     def artifact_ref(self, artifact_id: str) -> ArtifactRef:

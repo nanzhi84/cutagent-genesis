@@ -33,7 +33,7 @@ def make_multi_cut_video(
     if out.exists():
         return out
     segs: list[Path] = []
-    for idx, color in enumerate(("red", "green", "blue")):
+    for _idx, color in enumerate(("red", "green", "blue")):
         seg = directory / f"_seg_{color}.mp4"
         _run(
             [

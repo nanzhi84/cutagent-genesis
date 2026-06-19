@@ -192,10 +192,10 @@ def _stage_media_file(source_path: Path, target_dir: Path, used_names: set[str],
     target = target_dir / _unique_name(source.name, used_names)
     try:
         os.link(source, target)
-    except Exception:
+    except OSError:
         try:
             shutil.copy2(source, target)
-        except Exception as exc:
+        except OSError as exc:
             warnings.append(f"素材复制失败，回退原路径: {source} ({exc})")
             return str(source)
     return str(target)

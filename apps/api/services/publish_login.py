@@ -1,9 +1,8 @@
-"""QR-login + session-validation orchestration (publishing center, PR3).
+"""QR-login and session-validation orchestration for publish accounts.
 
-Drives the browser session driver (sandbox default; Playwright/UNVERIFIED on the Mac
-Mini) to start a QR login, poll for the scan, and persist the resulting storage_state
-via PR2's ``store_account_session`` (encrypted in the SecretStore). Also validates a
-stored session against the live creator backend.
+Drives the configured browser session driver to start a QR login, poll for the
+scan, persist the resulting storage_state through ``store_account_session``, and
+validate a stored session against the creator backend.
 
 Pending-login state lives in an in-memory, single-host registry on ``app.state``; the
 storage_state payload is NEVER returned by the API (only ``has_session`` /
@@ -112,10 +111,7 @@ def poll_login(
                 registry.remove(login_id)
                 return not_found_response("Login session not found")
             registry.update(login_id, status="active")
-        elif result.status == "pending":
-            pass  # still waiting for the operator to scan
-        else:
-            # failed, or a "success" with no storage_state — release the browser, mark failed
+        elif result.status != "pending":
             driver.close(login_id)
             registry.update(login_id, status="failed", detail=result.detail or "login did not complete")
         session = registry.get(login_id) or session

@@ -50,7 +50,7 @@ export function PublishReviewStep({
           <StatusPill status={batch.status} />
         </div>
         <div className="rounded-2xl border border-status-info/25 bg-status-info/10 p-4 text-sm leading-6 text-status-info">
-          半自动会生成待人工处理结果；全自动按已配置的发布适配器提交（默认沙盒适配器只写入本地发布记录，启用真实发布适配器后才会真正触达平台）。
+          半自动用于人工发布流程；全自动会生成发布尝试并记录处理结果。
         </div>
         <div className="flex flex-wrap justify-between gap-3 border-t border-border/70 pt-4">
           <button className="btn-secondary" type="button" onClick={onBack}>
@@ -118,7 +118,6 @@ export function PublishReviewStep({
               <StatusPill status={attempt.status} />
             </div>
             <div className="mt-2 flex flex-wrap gap-3 text-xs text-text-tertiary">
-              <span>adapter: {attempt.adapter_id}</span>
               <span>创建 <TimeText value={attempt.created_at} /></span>
               {attempt.finished_at ? <span>完成 <TimeText value={attempt.finished_at} /></span> : null}
             </div>
@@ -127,7 +126,7 @@ export function PublishReviewStep({
         ))}
         {attempts.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border/80 bg-white/50 p-6 text-center text-sm text-text-secondary">
-            尚无发布尝试；提交后会显示 PublishAttempt 状态。
+            尚无发布尝试；提交后会显示状态和时间。
           </div>
         ) : null}
       </div>

@@ -30,9 +30,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-# ----------------------------------------------------------------------------
 # Small env helpers (single point that knows how to read os.environ).
-# ----------------------------------------------------------------------------
 
 
 def _env_str(name: str, default: str) -> str:
@@ -89,9 +87,7 @@ def _default_ephemeral_local_path() -> str:
     return str(Path(tempfile.gettempdir()) / "cutagent-ephemeral")
 
 
-# ----------------------------------------------------------------------------
 # Nested infra settings groups.
-# ----------------------------------------------------------------------------
 
 
 class StorageSettings(BaseModel):
@@ -409,9 +405,7 @@ class Settings(BaseModel):
     redis_url: str | None = None
 
 
-# ----------------------------------------------------------------------------
 # Builder: read os.environ once and assemble a Settings snapshot.
-# ----------------------------------------------------------------------------
 
 
 def build_settings() -> Settings:

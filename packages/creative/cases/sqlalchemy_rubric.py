@@ -41,9 +41,7 @@ import packages.creative.cases.rubric as rubric
 from packages.creative.cases.sqlalchemy_learning_mappers import script_version_row_to_contract
 
 
-# ---------------------------------------------------------------------------
 # Row -> contract mappers
-# ---------------------------------------------------------------------------
 
 def case_rubric_row_to_contract(row: CaseRubricRow) -> CaseRubric:
     return CaseRubric(
@@ -145,9 +143,7 @@ def _performance_observation_row_to_contract(row: PerformanceObservationRow) -> 
     )
 
 
-# ---------------------------------------------------------------------------
 # Contract -> row mappers
-# ---------------------------------------------------------------------------
 
 def _case_rubric_to_row(rubric_card: CaseRubric) -> CaseRubricRow:
     return CaseRubricRow(
@@ -251,9 +247,7 @@ def _performance_score_to_row(score: PerformanceScore) -> PerformanceScoreRow:
     )
 
 
-# ---------------------------------------------------------------------------
 # Repository
-# ---------------------------------------------------------------------------
 
 class SqlAlchemyCaseRubricRepository:
     """DB-backed store for rubrics, blind predictions, reward signals & bumps."""

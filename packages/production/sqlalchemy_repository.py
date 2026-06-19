@@ -101,7 +101,7 @@ from packages.media.sqlalchemy_repository import (
     media_asset_row_to_contract,
     voice_row_to_contract,
 )
-from packages.media.video.ffmpeg import probe_media
+from packages.media.video.ffmpeg import FfmpegCommandError, probe_media
 from packages.production.editor_handoff import EditorHandoffAsset, EditorHandoffBuilder, EditorHandoffInput
 from packages.production.finished_video_numbering import next_finished_video_number
 from packages.production.pipeline.node_sequence import expected_node_count
@@ -1455,7 +1455,7 @@ class SqlAlchemyProductionRepository:
             return None
         try:
             return probe_media(local_object_path(self.object_store, uri))
-        except Exception:
+        except (FfmpegCommandError, OSError, ValueError):
             return None
 
     def _job_row(self, job: Job) -> JobRow:

@@ -77,7 +77,7 @@ class ProviderInvocationContext:
                 details=details,
             )
             self.repository.audit_events[event.id] = event
-        except Exception:  # noqa: BLE001 - best-effort audit must not kill provider call
+        except Exception:
             logger.warning(
                 "secret.read audit failed for provider_id=%s secret_ref=%s (continuing)",
                 self.profile.provider_id,

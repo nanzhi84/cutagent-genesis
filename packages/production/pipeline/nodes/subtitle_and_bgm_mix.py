@@ -46,7 +46,7 @@ def _resolve_selected_font(ctx: NodeContext, style: dict, runtime_dir) -> tuple[
     try:
         font_artifact = ctx.source_artifact_for_asset(font_asset_id)
         font_path = ctx.artifact_path(font_artifact)
-    except Exception:  # noqa: BLE001 - missing font asset must degrade, not crash
+    except Exception:
         return None, font_asset_id
     asset = ctx.repository.media_assets.get(font_asset_id)
     fallback_name = getattr(asset, "title", None) if asset is not None else None

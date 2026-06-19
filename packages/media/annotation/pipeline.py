@@ -60,9 +60,7 @@ from .sensors import max_faces_in_frame_paths
 logger = logging.getLogger("packages.media.annotation.pipeline")
 
 
-# ===========================================================================
 # Failure signal: a window exhausted its retries.
-# ===========================================================================
 class WindowFailed(AnnotationV4Error):
     """A window exhausted its retries -> trigger an explicit whole-asset failure.
 
@@ -142,9 +140,7 @@ class V4Config:
     min_confidence: float = 0.3
 
 
-# ===========================================================================
 # Entry
-# ===========================================================================
 def run_annotation_v4(
     *,
     asset_id: str,
@@ -281,9 +277,7 @@ def run_annotation_v4(
     )
 
 
-# ===========================================================================
 # Per-window analysis + classified retries
-# ===========================================================================
 def _analyze_window_with_retry(
     *,
     window_start: float,
@@ -382,9 +376,7 @@ def _analyze_window_with_retry(
             shutil.rmtree(temp_dir, ignore_errors=True)
 
 
-# ===========================================================================
 # Multi-face deterministic CV gating (portrait only)
-# ===========================================================================
 def _annotate_face_counts(
     clips: list[ClipV4],
     frames: list[tuple[float, str]],
@@ -424,9 +416,7 @@ def _annotate_face_counts(
             clip.semantics.face_count_max = overall_max
 
 
-# ===========================================================================
 # Frame sampling: window-internal hot-spot sampling + downscale
-# ===========================================================================
 def _sample_and_extract(
     *,
     window_start: float,
@@ -464,9 +454,7 @@ def _sample_and_extract(
     return frames, temp_dir
 
 
-# ===========================================================================
 # Failed annotation (never a degraded annotation)
-# ===========================================================================
 def _failed_annotation(
     *,
     asset_id: str,
@@ -493,9 +481,7 @@ def _failed_annotation(
     )
 
 
-# ===========================================================================
 # Helpers
-# ===========================================================================
 def _build_sensor_signals(
     shot_cuts: list[float],
     speech_islands: list[dict[str, float]],

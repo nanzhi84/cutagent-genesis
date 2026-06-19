@@ -47,9 +47,7 @@ _FREEZE_START_RE = re.compile(r"freeze_start\s*:\s*([0-9]+(?:\.[0-9]+)?)")
 _FREEZE_END_RE = re.compile(r"freeze_end\s*:\s*([0-9]+(?:\.[0-9]+)?)")
 
 
-# ===========================================================================
 # Pure functions: ffmpeg stderr -> event intervals (testable on synthetic text)
-# ===========================================================================
 def parse_blackdetect(
     stderr_text: str, *, total_duration: float = 0.0
 ) -> list[tuple[float, float]]:
@@ -121,9 +119,7 @@ def parse_freezedetect(
     return intervals
 
 
-# ===========================================================================
 # Pure function: per-frame Laplacian-variance sequence -> blur segments
-# ===========================================================================
 def merge_blur_segments(
     times: Sequence[float],
     variances: Sequence[float],
@@ -189,9 +185,7 @@ def _close_blur_run(
     return (round(start, _TIME_DECIMALS), round(end, _TIME_DECIMALS))
 
 
-# ===========================================================================
 # Event builders (align QualityEventV4, no event_id - added by the assembler)
-# ===========================================================================
 def _build_black_event(start: float, end: float) -> dict:
     return {
         "event_type": QualityEventType.occlusion.value,
@@ -231,9 +225,7 @@ def _build_blur_event(start: float, end: float) -> dict:
     }
 
 
-# ===========================================================================
 # Public interface
-# ===========================================================================
 def detect_cv_quality_events(
     video_path: str,
     *,

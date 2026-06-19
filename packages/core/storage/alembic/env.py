@@ -10,8 +10,8 @@ from sqlalchemy import engine_from_config, pool
 ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(ROOT))
 
-from packages.core.config import build_settings  # noqa: E402
-from packages.core.storage.database import Base  # noqa: E402
+from packages.core.config import build_settings
+from packages.core.storage.database import Base
 
 config = context.config
 if config.config_file_name is not None:

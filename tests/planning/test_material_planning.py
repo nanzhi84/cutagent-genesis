@@ -98,7 +98,6 @@ def _units():
     ]
 
 
-# --------------------------------------------------------------------------- (a)
 def test_real_matching_picks_keyword_relevant_clip_with_distinct_scores():
     units = _units()
     segments = _narration_segments(units)
@@ -274,7 +273,6 @@ def test_broll_insertions_use_freshness_seed_for_new_timing_and_trim():
     assert second[0].timeline_end <= units[0].end
 
 
-# --------------------------------------------------------------------------- (b)
 def test_recency_demotes_clip_picked_in_previous_run():
     units = _units()
     segments = _narration_segments(units)
@@ -375,7 +373,6 @@ def test_portrait_clip_recency_demotes_recently_used_portrait():
     assert by_asset["p_used"].score < by_asset["p_fresh"].score
 
 
-# --------------------------------------------------------------------------- (c)
 def test_no_annotations_yields_no_broll_candidates():
     units = _units()
     segments = _narration_segments(units)

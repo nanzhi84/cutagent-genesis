@@ -84,9 +84,7 @@ def merged_event_duration(intervals: Sequence[tuple[float, float]]) -> float:
     return total
 
 
-# ===========================================================================
 # Portrait metrics
-# ===========================================================================
 def _clip_blockers(clip: dict[str, Any], hard_event: bool) -> list[str]:
     """Derive blocker signals from a V4 clip. ``hard_event`` = a hard quality
     event overlaps this clip's time."""
@@ -240,9 +238,7 @@ def _build_portrait_report(
     }
 
 
-# ===========================================================================
 # B-roll (scenery) metrics
-# ===========================================================================
 def _dominant_types(values: list[str]) -> list[str]:
     """Frequency count; return types with ratio >= 15% (frequency desc, ties by first seen)."""
     cleaned = [str(v).strip() for v in values if str(v).strip()]
@@ -321,9 +317,7 @@ def _build_broll_report(
     }
 
 
-# ===========================================================================
 # Public interface
-# ===========================================================================
 def _is_portrait(material_type: str) -> bool:
     mt = str(material_type or "").strip().lower()
     return (

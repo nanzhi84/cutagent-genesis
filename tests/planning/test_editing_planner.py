@@ -36,9 +36,7 @@ from packages.planning.editing.frame_grid import TIMELINE_FPS
 from packages.planning.editing.packing import assign_boundary_windows_for_chunks
 
 
-# ---------------------------------------------------------------------------
 # (a) frame grid — single source of truth
-# ---------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize("t", [0.0, 0.1, 0.5, 1.0, 12.96, 12.9667, 1.0 / 3.0, 7.5, 50.0])
@@ -128,9 +126,7 @@ def test_slice_source_window_pads_when_headroom_exhausted() -> None:
     assert window.length_frames + pad == 45
 
 
-# ---------------------------------------------------------------------------
 # (b) beam search picks the expected boundary windows
-# ---------------------------------------------------------------------------
 
 
 def _portrait_window(window_id: str, template_id: str, duration: float, **kw):
@@ -193,9 +189,7 @@ def test_beam_full_coverage_no_overextension() -> None:
         assert seg.source_end_frame - seg.source_start_frame == seg.timeline_length_frames
 
 
-# ---------------------------------------------------------------------------
 # (c) capacity split + backtracking rescue
-# ---------------------------------------------------------------------------
 
 
 def test_capacity_cap_keeps_chunks_within_cap() -> None:
@@ -438,9 +432,7 @@ def test_infeasible_capacity_returns_no_plan_not_overextension() -> None:
     assert plan.segments == []
 
 
-# ---------------------------------------------------------------------------
 # (d) semantic-only fallback vs. audio-pause path
-# ---------------------------------------------------------------------------
 
 
 def test_semantic_only_fallback_when_no_audio_pauses() -> None:
@@ -510,9 +502,7 @@ def test_fps_mismatch_is_rejected() -> None:
         )
 
 
-# ---------------------------------------------------------------------------
 # helpers
-# ---------------------------------------------------------------------------
 
 
 def _assert_contiguous_frame_exact(plan) -> None:

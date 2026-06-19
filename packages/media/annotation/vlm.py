@@ -39,9 +39,7 @@ _COVERAGE_GAP_TOL = 0.75  # tolerance (sec) for a gap in window coverage
 _LEGAL_ROLES = {role.value for role in UsageRole}
 
 
-# ---------------------------------------------------------------------------
 # build_window_prompt
-# ---------------------------------------------------------------------------
 
 
 def build_window_prompt(
@@ -143,9 +141,7 @@ def build_window_prompt(
     return prompt
 
 
-# ---------------------------------------------------------------------------
 # parse_window_response
-# ---------------------------------------------------------------------------
 
 
 def _extract_json_object(raw: str) -> str:

@@ -90,9 +90,7 @@ def plan_windows(
     return _split_long_scenes(merged, window_max_sec=window_max_sec)
 
 
-# ---------------------------------------------------------------------------
 # Internal helpers
-# ---------------------------------------------------------------------------
 
 
 def _sanitize_cuts(shot_cuts: list[float] | None, duration: float) -> list[float]:

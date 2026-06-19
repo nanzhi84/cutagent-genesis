@@ -117,7 +117,7 @@ class BalancePollerService:
         while not self._stop.is_set():
             try:
                 await asyncio.to_thread(self.refresh_once)
-            except Exception:  # noqa: BLE001 — loop must survive a bad tick
+            except Exception:
                 logger.exception("balance periodic refresh failed")
             try:
                 await asyncio.wait_for(

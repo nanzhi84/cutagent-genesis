@@ -216,12 +216,8 @@ def _persist(
         editable_paths=["/labels", "/usable", "/title"],
     )
 
-    # The typed MediaAssetRecord.annotation_status is constrained to the public
-    # contract enum (pending/annotated/annotation_failed) and serializes to typed
-    # API clients via GET /api/media/assets[/{id}]. The degraded "unconfigured"
-    # case is a failed run for that field's purposes; the precise vlm_unconfigured
-    # reason is preserved in AnnotationV4.quality_report["vlm_status"] and the
-    # editor projection's vlm_configured flag above -- never in this enum field.
+    # Public asset status is deliberately coarser than VLM failure detail; keep
+    # the specific VLM state in quality_report and the editor projection.
     if is_failed:
         annotation_status = "annotation_failed"
     else:

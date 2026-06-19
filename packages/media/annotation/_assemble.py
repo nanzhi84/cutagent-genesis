@@ -35,9 +35,7 @@ def safe_float(value: Any) -> float | None:
         return None
 
 
-# ---------------------------------------------------------------------------
 # Frame sampling
-# ---------------------------------------------------------------------------
 def pick_window_sample_times(
     *,
     window_start: float,
@@ -100,9 +98,7 @@ def pick_window_sample_times(
     return seen
 
 
-# ---------------------------------------------------------------------------
 # Boundary refine (cut-precision defences 2/3/4)
-# ---------------------------------------------------------------------------
 def refine_clip_boundaries(
     clips: list[ClipV4],
     shot_cuts: list[float],
@@ -181,9 +177,7 @@ def clip_with_bounds(
     return ClipV4.model_validate(payload)
 
 
-# ---------------------------------------------------------------------------
 # Aggregation
-# ---------------------------------------------------------------------------
 def assemble_quality_events(cv_events: list[dict], duration: float) -> list[QualityEventV4]:
     """Wrap sensor CV events into QualityEventV4, adding event_id/source and clamping end."""
     upper = float(duration) if duration and duration > 0 else None

@@ -29,9 +29,7 @@ def _settings():
     return build_settings().learning
 
 
-# ---------------------------------------------------------------------------
 # scoring + bands
-# ---------------------------------------------------------------------------
 
 def test_score_monotonicity_good_beats_bad():
     card = rubric.cold_start_rubric(rubric_id="rub_1", case_id="case_demo")
@@ -82,9 +80,7 @@ def test_predict_is_blind_and_locks():
     assert prediction.locked_at is not None
 
 
-# ---------------------------------------------------------------------------
 # counts_to_canonical
-# ---------------------------------------------------------------------------
 
 def test_counts_to_canonical_derives_rates_from_views():
     canonical = metrics_import.counts_to_canonical(
@@ -103,9 +99,7 @@ def test_counts_to_canonical_blank_views_no_rates():
     assert "like_rate" not in canonical
 
 
-# ---------------------------------------------------------------------------
 # consistency
-# ---------------------------------------------------------------------------
 
 def test_consistency_perfect_and_inverse():
     perfect = rubric.consistency([(1.0, 0.1), (2.0, 0.2), (3.0, 0.9)])
@@ -115,9 +109,7 @@ def test_consistency_perfect_and_inverse():
     assert rubric.consistency([(1.0, 0.5)]) is None
 
 
-# ---------------------------------------------------------------------------
 # fit_weights determinism
-# ---------------------------------------------------------------------------
 
 def test_fit_weights_is_deterministic_and_normalized():
     base = [
@@ -141,9 +133,7 @@ def test_fit_weights_is_deterministic_and_normalized():
     assert abs(hook.value_scores["statement"] - 0.15) < 1e-3
 
 
-# ---------------------------------------------------------------------------
 # propose_bump guardrail
-# ---------------------------------------------------------------------------
 
 def _inverse_samples() -> list[tuple[CreativeFeatureVector, float]]:
     # pain_point → low reward; statement → high reward (so a card that ranks

@@ -35,5 +35,5 @@ class HeyGemPoller(BasePoller):
             )
         except Unauthorized:
             return self._unauthorized(profile, checked_at)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             return self._error(profile, checked_at, f"余额查询失败: {exc}", secret)

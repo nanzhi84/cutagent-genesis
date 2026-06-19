@@ -338,7 +338,7 @@ def test_true_yield_rate_is_run_scoped_and_excludes_qc_failed_run():
         # Before the qc failure, the published run counts as true yield (1.0).
         assert baseline["true_yield_rate"] == 1.0
 
-        # Now record a failing QC on that run -> it must be excluded from true yield.
+        # A failing QC on that run excludes it from true yield.
         qc = active_client.post(
             f"/api/runs/{run_id}/quality-checks",
             json={"check_type": "manual", "result": "failed"},

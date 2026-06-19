@@ -104,7 +104,7 @@ def _read_family_name(path: Path) -> str | None:
 
 def _read_family_with_fonttools(path: Path) -> str | None:
     try:
-        from fontTools.ttLib import TTFont  # noqa: PLC0415 - optional dependency
+        from fontTools.ttLib import TTFont
     except Exception:  # ModuleNotFoundError or import-time failure
         return None
     try:

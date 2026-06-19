@@ -242,7 +242,7 @@ def test_forwarded_for_is_honored_when_trust_enabled(monkeypatch):
     monkeypatch.setenv("CUTAGENT_AUTH_TRUST_FORWARDED_FOR", "1")
     rate_limit.reset()
     client = TestClient(app)
-    for attempt in range(3):
+    for _attempt in range(3):
         bad = client.post(
             "/api/auth/login",
             json={"email": "admin@local.cutagent", "password": "wrong-password"},

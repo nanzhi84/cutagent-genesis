@@ -70,7 +70,7 @@ def _run_async(coro: Any) -> Any:
         loop = asyncio.new_event_loop()
         try:
             box["value"] = loop.run_until_complete(coro)
-        except BaseException as exc:  # noqa: BLE001 - re-raised to the caller below
+        except BaseException as exc:
             box["error"] = exc
         finally:
             loop.close()

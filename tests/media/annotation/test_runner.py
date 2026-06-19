@@ -184,7 +184,7 @@ def test_idempotency_key_stable_across_identical_retries(tmp_path):
     """Same (asset, prompt, frames) -> same idempotency_key (cost de-dup)."""
     repository, gateway = _gateway(tmp_path)
     profile = _real_vlm_profile(repository, gateway)
-    # First call SchemaError forces a retry with the SAME frames but a changed prompt;
+    # SchemaError forces a retry with the same frames but a changed prompt;
     # the keys differ when the prompt differs, and stay stable when input is identical.
     plugin = _FakeVLMPlugin({"canonical": {"segments": [_segment(0.0, 4.0)]}})
     gateway.register(plugin)

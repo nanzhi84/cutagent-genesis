@@ -1,22 +1,10 @@
-"""In-process sliding-window brute-force limiter for auth (R2).
+"""Sliding-window auth limiter with Redis coordination when configured.
 
-Tracks failed-login and registration attempts per ``(scope, client, identifier)``
-key in process memory and rejects once the configured threshold inside the
-window is exceeded. Thresholds/windows come from ``AuthSettings``
-(``max_login_attempts`` / ``login_window_minutes`` / ``max_registration_attempts``
-/ ``registration_window_minutes``) read freshly per call via ``build_settings``.
-
-TODO(multi-worker): this limiter is PROCESS-LOCAL. Under multiple Gunicorn/
-Uvicorn workers each process keeps its own counters, so the effective global
-threshold is ``workers * max_attempts`` and an attacker who is load-balanced
-across workers gets more tries. There is no shared attempts store in this repo
-(no Redis, and adding a DB table was explicitly out of scope for the auth lane),
-so this is the pragmatic in-process choice. For a hard global limit, back this
-with Redis or a DB attempts table behind the same ``LoginRateLimiter`` /
-``RegistrationRateLimiter`` interface.
-
-A module-level :func:`reset` clears all buckets; tests call it in setup so
-per-``TestClient`` runs do not leak attempt state into each other.
+Attempts are keyed by ``(scope, client, identifier)``. Thresholds and windows
+come from ``AuthSettings`` on each call. When ``CUTAGENT_REDIS_URL`` is set,
+Redis owns the shared counters; connection failures emit a warning and fall back
+to the in-process buckets. ``reset`` clears local and known Redis buckets for
+tests.
 """
 
 from __future__ import annotations

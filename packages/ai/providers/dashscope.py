@@ -156,6 +156,47 @@ class DashScopeLLMProvider:
         )
 
 
+class DashScopeOmniProvider:
+    provider_id = "dashscope.omni"
+
+    def __init__(self, client: httpx.Client) -> None:
+        self.client = client
+
+    def invoke_with_context(
+        self, call: ProviderCall, context: ProviderInvocationContext
+    ) -> ProviderResult:
+        if call.capability_id != "audio.understanding":
+            raise ProviderRuntimeError(
+                ErrorCode.provider_unsupported_option,
+                "DashScope Omni requires audio.understanding.",
+            )
+        messages = call.input.get("messages")
+        if not isinstance(messages, list):
+            prompt = str(call.input.get("prompt") or "")
+            audio_uri = str(call.input.get("audio_uri") or "")
+            if not audio_uri:
+                raise ProviderRuntimeError(
+                    ErrorCode.provider_unsupported_option,
+                    "audio_uri is required.",
+                )
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {"type": "input_audio", "input_audio": {"data": audio_uri}},
+                    ],
+                }
+            ]
+        content = _chat_completion_stream(self.client, call, context, messages)
+        intent = _parse_json_object(content)
+        return ProviderResult(
+            output={"content": content, "intent": intent or {"text": content}},
+            audio_seconds=float(call.input.get("audio_seconds") or 0.0),
+            raw_usage={"provider_response": {"streamed": True}},
+        )
+
+
 def _chat_completion(
     client: httpx.Client,
     call: ProviderCall,
@@ -177,6 +218,52 @@ def _chat_completion(
         timeout=float(context.profile.timeout_sec),
     )
     return response_json(response)
+
+
+def _chat_completion_stream(
+    client: httpx.Client,
+    call: ProviderCall,
+    context: ProviderInvocationContext,
+    messages: list,
+) -> str:
+    api_key = require_secret(context)
+    payload = {
+        "model": context.profile.model_id,
+        "messages": messages,
+        "modalities": ["text"],
+        "stream": True,
+    }
+    parts: list[str] = []
+    with client.stream(
+        "POST",
+        _chat_url(context.profile.default_options),
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+        json=payload,
+        timeout=float(context.profile.timeout_sec),
+    ) as response:
+        if response.status_code >= 400:
+            response.read()
+            raise ProviderRuntimeError(
+                ErrorCode.provider_remote_failed,
+                f"DashScope Omni HTTP {response.status_code}.",
+            )
+        for line in response.iter_lines():
+            if not line or not line.startswith("data:"):
+                continue
+            data = line[len("data:") :].strip()
+            if data in {"", "[DONE]"}:
+                continue
+            try:
+                chunk = json.loads(data)
+            except json.JSONDecodeError:
+                continue
+            choices = chunk.get("choices") or []
+            if choices and isinstance(choices[0], dict):
+                delta = choices[0].get("delta") or {}
+                piece = delta.get("content")
+                if isinstance(piece, str):
+                    parts.append(piece)
+    return "".join(parts)
 
 
 def _chat_url(options: dict[str, Any]) -> str:

@@ -7,11 +7,8 @@ an explicit :class:`XlsxUnsupportedError` instead of an ``ImportError`` crash.
 
 from __future__ import annotations
 
+import importlib.util
 from pathlib import Path
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:  # pragma: no cover - typing only
-    pass
 
 
 class XlsxUnsupportedError(RuntimeError):
@@ -21,11 +18,7 @@ class XlsxUnsupportedError(RuntimeError):
 def openpyxl_available() -> bool:
     """Return whether the optional openpyxl dependency can be imported."""
 
-    try:
-        import openpyxl  # noqa: F401
-    except Exception:
-        return False
-    return True
+    return importlib.util.find_spec("openpyxl") is not None
 
 
 def _unique_headers(raw: list[str]) -> list[str]:

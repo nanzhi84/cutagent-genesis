@@ -67,9 +67,7 @@ class BgmAnnotationResult:
     provider_invocation_ids: list[str] = field(default_factory=list)
 
 
-# ---------------------------------------------------------------------------
 # Profile gating (same gate as the VLM path: real + enabled + active secret)
-# ---------------------------------------------------------------------------
 def resolve_llm_profile(
     gateway: ProviderGateway,
     *,
@@ -100,9 +98,7 @@ def _is_real_llm_profile(gateway: ProviderGateway, profile: ProviderProfile) -> 
     return True
 
 
-# ---------------------------------------------------------------------------
 # Objective features: librosa (optional) + ffmpeg LUFS (always tried)
-# ---------------------------------------------------------------------------
 def extract_audio_features(audio_path: str | Path) -> dict[str, Any]:
     """Extract objective BGM features. Never raises; returns what it could measure.
 
@@ -131,8 +127,8 @@ def _extract_librosa_features(path: Path) -> dict[str, Any] | None:
     not installed (the must-retain feature degrades, it never crashes the runner).
     """
     try:
-        import librosa  # noqa: PLC0415 - optional dependency
-        import numpy as np  # noqa: PLC0415
+        import librosa
+        import numpy as np
     except Exception:  # ModuleNotFoundError or import-time failure
         logger.info("[bgm] librosa not installed; skipping objective bpm/energy features")
         return None
@@ -148,7 +144,7 @@ def _extract_librosa_features(path: Path) -> dict[str, Any] | None:
             return None
         rms = librosa.feature.rms(y=samples)
         energy = max(0.0, min(1.0, float(np.mean(rms))))
-    except Exception as exc:  # noqa: BLE001 - decode/analysis failure degrades
+    except Exception as exc:
         logger.warning("[bgm] librosa feature extraction failed for %s: %s", path, exc)
         return None
     return {
@@ -216,9 +212,7 @@ def measure_loudness_lufs(media_path: str | Path) -> float | None:
     return loudness
 
 
-# ---------------------------------------------------------------------------
 # Entry: gated BGM annotation run
-# ---------------------------------------------------------------------------
 def annotate_bgm(
     *,
     asset_id: str,
@@ -240,7 +234,7 @@ def annotate_bgm(
     extractor = feature_extractor or extract_audio_features
     try:
         features = dict(extractor(audio_path) or {})
-    except Exception as exc:  # noqa: BLE001 - feature failure must not crash the run
+    except Exception as exc:
         logger.warning("[bgm] feature extraction errored for %s: %s", asset_id, exc)
         features = {}
 
@@ -266,7 +260,7 @@ def annotate_bgm(
             invocation_ids=invocation_ids,
         )
         semantics = _normalize_semantics(raw, features=features)
-    except Exception as exc:  # noqa: BLE001 - failed semantic -> failed annotation
+    except Exception as exc:
         logger.warning("[bgm] LLM semantic annotation failed for %s: %s", asset_id, exc)
         annotation = _failed_annotation(
             asset_id=asset_id,
@@ -291,9 +285,7 @@ def annotate_bgm(
     )
 
 
-# ---------------------------------------------------------------------------
 # LLM semantic call (paid, gated) + normalization
-# ---------------------------------------------------------------------------
 def _semantic_with_llm(
     *,
     gateway: ProviderGateway,
@@ -435,9 +427,7 @@ def _extract_json_object(raw: str) -> dict | None:
     return None
 
 
-# ---------------------------------------------------------------------------
 # AnnotationV4 assembly (BGM semantics live in quality_report["bgm"])
-# ---------------------------------------------------------------------------
 def _bgm_quality_report(
     *,
     features: dict[str, Any],

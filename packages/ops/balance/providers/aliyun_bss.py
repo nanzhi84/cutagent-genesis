@@ -70,7 +70,7 @@ class AliyunBssPoller(BasePoller):
                 balance=money(data.available_cash_amount, getattr(data, "currency", "CNY")),
                 detail=_DASHBOARD_HINT,
             )
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             text = str(exc)
             low = text.lower()
             if any(t in text for t in ("NoPermission", "Forbidden")) or "not authorized" in low:

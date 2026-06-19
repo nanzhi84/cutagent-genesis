@@ -37,9 +37,7 @@ def _learning_settings(request: Request):
     return app_settings(request).learning
 
 
-# ---------------------------------------------------------------------------
 # Feature reconstruction
-# ---------------------------------------------------------------------------
 
 def _features_from_script(script: c.ScriptVersion, *, case_id: str) -> c.CreativeFeatureVector:
     return evolution.extract_script_features(
@@ -85,9 +83,7 @@ def _load_script_version(
     return script
 
 
-# ---------------------------------------------------------------------------
 # Rubric read + cold start
-# ---------------------------------------------------------------------------
 
 def get_rubric(request: Request, case_id: str) -> c.CaseRubric:
     get_case(request, case_id)
@@ -116,9 +112,7 @@ def _active_rubric_memory(repo, case_id: str) -> c.CaseRubric | None:
     return max(candidates, key=lambda r: r.version)
 
 
-# ---------------------------------------------------------------------------
 # §6.2 blind scoring of freshly-created drafts
-# ---------------------------------------------------------------------------
 
 def score_drafts(
     request: Request, case_id: str, drafts: list[c.ScriptDraft]
@@ -159,9 +153,7 @@ def list_predictions(request: Request, case_id: str) -> list[c.ScorePrediction]:
     return sorted(predictions, key=lambda p: p.created_at, reverse=True)
 
 
-# ---------------------------------------------------------------------------
 # §5 reward collection (搭车既有动作)
-# ---------------------------------------------------------------------------
 
 def record_adopt_reward(
     request: Request, case_id: str, draft_id: str, script_version_id: str
@@ -226,9 +218,7 @@ def record_discard_reward(
     repository(request).reward_signals[reward.id] = reward
 
 
-# ---------------------------------------------------------------------------
 # §5.3 / §6.3 lazy reward derivation (idempotent by source_kind + evidence_ref)
-# ---------------------------------------------------------------------------
 
 def sync_rewards(request: Request, case_id: str) -> None:
     """Idempotently derive video_produced / published / performance_scored rewards
@@ -439,9 +429,7 @@ def _settle_prediction_for_score(
     )
 
 
-# ---------------------------------------------------------------------------
 # §5.3 single-row manual backfill
-# ---------------------------------------------------------------------------
 
 def backfill_metrics(
     request: Request,
@@ -494,9 +482,7 @@ def backfill_metrics(
     return observation
 
 
-# ---------------------------------------------------------------------------
 # §6.3 calibration + §6.4 bump
-# ---------------------------------------------------------------------------
 
 def calibration(request: Request, case_id: str) -> c.CalibrationReport:
     sync_rewards(request, case_id)
@@ -570,9 +556,7 @@ def reject_bump(
     return rejected
 
 
-# ---------------------------------------------------------------------------
 # §5.3 pending-retro list
-# ---------------------------------------------------------------------------
 
 def pending_retro(request: Request, case_id: str) -> c.PendingRetroResponse:
     get_case(request, case_id)
@@ -642,9 +626,7 @@ def _pending_retro_items(request: Request, case_id: str) -> list[c.PendingRetroI
     return items
 
 
-# ---------------------------------------------------------------------------
 # Shared read helpers (symmetric across backends)
-# ---------------------------------------------------------------------------
 
 def _reward_labeled_predictions(request: Request, case_id: str) -> list[c.ScorePrediction]:
     rewards = _reward_signals(request, case_id)

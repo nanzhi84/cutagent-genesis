@@ -181,5 +181,5 @@ def test_s3_upload_file_copies_into_disk_cache(tmp_path):
     # Resolving the path again hits the warm cache (no download).
     assert store._path(stored.ref) == cache_path
     assert client.download_file_calls == []
-    # shutil is genuinely exercised (sanity: function still importable).
+    # shutil is exercised; keep the import live.
     assert callable(shutil.copyfile)

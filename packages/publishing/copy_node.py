@@ -65,9 +65,7 @@ class LlmChatPort(Protocol):
         ...
 
 
-# ---------------------------------------------------------------------------
 # Deterministic derivation (origin _fallback_publish_copy parity)
-# ---------------------------------------------------------------------------
 
 
 def _limit_text(text: str, limit: int) -> str:
@@ -130,9 +128,7 @@ def derive_publish_copy(context: PublishCopyContext) -> PublishCopy:
     )
 
 
-# ---------------------------------------------------------------------------
 # Schema validation (§2.3 prompt.output_invalid hard-fail)
-# ---------------------------------------------------------------------------
 
 
 def validate_publish_copy_output(output: dict) -> None:

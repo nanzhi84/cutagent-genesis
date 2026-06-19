@@ -77,7 +77,7 @@ def query_balance(
         )
     try:
         return poller.query(profile, secret=secret, client=client, checked_at=checked)
-    except Exception as exc:  # noqa: BLE001 — last-resort guard; plugins shouldn't raise
+    except Exception as exc:
         from .base import scrub
 
         return ProviderBalanceItem(

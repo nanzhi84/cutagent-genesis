@@ -184,7 +184,7 @@ class BrowserPublishAdapter:
             from packages.publishing.browser.playwright_driver import _run_async
 
             return _run_async(handler(payload))
-        except Exception as exc:  # noqa: BLE001 - adapter boundary must fail loudly, not crash submit.
+        except Exception as exc:
             return self._failure(payload, f"publish.browser_unavailable: {exc}")
 
     def _failure(self, payload: PublishPayload, message: str) -> PublishOutcome:

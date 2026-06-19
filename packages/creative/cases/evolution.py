@@ -21,9 +21,7 @@ MIN_CONFIDENT_IMPRESSIONS = 1000
 EARLY_SIGNAL_WINDOWS = frozenset({"1h", "24h"})
 
 
-# ---------------------------------------------------------------------------
 # §25.6 PerformanceScore
-# ---------------------------------------------------------------------------
 
 def _engagement_rate(obs: PerformanceObservation) -> float | None:
     parts = [obs.like_rate, obs.comment_rate, obs.share_rate, obs.follow_rate]
@@ -102,9 +100,7 @@ def compute_performance_score(obs: PerformanceObservation) -> PerformanceScore:
     )
 
 
-# ---------------------------------------------------------------------------
 # §25.5 Feature extraction
-# ---------------------------------------------------------------------------
 
 _HOOK_PATTERNS: tuple[tuple[str, str], ...] = (
     ("question", r"[?？]"),

@@ -71,9 +71,7 @@ class GatedAnnotationResult:
     provider_invocation_ids: list[str]
 
 
-# ---------------------------------------------------------------------------
 # Profile gating (M6i pattern: real provider only when enabled + secret active)
-# ---------------------------------------------------------------------------
 def resolve_vlm_profile(
     gateway: ProviderGateway,
     *,
@@ -109,9 +107,7 @@ def _is_real_vlm_profile(gateway: ProviderGateway, profile: ProviderProfile) -> 
     return True
 
 
-# ---------------------------------------------------------------------------
 # Entry: gated annotation run
-# ---------------------------------------------------------------------------
 def annotate_asset(
     *,
     asset_id: str,
@@ -182,9 +178,7 @@ def annotate_asset(
     )
 
 
-# ---------------------------------------------------------------------------
 # Gateway-backed vlm_call (paid path, idempotent, bounded by pipeline retries)
-# ---------------------------------------------------------------------------
 def _gateway_vlm_call(
     *,
     gateway: ProviderGateway,
@@ -275,9 +269,7 @@ def _result_to_json_string(output: dict[str, Any]) -> str:
     return json.dumps(output, ensure_ascii=False)
 
 
-# ---------------------------------------------------------------------------
 # Degraded path (no real VLM): sensor-only quality, empty semantics, vlm_unconfigured
-# ---------------------------------------------------------------------------
 def _degraded_annotation(
     *,
     asset_id: str,
@@ -326,9 +318,7 @@ def _degraded_annotation(
     )
 
 
-# ---------------------------------------------------------------------------
 # Sensor dependency bundle (real CV sensors by default; tests inject mocks)
-# ---------------------------------------------------------------------------
 @dataclass
 class SensorDeps:
     """Deterministic sensor callables the runner feeds into the pipeline.

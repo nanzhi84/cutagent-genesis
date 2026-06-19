@@ -226,7 +226,7 @@ def test_write_endpoint_matrix_uses_422_error_envelope_for_invalid_bodies():
         if request_body_schema(operation) is not None
     ]
     covered = 0
-    for method, path, operation in body_bearing:
+    for method, path, _operation in body_bearing:
         if (method, path) in INVALID_BODY_EXEMPTIONS:
             continue
         covered += 1

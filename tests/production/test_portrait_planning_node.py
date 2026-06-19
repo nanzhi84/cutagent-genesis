@@ -474,7 +474,7 @@ def test_capacity_controlled_split_retry_drives_recovery(monkeypatch, tmp_path):
                 "include_unlimited_reuse_scope": constraints.include_unlimited_reuse_scope,
             }
         )
-        # First (full-pool, no cap) pass: pretend it cannot cover -> forces escalation.
+        # The full-pool, no-cap pass cannot cover, forcing escalation.
         if constraints.max_chunk_duration is None:
             return _Empty()
         # Capacity-controlled split pass: defer to the real planner (it succeeds).

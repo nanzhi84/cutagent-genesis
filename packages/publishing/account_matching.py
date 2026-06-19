@@ -19,9 +19,7 @@ from packages.core.workflow import NodeExecutionError
 SHANGHAI_TZ = ZoneInfo("Asia/Shanghai")
 
 
-# ---------------------------------------------------------------------------
 # scheduled-at (Asia/Shanghai) validation
-# ---------------------------------------------------------------------------
 
 
 def normalize_scheduled_at(
@@ -59,9 +57,7 @@ def normalize_scheduled_at(
     return scheduled_at
 
 
-# ---------------------------------------------------------------------------
 # tags normalization (origin _normalize_publish_tags)
-# ---------------------------------------------------------------------------
 
 
 def normalize_publish_tags(tags: list[str]) -> list[str]:
@@ -77,9 +73,7 @@ def normalize_publish_tags(tags: list[str]) -> list[str]:
     return normalized
 
 
-# ---------------------------------------------------------------------------
 # account-group filtering + account matching (origin pure logic)
-# ---------------------------------------------------------------------------
 
 
 def _normalize_text(value: str | None) -> str:

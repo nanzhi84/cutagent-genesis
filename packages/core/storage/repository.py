@@ -347,9 +347,7 @@ class Repository:
         self.prompt_templates[template.id] = template
         self.prompt_versions[version.id] = version
         self.prompt_bindings[binding.id] = binding
-        # Publishing Copy Node (§2.1 must-retain): generates publish copy
-        # (title / publish_content / cover_title / cover_subtitle). The
-        # publish_copy.output schema is enforced by registry.validate_output.
+        # Publishing copy output is load-bearing and validated by the prompt registry.
         copy_template = PromptTemplate(
             id="prompt_publishing_copy",
             name="Publishing Copy Generator",

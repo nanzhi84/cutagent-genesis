@@ -67,7 +67,7 @@ http_code() { curl -s -o /dev/null -w '%{http_code}' --max-time 3 "$1" 2>/dev/nu
 minio_up() { [[ "$(http_code http://127.0.0.1:9000/minio/health/live)" == 200 ]]; }
 # Require a real 200 from /openapi.json — not merely "!= 000": WSL's localhost
 # relay can return a transient 502 after a listener dies, which would otherwise
-# read as "up" and make the script skip a genuinely-down API.
+# read as "up" and make the script skip a down API.
 api_up()   { [[ "$(http_code "http://$API_HOST:$API_PORT/openapi.json")" == 200 ]]; }
 web_up()   { tcp_up "$WEB_PORT"; }
 
@@ -128,7 +128,7 @@ cmd_up() {
   wait_for "minio :9000"     minio_up
 
   # 2. Database schema + seed data. This is idempotent and keeps a fresh checkout
-  # genuinely one-command: API startup only connects/seeds, it does not run Alembic.
+  # one-command: API startup only connects/seeds, it does not run Alembic.
   log "bootstrapping database"
   "$PY" scripts/bootstrap_database.py
 

@@ -19,8 +19,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from packages.core.contracts import AnnotationV4, ClipV4  # noqa: E402
-from packages.planning.material import clip_is_lip_sync_usable  # noqa: E402
+from packages.core.contracts import AnnotationV4, ClipV4
+from packages.planning.material import clip_is_lip_sync_usable
 
 _RECLASSIFY_KINDS = {"portrait", "broll"}
 

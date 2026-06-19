@@ -30,8 +30,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from packages.core.contracts import PromptSchemaRef  # noqa: E402
-from packages.core.storage.prompt_groups import prompt_group_seeds  # noqa: E402
+from packages.core.contracts import PromptSchemaRef
+from packages.core.storage.prompt_groups import prompt_group_seeds
 
 DEFAULT_PROMPTS_PATH = Path(
     "/home/nanzhi/.claude/jobs/f3772e30/tmp/prompts/macmini_system_prompts.json"
@@ -93,9 +93,7 @@ class PlanItem:
     notes: list[str] = field(default_factory=list)
 
 
-# ---------------------------------------------------------------------------
 # Target-state derivation (pure, DB-independent).
-# ---------------------------------------------------------------------------
 
 
 def _seed_index() -> dict[str, object]:
@@ -190,9 +188,7 @@ def _binding_id(node_id: str) -> str:
     return f"prompt_binding_real_{slug}"
 
 
-# ---------------------------------------------------------------------------
 # DB-backed plan + apply.
-# ---------------------------------------------------------------------------
 
 
 def _load_prompts(path: Path) -> dict[str, str]:
@@ -415,9 +411,7 @@ def _apply(targets: list[Target], prompts: dict[str, str], session_factory) -> l
     return applied
 
 
-# ---------------------------------------------------------------------------
 # Reporting.
-# ---------------------------------------------------------------------------
 
 
 def _print_plan(items: list[PlanItem], *, applied: bool) -> None:
@@ -470,7 +464,7 @@ def main(argv: list[str] | None = None) -> int:
         # Force a connection probe so an unreachable DB degrades gracefully.
         with session_factory() as session:
             session.connection()
-    except Exception as exc:  # noqa: BLE001 - dry-run must never hard-fail on DB.
+    except Exception as exc:
         print(f"note: database not reachable ({type(exc).__name__}: {exc}); planning as upsert.")
         session_factory = None
     items = _plan(targets, prompts, session_factory)

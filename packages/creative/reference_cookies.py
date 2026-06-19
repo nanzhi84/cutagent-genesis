@@ -76,7 +76,7 @@ def parse_cookies(cookie_text: str, cookie_format: CookieFormat = "auto") -> lis
     for parser in parsers:
         try:
             cookies = _dedupe(parser(text))
-        except Exception as exc:  # noqa: BLE001 - try the next parser
+        except Exception as exc:
             errors.append(str(exc))
             continue
         if cookies:
@@ -365,7 +365,7 @@ async def test_cookies(
         metadata = fetcher(cleaned_url, header)
         if hasattr(metadata, "__await__"):
             metadata = await metadata
-    except Exception as exc:  # noqa: BLE001 - surface as a structured failure
+    except Exception as exc:
         message = getattr(exc, "message", None) or str(exc)
         return c.ReferenceCookieTestResponse(
             success=False,

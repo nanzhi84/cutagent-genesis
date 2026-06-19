@@ -47,9 +47,7 @@ MISS_DELTA = 0.3
 RewardSample = tuple[CreativeFeatureVector, float]
 
 
-# ---------------------------------------------------------------------------
 # Cold-start card
-# ---------------------------------------------------------------------------
 
 def starter_dimensions() -> list[RubricDimension]:
     """Industry-default dimensions for a hard-ad / 投流 case (§12 P0).
@@ -116,9 +114,7 @@ def cold_start_rubric(*, rubric_id: str, case_id: str) -> CaseRubric:
     )
 
 
-# ---------------------------------------------------------------------------
 # §6.1 scoring
-# ---------------------------------------------------------------------------
 
 def _clamp01(value: float) -> float:
     return max(0.0, min(1.0, value))
@@ -212,9 +208,7 @@ def predict(
     )
 
 
-# ---------------------------------------------------------------------------
 # §5.2 reward shaping
-# ---------------------------------------------------------------------------
 
 def reward_value(
     source_kind: RewardSourceKind,
@@ -247,9 +241,7 @@ def reward_value(
     return 0.0, 0.0
 
 
-# ---------------------------------------------------------------------------
 # §6.3 calibration + §6.4 bump
-# ---------------------------------------------------------------------------
 
 def _pearson(xs: Sequence[float], ys: Sequence[float]) -> float:
     n = len(xs)

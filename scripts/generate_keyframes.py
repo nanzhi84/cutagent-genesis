@@ -45,11 +45,11 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from packages.migrations.legacy_asset_utils import DEFAULT_BUCKET, DEFAULT_UPLOAD_PREFIX  # noqa: E402
+from packages.migrations.legacy_asset_utils import DEFAULT_BUCKET, DEFAULT_UPLOAD_PREFIX
 
 # Reuse the api_keys → env bridge + key normalization from the backfill script so
 # both Stage-A/Stage-B utilities resolve OSS identically.
-from scripts.backfill_media_fields import (  # noqa: E402
+from scripts.backfill_media_fields import (
     _bridge_oss_env,
     _default_api_keys,
     _load_api_keys,

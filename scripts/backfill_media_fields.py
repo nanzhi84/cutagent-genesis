@@ -64,7 +64,7 @@ def _default_api_keys() -> Path:
             return candidate
     return candidates[0]
 
-from packages.migrations.legacy_asset_utils import (  # noqa: E402
+from packages.migrations.legacy_asset_utils import (
     DEFAULT_BUCKET,
     DEFAULT_UPLOAD_PREFIX,
     as_list,

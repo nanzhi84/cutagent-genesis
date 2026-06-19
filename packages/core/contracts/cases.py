@@ -378,9 +378,7 @@ class OceanEngineMetricRow(ContractModel):
     row_fingerprint: str
 
 
-# ---------------------------------------------------------------------------
 # 评分卡自进化（case_rubric_v1）
-# ---------------------------------------------------------------------------
 
 RubricDimensionKind = Literal["categorical", "numeric"]
 

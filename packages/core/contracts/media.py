@@ -421,7 +421,6 @@ class SyncVoicesResponse(ContractModel):
     request_id: str = "req_local"
 
 
-# ===========================================================================
 # Annotation V4 contracts (seven-layer unified annotation) + sensor artifacts.
 #
 # These are the artifact shapes the pure CV/VAD/scene-detection sensor suite
@@ -432,7 +431,6 @@ class SyncVoicesResponse(ContractModel):
 # annotation pipeline (a later step) populates the semantic layers; the sensors
 # ported here populate shot cuts, speech islands, quality events, windows, and
 # the deterministic quality report.
-# ===========================================================================
 
 
 class AnnotationVersion(str, Enum):

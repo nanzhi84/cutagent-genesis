@@ -644,7 +644,7 @@ def resume_run(run_id: str, payload: c.ResumeRunRequest, request: Request) -> c.
 
 
 def run_report(request: Request, run_id: str) -> c.RunReportResponse:
-
+    assert_owner_or_404(current_user(request), run_owner(request, run_id))
     if production_repository(request) is not None:
         report = production_repository(request).run_report(run_id, request_id())
         if report is not None:
@@ -664,7 +664,7 @@ def run_report(request: Request, run_id: str) -> c.RunReportResponse:
 
 
 def run_artifacts(request: Request, run_id: str) -> c.RunArtifactsResponse:
-
+    assert_owner_or_404(current_user(request), run_owner(request, run_id))
     if production_repository(request) is not None:
         response = production_repository(request).run_artifacts(run_id, request_id())
         if response is not None:
@@ -674,7 +674,7 @@ def run_artifacts(request: Request, run_id: str) -> c.RunArtifactsResponse:
 
 
 def run_events(request: Request, run_id: str) -> c.EventStreamTokenResponse:
-
+    assert_owner_or_404(current_user(request), run_owner(request, run_id))
     if production_repository(request) is not None and not production_repository(request).run_exists(run_id):
         raise NodeExecutionError(c.ErrorCode.validation_invalid_options, f"Run {run_id} does not exist.")
     token = request.app.state.event_tokens.issue(run_id, timedelta(minutes=10))

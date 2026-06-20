@@ -231,6 +231,61 @@ def test_overview_dashboard_admin_sees_all() -> None:
         assert run_a.id in admin_runs
 
 
+def _seed_public_report(app, run: c.WorkflowRun) -> None:
+    """Attach a minimal public report artifact so run_report returns 200 for the
+    owner (otherwise it 404s on missing report, masking the owner-gate check)."""
+    repo = app.state.repository
+    report = c.RunPublicReportArtifact(
+        run_id=run.id,
+        status=run.status,
+        summary="iso report",
+        node_statuses={},
+    )
+    artifact = c.Artifact(
+        id=new_id("art"),
+        case_id=run.case_id,
+        run_id=run.id,
+        kind=c.ArtifactKind.run_report_public,
+        uri="sandbox://report.json",
+        payload_schema="run.report.public.v1",
+        payload=report.model_dump(mode="json"),
+    )
+    repo.artifacts[artifact.id] = artifact
+    repo.runs[run.id] = repo.runs[run.id].model_copy(
+        update={"public_report_artifact_id": artifact.id}
+    )
+
+
+def test_run_report_artifacts_events_cross_user_404() -> None:
+    """report/artifacts/events are owner-gated: owner + admin 200, other user 404."""
+    app = create_app()
+    with TestClient(app) as client:
+        _seed_case(app, "case_iso")
+        user_a, token_a = _make_user(app, role=c.UserRole.operator)
+        _user_b, token_b = _make_user(app, role=c.UserRole.operator)
+        _admin, token_admin = _make_user(app, role=c.UserRole.admin)
+        _job_a, run_a, _ = _seed_finished_video_for(app, owner=user_a.id, case_id="case_iso")
+        _seed_public_report(app, run_a)
+
+        # Owner can read all three.
+        _cookie(client, token_a)
+        assert client.get(f"/api/runs/{run_a.id}/report").status_code == 200
+        assert client.get(f"/api/runs/{run_a.id}/artifacts").status_code == 200
+        assert client.get(f"/api/runs/{run_a.id}/events").status_code == 200
+
+        # Admin can read all three.
+        _cookie(client, token_admin)
+        assert client.get(f"/api/runs/{run_a.id}/report").status_code == 200
+        assert client.get(f"/api/runs/{run_a.id}/artifacts").status_code == 200
+        assert client.get(f"/api/runs/{run_a.id}/events").status_code == 200
+
+        # Cross-user => 404 (do not leak existence) on every owner-gated endpoint.
+        _cookie(client, token_b)
+        assert client.get(f"/api/runs/{run_a.id}/report").status_code == 404
+        assert client.get(f"/api/runs/{run_a.id}/artifacts").status_code == 404
+        assert client.get(f"/api/runs/{run_a.id}/events").status_code == 404
+
+
 def test_cases_remain_shared() -> None:
     """Cases are NOT isolated: user B must still see user A's case (created by A)."""
     app = create_app()

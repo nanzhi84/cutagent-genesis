@@ -505,13 +505,6 @@ export const api = {
         "/api/jobs/digital-human-video",
         { method: "POST", body: payload, idempotencyKey },
       ),
-    estimateDigitalHumanVideoCost: (
-      payload: JsonRequest<operations["estimate_digital_human_video_cost_api_jobs_digital_human_video_estimate_cost_post"]>,
-    ) =>
-      fetchJson<JsonResponse<operations["estimate_digital_human_video_cost_api_jobs_digital_human_video_estimate_cost_post"]>>(
-        "/api/jobs/digital-human-video/estimate-cost",
-        { method: "POST", body: payload, idempotencyKey: createIdempotencyKey("video_cost_estimate") },
-      ),
   },
   runs: {
     detail: (runId: string) =>
@@ -861,7 +854,6 @@ export type PatchCaseRequest = components["schemas"]["PatchCaseRequest"];
 export type PromptTemplateView = components["schemas"]["PromptTemplateView"];
 export type PromptVersionView = components["schemas"]["PromptVersionView"];
 export type PromptBindingView = components["schemas"]["PromptBindingView"];
-export type DigitalHumanVideoCostEstimateResponse = components["schemas"]["DigitalHumanVideoCostEstimateResponse"];
 export type NodeRun = components["schemas"]["NodeRun"];
 export type RunCard = components["schemas"]["RunCard"];
 export type RunDetailResponse = components["schemas"]["RunDetailResponse"];

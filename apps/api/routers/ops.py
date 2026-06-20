@@ -4,7 +4,8 @@ from datetime import datetime
 
 from fastapi import APIRouter, Request
 
-from apps.api.dependencies import require_role
+from apps.api.common import visible_owner_filter
+from apps.api.dependencies import current_user, require_role
 from apps.api.services import ops as service
 from packages.core import contracts as c
 
@@ -15,7 +16,10 @@ def ops_dashboard(
     request: Request,
     window_start: datetime | None = None, window_end: datetime | None = None
 ) -> c.OpsDashboardVm:
-    return service.ops_dashboard(request, window_start, window_end)
+    # Creator-based isolation (spec §3): the overview counts only the caller's own
+    # runs; admin (owner_filter is None) sees the global view.
+    owner_filter = visible_owner_filter(current_user(request))
+    return service.ops_dashboard(request, window_start, window_end, owner_user_id=owner_filter)
 
 
 @router.get("/api/ops/cost-rollups", response_model=c.PageResponse[c.CostRollup])
@@ -36,7 +40,8 @@ def yield_funnel(
     window_end: datetime | None = None,
     case_id: str | None = None,
 ) -> c.YieldFunnelResponse:
-    return service.yield_funnel(request, window_start, window_end, case_id)
+    owner_filter = visible_owner_filter(current_user(request))
+    return service.yield_funnel(request, window_start, window_end, case_id, owner_user_id=owner_filter)
 
 
 @router.get("/api/ops/cost-metrics", response_model=c.CostMetrics)

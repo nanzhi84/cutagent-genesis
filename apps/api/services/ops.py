@@ -25,17 +25,35 @@ from packages.ops import (
 from apps.api.services import providers as provider_service
 
 
-def _memory_events(request: Request, case_id: str | None = None) -> list:
+def _memory_events(
+    request: Request, case_id: str | None = None, owner_user_id: str | None = None
+) -> list:
     """The §9.5 funnel events visible to the in-memory backend, optionally filtered
-    by the case_id that owns each event's run."""
+    by the case_id that owns each event's run, and (spec §3) by owner — an event's
+    owner is its run's job.created_by (admin passes owner_user_id=None, sees all;
+    events whose owner can't be resolved are hidden from non-admins)."""
 
     repo = repository(request)
     events = []
     for event in repo.yield_events.values():
         run = repo.runs.get(getattr(event, "run_id", None) or "")
-        if case_id is None or (run is not None and run.case_id == case_id):
-            events.append(event)
+        if case_id is not None and not (run is not None and run.case_id == case_id):
+            continue
+        if owner_user_id is not None and _event_owner(repo, event, run) != owner_user_id:
+            continue
+        events.append(event)
     return events
+
+
+def _event_owner(repo, event, run) -> str | None:
+    """Creator-based isolation: an event's owner = its run's job.created_by, falling
+    back to its job_id's created_by when the run is detached/unknown."""
+    if run is not None:
+        job = repo.jobs.get(run.job_id)
+        if job is not None:
+            return job.created_by
+    job = repo.jobs.get(getattr(event, "job_id", None) or "")
+    return job.created_by if job is not None else None
 
 
 def _memory_run_prompt_versions(request: Request) -> dict[str, set[str]]:
@@ -56,9 +74,11 @@ def _memory_provider_success_rate(request: Request) -> float | None:
     return ok / len(invocations)
 
 
-def _memory_yield_rates(request: Request, case_id: str | None = None) -> c.YieldRates:
+def _memory_yield_rates(
+    request: Request, case_id: str | None = None, owner_user_id: str | None = None
+) -> c.YieldRates:
     return compute_yield_rates(
-        _memory_events(request, case_id),
+        _memory_events(request, case_id, owner_user_id),
         provider_success_rate=_memory_provider_success_rate(request),
         run_prompt_versions=_memory_run_prompt_versions(request),
     )
@@ -141,12 +161,18 @@ def _memory_failure_analysis(request: Request) -> c.FailureAnalysisReport:
 
 def ops_dashboard(
     request: Request,
-    window_start: datetime | None = None, window_end: datetime | None = None
+    window_start: datetime | None = None,
+    window_end: datetime | None = None,
+    owner_user_id: str | None = None,
 ) -> c.OpsDashboardVm:
     if ops_repository(request) is not None:
-        return ops_repository(request).dashboard(window_start=window_start, window_end=window_end)
+        return ops_repository(request).dashboard(
+            window_start=window_start, window_end=window_end, owner_user_id=owner_user_id
+        )
     usage = provider_service.provider_usage(request, window_start=window_start, window_end=window_end)
-    funnel = yield_funnel(request, window_start=window_start, window_end=window_end)
+    funnel = yield_funnel(
+        request, window_start=window_start, window_end=window_end, owner_user_id=owner_user_id
+    )
     # Refresh the in-memory cost rollups so the dashboard reflects current spend.
     cost_rollups(request, window_start=window_start, window_end=window_end)
     return c.OpsDashboardVm(
@@ -285,19 +311,21 @@ def yield_funnel(
     window_start: datetime | None = None,
     window_end: datetime | None = None,
     case_id: str | None = None,
+    owner_user_id: str | None = None,
 ) -> c.YieldFunnelResponse:
     if ops_repository(request) is not None:
         return ops_repository(request).yield_funnel(
             window_start=window_start,
             window_end=window_end,
             case_id=case_id,
+            owner_user_id=owner_user_id,
         )
-    events = _memory_events(request, case_id)
+    events = _memory_events(request, case_id, owner_user_id)
     # §9.5: true_yield_rate must be run-scoped, NOT successes/total_events (the
     # denominator inflates as the taxonomy grows). A run is true-yield only if it
     # reached ``published`` and was never ``qc_failed`` / ``manual_rejected``.
     rate = compute_true_yield_rate(events)
-    rates = _memory_yield_rates(request, case_id)
+    rates = _memory_yield_rates(request, case_id, owner_user_id)
     return c.YieldFunnelResponse(events=events, true_yield_rate=rate, rates=rates)
 
 

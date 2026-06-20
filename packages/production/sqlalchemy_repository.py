@@ -398,18 +398,30 @@ class SqlAlchemyProductionRepository:
             "finished_videos.case_id" in message and "finished_videos.video_number" in message
         )
 
-    def case_run_cards(self, *, case_id: str, request_id: str, limit: int = 50) -> PageResponse[RunCard] | None:
+    def case_run_cards(
+        self,
+        *,
+        case_id: str,
+        request_id: str,
+        limit: int = 50,
+        owner_user_id: str | None = None,
+    ) -> PageResponse[RunCard] | None:
         with self.session_factory() as session:
             if session.get(CaseRow, case_id) is None:
                 return None
-            run_rows = list(
-                session.scalars(
-                    select(WorkflowRunRow)
-                    .where(WorkflowRunRow.case_id == case_id)
-                    .order_by(WorkflowRunRow.updated_at.desc())
-                    .limit(limit)
-                )
+            statement = (
+                select(WorkflowRunRow)
+                .where(WorkflowRunRow.case_id == case_id)
+                .order_by(WorkflowRunRow.updated_at.desc())
+                .limit(limit)
             )
+            if owner_user_id is not None:
+                # Creator-based isolation (spec §3): join the owning job and filter by
+                # its created_by (admin passes owner_user_id=None and sees all).
+                statement = statement.join(
+                    JobRow, JobRow.id == WorkflowRunRow.job_id
+                ).where(JobRow.created_by == owner_user_id)
+            run_rows = list(session.scalars(statement))
             items: list[RunCard] = []
             for run_row in run_rows:
                 job_row = session.get(JobRow, run_row.job_id)
@@ -573,6 +585,29 @@ class SqlAlchemyProductionRepository:
             repository.scripts[script.id] = script
             return script
 
+    def job_owner_user_id(self, job_id: str) -> str | None:
+        """Creator-based isolation (spec §3): owner of a job = ``job.created_by``.
+        ``None`` when the job is unknown or unowned."""
+        with self.session_factory() as session:
+            job = session.get(JobRow, job_id)
+            return job.created_by if job is not None else None
+
+    def run_owner_user_id(self, run_id: str) -> str | None:
+        """Owner of a run = its job's ``created_by``. ``None`` when unknown/unowned."""
+        with self.session_factory() as session:
+            run = session.get(WorkflowRunRow, run_id)
+            if run is None:
+                return None
+            job = session.get(JobRow, run.job_id)
+            return job.created_by if job is not None else None
+
+    def finished_video_owner_user_id(self, finished_video_id: str) -> str | None:
+        """Owner of a finished video = its denormalized ``owner_user_id``. ``None``
+        when unknown/unowned."""
+        with self.session_factory() as session:
+            finished = session.get(FinishedVideoRow, finished_video_id)
+            return finished.owner_user_id if finished is not None else None
+
     def job_detail(self, job_id: str, request_id: str) -> JobDetailResponse | None:
         with self.session_factory() as session:
             job = session.get(JobRow, job_id)
@@ -724,7 +759,9 @@ class SqlAlchemyProductionRepository:
             session.scalars(select(FinishedVideoRow.video_number).where(FinishedVideoRow.case_id == case_id))
         )
 
-    def list_finished_videos(self, *, case_id: str, limit: int = 50) -> list[FinishedVideo]:
+    def list_finished_videos(
+        self, *, case_id: str, limit: int = 50, owner_user_id: str | None = None
+    ) -> list[FinishedVideo]:
         with self.session_factory() as session:
             statement = (
                 select(FinishedVideoRow)
@@ -732,6 +769,10 @@ class SqlAlchemyProductionRepository:
                 .order_by(FinishedVideoRow.updated_at.desc())
                 .limit(limit)
             )
+            if owner_user_id is not None:
+                # Creator-based isolation (spec §3): only this owner's finished videos
+                # (admin passes owner_user_id=None and sees all, incl. unowned rows).
+                statement = statement.where(FinishedVideoRow.owner_user_id == owner_user_id)
             return [finished_video_row_to_contract(row) for row in session.scalars(statement)]
 
     def finished_video_detail(self, finished_video_id: str) -> FinishedVideoDetail | None:

@@ -25,6 +25,7 @@ import logging
 from fastapi import Request
 
 from apps.api.common import media_repository, production_repository, repository, request_id
+from apps.api.dependencies import current_user
 from apps.api.services import asset_annotation
 from packages.core import contracts as c
 from packages.core.storage.repository import new_id
@@ -48,7 +49,7 @@ def run_batch_annotation(
         id=new_id("job"),
         type=c.JobType.annotation_batch,
         case_id=None,
-        created_by="usr_admin",
+        created_by=current_user(request).id,
         request_schema=payload.schema_version,
         request=payload,
         status=c.JobStatus.running,

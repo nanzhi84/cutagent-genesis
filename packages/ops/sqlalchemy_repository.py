@@ -100,8 +100,18 @@ class SqlAlchemyOpsRepository:
     def __init__(self, session_factory: sessionmaker[Session]) -> None:
         self.session_factory = session_factory
 
-    def dashboard(self, window_start: datetime | None = None, window_end: datetime | None = None) -> OpsDashboardVm:
-        funnel = self.yield_funnel(window_start=window_start, window_end=window_end)
+    def dashboard(
+        self,
+        window_start: datetime | None = None,
+        window_end: datetime | None = None,
+        owner_user_id: str | None = None,
+    ) -> OpsDashboardVm:
+        # Creator-based isolation (spec §3): the funnel (which drives the overview
+        # processing/completed/failed counts) is scoped to the caller's own runs;
+        # admin passes owner_user_id=None and sees the global view.
+        funnel = self.yield_funnel(
+            window_start=window_start, window_end=window_end, owner_user_id=owner_user_id
+        )
         return OpsDashboardVm(
             usage=self.provider_usage(window_start=window_start, window_end=window_end),
             yield_funnel=funnel,
@@ -363,11 +373,16 @@ class SqlAlchemyOpsRepository:
         window_start: datetime | None = None,
         window_end: datetime | None = None,
         case_id: str | None = None,
+        owner_user_id: str | None = None,
     ) -> YieldFunnelResponse:
         with self.session_factory() as session:
             statement = select(YieldFunnelEventRow)
             if case_id:
                 statement = statement.where(YieldFunnelEventRow.case_id == case_id)
+            if owner_user_id is not None:
+                # Creator-based isolation (spec §3): only this owner's funnel events
+                # (admin passes owner_user_id=None and sees all).
+                statement = statement.where(YieldFunnelEventRow.owner_user_id == owner_user_id)
             if window_start:
                 statement = statement.where(YieldFunnelEventRow.created_at >= window_start)
             if window_end:

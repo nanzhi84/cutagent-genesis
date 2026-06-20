@@ -6,12 +6,17 @@ from datetime import timedelta
 from fastapi import Request, WebSocket, WebSocketDisconnect
 
 from apps.api.common import (
+    assert_owner_or_404,
     get_case,
+    job_owner,
     production_repository,
     repository,
     request_id,
+    run_owner,
+    visible_owner_filter,
     workflow_runtime,
 )
+from apps.api.dependencies import current_user
 from packages.core import contracts as c
 from packages.core.observability.events import receive_from_subscriber
 from packages.core.observability import replay_sqlalchemy_outbox
@@ -231,14 +236,23 @@ def _run_card(repo, run: c.WorkflowRun) -> c.RunCard:
 
 
 def case_run_cards(request: Request, case_id: str, limit: int = 50) -> c.PageResponse[c.RunCard]:
+    # Creator-based isolation (spec §3): operator/viewer only see their own runs;
+    # admin (owner_filter is None) sees all. The case itself stays shared.
+    owner_filter = visible_owner_filter(current_user(request))
     if production_repository(request) is not None:
-        response = production_repository(request).case_run_cards(case_id=case_id, request_id=request_id(), limit=limit)
+        response = production_repository(request).case_run_cards(
+            case_id=case_id, request_id=request_id(), limit=limit, owner_user_id=owner_filter
+        )
         if response is not None:
             return response
     get_case(request, case_id)
     repo = repository(request)
     runs = sorted(
-        [run for run in repo.runs.values() if run.case_id == case_id],
+        [
+            run
+            for run in repo.runs.values()
+            if run.case_id == case_id and _run_visible(repo, run, owner_filter)
+        ],
         key=lambda run: run.updated_at,
         reverse=True,
     )[:limit]
@@ -247,6 +261,17 @@ def case_run_cards(request: Request, case_id: str, limit: int = 50) -> c.PageRes
         total_hint=len(runs),
         request_id=request_id(),
     )
+
+
+def _run_visible(repo, run: c.WorkflowRun, owner_filter: str | None) -> bool:
+    """Whether ``run`` is visible under the creator-isolation owner filter.
+    ``owner_filter is None`` -> admin, all visible. Otherwise only runs whose
+    job.created_by matches (unowned runs are hidden from non-admins)."""
+    if owner_filter is None:
+        return True
+    job = repo.jobs.get(run.job_id)
+    owner = run.requested_by or (job.created_by if job is not None else None)
+    return owner == owner_filter
 
 
 def _empty_reuse_plan(source_run_id: str, template: c.WorkflowTemplate) -> ReusePlan:
@@ -327,7 +352,7 @@ def create_digital_human_job(
         id=new_id("job"),
         type=c.JobType.digital_human_video,
         case_id=payload.case_id,
-        created_by="usr_admin",
+        created_by=current_user(request).id,
         request_schema=payload.schema_version,
         request=payload,
     )
@@ -360,7 +385,7 @@ def _link_adopted_script(request: Request, payload: c.DigitalHumanVideoRequest) 
 
 
 def job_detail(request: Request, job_id: str) -> c.JobDetailResponse:
-
+    assert_owner_or_404(current_user(request), job_owner(request, job_id))
     if production_repository(request) is not None:
         detail = production_repository(request).job_detail(job_id, request_id())
         if detail is not None:
@@ -391,7 +416,7 @@ def create_run(job_id: str, payload: c.CreateRunRequest, request: Request) -> c.
 
 
 def run_detail(request: Request, run_id: str) -> c.RunDetailResponse:
-
+    assert_owner_or_404(current_user(request), run_owner(request, run_id))
     if production_repository(request) is not None:
         detail = production_repository(request).run_detail(run_id, request_id())
         if detail is not None:

@@ -5,13 +5,17 @@ from pathlib import Path
 from fastapi import Request
 
 from apps.api.common import (
+    assert_owner_or_404,
+    finished_video_owner,
     object_store,
     page,
     production_repository,
     repository,
     request_id,
     signed,
+    visible_owner_filter,
 )
+from apps.api.dependencies import current_user
 from packages.core import contracts as c
 from packages.core.workflow import NodeExecutionError
 from packages.creative.cases import evolution
@@ -55,13 +59,25 @@ def _extract_feature_vector(repo, video: c.VideoVersion) -> c.CreativeFeatureVec
 
 
 def case_finished_videos(request: Request, case_id: str, limit: int = 50) -> c.PageResponse[c.FinishedVideo]:
+    # Creator-based isolation (spec §3): operator/viewer only see their own finished
+    # videos; admin (owner_filter is None) sees all (including unowned legacy rows).
+    owner_filter = visible_owner_filter(current_user(request))
     if production_repository(request) is not None:
-        values = production_repository(request).list_finished_videos(case_id=case_id, limit=limit)
+        values = production_repository(request).list_finished_videos(
+            case_id=case_id, limit=limit, owner_user_id=owner_filter
+        )
         return c.PageResponse(items=values, total_hint=len(values), request_id=request_id())
-    return page([item for item in repository(request).finished_videos.values() if item.case_id == case_id], limit)
+    items = [
+        item
+        for item in repository(request).finished_videos.values()
+        if item.case_id == case_id
+        and (owner_filter is None or item.owner_user_id == owner_filter)
+    ]
+    return page(items, limit)
 
 
 def finished_video_detail(request: Request, id: str) -> c.FinishedVideoDetail:
+    assert_owner_or_404(current_user(request), finished_video_owner(request, id))
     if production_repository(request) is not None:
         detail = production_repository(request).finished_video_detail(id)
         if detail is None:
@@ -77,6 +93,7 @@ def finished_video_detail(request: Request, id: str) -> c.FinishedVideoDetail:
 
 
 def finished_video_preview(request: Request, id: str) -> c.SignedUrlResponse:
+    assert_owner_or_404(current_user(request), finished_video_owner(request, id))
     if production_repository(request) is not None:
         uri = production_repository(request).artifact_uri_for_finished_video(id)
         if uri is None:

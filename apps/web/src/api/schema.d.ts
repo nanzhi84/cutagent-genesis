@@ -141,6 +141,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/me/generation-defaults": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Generation Defaults */
+        get: operations["get_generation_defaults_api_auth_me_generation_defaults_get"];
+        /** Put Generation Defaults */
+        put: operations["put_generation_defaults_api_auth_me_generation_defaults_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/users": {
         parameters: {
             query?: never;
@@ -470,6 +488,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tts/estimate-cost": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Estimate Tts Cost */
+        post: operations["estimate_tts_cost_api_tts_estimate_cost_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/video/estimate-cost": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Estimate Lipsync Cost */
+        post: operations["estimate_lipsync_cost_api_video_estimate_cost_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/cases/{case_id}/runs": {
         parameters: {
             query?: never;
@@ -498,6 +550,40 @@ export interface paths {
         put?: never;
         /** Create Digital Human Job */
         post: operations["create_digital_human_job_api_jobs_digital_human_video_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs/digital-human-video/batch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Digital Human Batch */
+        post: operations["create_digital_human_batch_api_jobs_digital_human_video_batch_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs/digital-human-video/estimate-cost": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Estimate Digital Human Video Cost */
+        post: operations["estimate_digital_human_video_cost_api_jobs_digital_human_video_estimate_cost_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2780,6 +2866,85 @@ export interface components {
             /** Message */
             message?: string | null;
         };
+        /** BatchDigitalHumanVideoRequest */
+        BatchDigitalHumanVideoRequest: {
+            /**
+             * Schema Version
+             * @default batch_digital_human_video_request.v1
+             * @constant
+             */
+            schema_version: "batch_digital_human_video_request.v1";
+            /** Case Id */
+            case_id: string;
+            /** Items */
+            items: components["schemas"]["BatchItem"][];
+            /**
+             * Use My Defaults
+             * @default true
+             */
+            use_my_defaults: boolean;
+        };
+        /** BatchGenerationResponse */
+        BatchGenerationResponse: {
+            /** Results */
+            results: components["schemas"]["BatchItemResult"][];
+            /**
+             * Request Id
+             * @default req_local
+             */
+            request_id: string;
+        };
+        /**
+         * BatchItem
+         * @description One script in a batch request. ``overrides`` win over the user's saved
+         *     defaults, which in turn win over the per-block system defaults.
+         */
+        BatchItem: {
+            /** Script */
+            script: string;
+            /** Title */
+            title?: string | null;
+            /** Publish Content */
+            publish_content?: string | null;
+            /** Script Version Id */
+            script_version_id?: string | null;
+            overrides?: components["schemas"]["BatchItemOverrides"] | null;
+        };
+        /**
+         * BatchItemOverrides
+         * @description Per-item option overrides for batch generation (a subset of
+         *     ``DigitalHumanVideoRequest``'s option blocks). Any block left ``None`` falls
+         *     back to the merge chain (my-defaults -> system default).
+         */
+        BatchItemOverrides: {
+            voice?: components["schemas"]["VoiceOptions"] | null;
+            portrait?: components["schemas"]["PortraitOptions"] | null;
+            broll?: components["schemas"]["BrollOptions"] | null;
+            lipsync?: components["schemas"]["LipSyncOptions"] | null;
+            subtitle?: components["schemas"]["SubtitleOptions"] | null;
+            bgm?: components["schemas"]["BgmOptions"] | null;
+            cover?: components["schemas"]["CoverOptions"] | null;
+            output?: components["schemas"]["OutputOptions"] | null;
+            strictness?: components["schemas"]["StrictnessOptions"] | null;
+            /** Workflow Template Id */
+            workflow_template_id?: string | null;
+        };
+        /** BatchItemResult */
+        BatchItemResult: {
+            /** Index */
+            index: number;
+            /** Job Id */
+            job_id?: string | null;
+            /** Run Id */
+            run_id?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "created" | "failed";
+            /** Error */
+            error?: string | null;
+        };
         /** BatchMediaProcessResponse */
         BatchMediaProcessResponse: {
             /** Results */
@@ -2794,9 +2959,8 @@ export interface components {
         };
         /**
          * BeginLoginResponse
-         * @description A started QR-login flow against 小V猫. The QR is **streamed in real time** over
-         *     the WebSocket at ``stream_path`` — 小V猫's platform QR refreshes fast, so the socket
-         *     pushes each fresh frame instead of returning one snapshot. ``Cache-Control: no-store``.
+         * @description A started QR-login flow. ``qr_image`` is a login credential (data-url); the API
+         *     marks the response ``Cache-Control: no-store`` — never persist or log it.
          */
         BeginLoginResponse: {
             /** Login Id */
@@ -2810,8 +2974,8 @@ export interface components {
             platform: "douyin" | "shipinhao" | "kuaishou" | "xiaohongshu";
             /** Status */
             status: string;
-            /** Stream Path */
-            stream_path: string;
+            /** Qr Image */
+            qr_image: string;
             /** Request Id */
             request_id: string;
         };
@@ -3721,6 +3885,24 @@ export interface components {
             /** Request Id */
             request_id: string;
         };
+        /** CostEstimateLine */
+        CostEstimateLine: {
+            /** Label */
+            label: string;
+            /** Capability Id */
+            capability_id: string;
+            /** Quantity */
+            quantity: string;
+            /** Unit */
+            unit: string;
+            unit_price?: components["schemas"]["Money-Output"] | null;
+            estimated_cost: components["schemas"]["Money-Output"];
+            /**
+             * Unpriced
+             * @default false
+             */
+            unpriced: boolean;
+        };
         /**
          * CostMetrics
          * @description §9.4 / §26.2 cost indicators for an ops window.
@@ -4019,8 +4201,6 @@ export interface components {
             account_name: string;
             /** Platform Uid */
             platform_uid?: string | null;
-            /** Xiaovmao Uid */
-            xiaovmao_uid?: string | null;
         };
         /** CreatePublishBatchRequest */
         CreatePublishBatchRequest: {
@@ -4242,6 +4422,18 @@ export interface components {
             /** Provider Profile Id */
             provider_profile_id?: string | null;
         };
+        /** DigitalHumanVideoCostEstimateResponse */
+        DigitalHumanVideoCostEstimateResponse: {
+            /** Tts Characters */
+            tts_characters: number;
+            /** Estimated Video Seconds */
+            estimated_video_seconds: number;
+            tts: components["schemas"]["CostEstimateLine"];
+            video: components["schemas"]["CostEstimateLine"];
+            total: components["schemas"]["CostEstimateLine"];
+            /** Request Id */
+            request_id: string;
+        };
         /** DigitalHumanVideoRequest */
         DigitalHumanVideoRequest: {
             /**
@@ -4431,6 +4623,8 @@ export interface components {
             case_id: string;
             /** Run Id */
             run_id?: string | null;
+            /** Owner User Id */
+            owner_user_id?: string | null;
             /** Title */
             title: string;
             /** Video Number */
@@ -4678,6 +4872,28 @@ export interface components {
              */
             timeout_minutes: number;
         };
+        /** LipsyncCostEstimateRequest */
+        LipsyncCostEstimateRequest: {
+            /** Video Duration Sec */
+            video_duration_sec: number;
+            /** Provider Profile Id */
+            provider_profile_id?: string | null;
+        };
+        /** LipsyncCostEstimateResponse */
+        LipsyncCostEstimateResponse: {
+            /** Video Duration Sec */
+            video_duration_sec: number;
+            /** Video Duration Min */
+            video_duration_min: number;
+            estimate: components["schemas"]["CostEstimateLine"];
+            /**
+             * Pricing Source
+             * @enum {string}
+             */
+            pricing_source: "catalog" | "default";
+            /** Request Id */
+            request_id: string;
+        };
         /** LoginRequest */
         LoginRequest: {
             /** Identifier */
@@ -4687,10 +4903,7 @@ export interface components {
             /** Password */
             password: string;
         };
-        /**
-         * LoginStatusResponse
-         * @description Fallback poll of a login flow (the WebSocket stream is the primary channel).
-         */
+        /** LoginStatusResponse */
         LoginStatusResponse: {
             /** Login Id */
             login_id: string;
@@ -4701,10 +4914,10 @@ export interface components {
             /** Detail */
             detail?: string | null;
             /**
-             * Login State
+             * Session Status
              * @enum {string}
              */
-            login_state: "logged_in" | "logged_out" | "unknown";
+            session_status: "never_logged_in" | "active" | "expired";
             /** Request Id */
             request_id: string;
         };
@@ -5666,8 +5879,6 @@ export interface components {
             account_name?: string | null;
             /** Platform Uid */
             platform_uid?: string | null;
-            /** Xiaovmao Uid */
-            xiaovmao_uid?: string | null;
             /** Status */
             status?: ("active" | "archived") | null;
         };
@@ -6701,12 +6912,11 @@ export interface components {
         };
         /**
          * PublishAccount
-         * @description A client's persistent publishing account on one platform — a binding anchor
-         *     that maps to a 小V猫-managed account via ``xiaovmao_uid``.
+         * @description A client's persistent publishing account on one platform.
          *
-         *     The platform session lives **inside 小V猫** (never in our DB/SecretStore nor in
-         *     this contract). ``login_state`` is computed live at read time from 小V猫's
-         *     ``CatBridge`` ``isLogin`` and is **not persisted**.
+         *     The browser session lives in the ``SecretStore`` (never in the DB row nor in
+         *     this contract); ``has_session`` + ``session_status`` are the only session
+         *     surface exposed to the API.
          */
         PublishAccount: {
             /** Id */
@@ -6744,14 +6954,21 @@ export interface components {
             account_name: string;
             /** Platform Uid */
             platform_uid?: string | null;
-            /** Xiaovmao Uid */
-            xiaovmao_uid?: string | null;
             /**
-             * Login State
-             * @default unknown
+             * Session Status
+             * @default never_logged_in
              * @enum {string}
              */
-            login_state: "logged_in" | "logged_out" | "unknown";
+            session_status: "never_logged_in" | "active" | "expired";
+            /**
+             * Has Session
+             * @default false
+             */
+            has_session: boolean;
+            /** Session Expires At */
+            session_expires_at?: string | null;
+            /** Last Validated At */
+            last_validated_at?: string | null;
             /**
              * Status
              * @default active
@@ -8048,6 +8265,30 @@ export interface components {
             /** Request Id */
             request_id: string;
         };
+        /** TtsCostEstimateRequest */
+        TtsCostEstimateRequest: {
+            /** Text */
+            text: string;
+            /** Provider Profile Id */
+            provider_profile_id?: string | null;
+        };
+        /** TtsCostEstimateResponse */
+        TtsCostEstimateResponse: {
+            /** Text Length */
+            text_length: number;
+            /** Estimated Chars */
+            estimated_chars: number;
+            /** Estimated Duration Sec */
+            estimated_duration_sec: number;
+            estimate: components["schemas"]["CostEstimateLine"];
+            /**
+             * Pricing Source
+             * @enum {string}
+             */
+            pricing_source: "catalog" | "default";
+            /** Request Id */
+            request_id: string;
+        };
         /** UpdateMeRequest */
         UpdateMeRequest: {
             /** Display Name */
@@ -8183,6 +8424,24 @@ export interface components {
             confidence: number;
         };
         /**
+         * UserGenerationDefaults
+         * @description A user's saved generation option preset (all blocks Optional).
+         *
+         *     When a block is ``None`` the caller should fall back to the system default for
+         *     that block (i.e. the ``DigitalHumanVideoRequest`` field's default_factory).
+         */
+        UserGenerationDefaults: {
+            voice?: components["schemas"]["VoiceOptions"] | null;
+            portrait?: components["schemas"]["PortraitOptions"] | null;
+            broll?: components["schemas"]["BrollOptions"] | null;
+            lipsync?: components["schemas"]["LipSyncOptions"] | null;
+            subtitle?: components["schemas"]["SubtitleOptions"] | null;
+            bgm?: components["schemas"]["BgmOptions"] | null;
+            cover?: components["schemas"]["CoverOptions"] | null;
+            output?: components["schemas"]["OutputOptions"] | null;
+            strictness?: components["schemas"]["StrictnessOptions"] | null;
+        };
+        /**
          * UserRole
          * @enum {string}
          */
@@ -8192,12 +8451,14 @@ export interface components {
             /** Account Id */
             account_id: string;
             /**
-             * Login State
+             * Session Status
              * @enum {string}
              */
-            login_state: "logged_in" | "logged_out" | "unknown";
-            /** Last Checked At */
-            last_checked_at?: string | null;
+            session_status: "never_logged_in" | "active" | "expired";
+            /** Has Session */
+            has_session: boolean;
+            /** Last Validated At */
+            last_validated_at?: string | null;
             /** Request Id */
             request_id: string;
         };
@@ -8718,6 +8979,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OkResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_generation_defaults_api_auth_me_generation_defaults_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserGenerationDefaults"];
+                };
+            };
+        };
+    };
+    put_generation_defaults_api_auth_me_generation_defaults_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserGenerationDefaults"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserGenerationDefaults"];
                 };
             };
             /** @description Validation Error */
@@ -9533,6 +9847,72 @@ export interface operations {
             };
         };
     };
+    estimate_tts_cost_api_tts_estimate_cost_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TtsCostEstimateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TtsCostEstimateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    estimate_lipsync_cost_api_video_estimate_cost_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LipsyncCostEstimateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LipsyncCostEstimateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     case_run_cards_api_cases__case_id__runs_get: {
         parameters: {
             query?: {
@@ -9586,6 +9966,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CreateJobResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_digital_human_batch_api_jobs_digital_human_video_batch_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchDigitalHumanVideoRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchGenerationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    estimate_digital_human_video_cost_api_jobs_digital_human_video_estimate_cost_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DigitalHumanVideoRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DigitalHumanVideoCostEstimateResponse"];
                 };
             };
             /** @description Validation Error */

@@ -1,6 +1,7 @@
 """Publishing package namespace."""
 
 from packages.publishing.account_matching import (
+    match_account,
     normalize_publish_tags,
     normalize_scheduled_at,
 )
@@ -35,6 +36,7 @@ __all__ = [
     "SqlAlchemyPublishingRepository",
     "SqlAlchemyAccountsRepository",
     "MemoryAccountsRepository",
+    "match_account",
     "normalize_publish_tags",
     "normalize_scheduled_at",
     "PublishCopy",

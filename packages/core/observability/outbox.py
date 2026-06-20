@@ -63,24 +63,10 @@ class OutboxWriter:
         *,
         aggregate_type: str,
         aggregate_id: str,
-        since_id: str | None = None,
-        include_unpublished: bool = True,
     ) -> list[OutboxEvent]:
         events = [
             event
             for event in self.repository.outbox.values()
             if event.aggregate_type == aggregate_type and event.aggregate_id == aggregate_id
         ]
-        if not include_unpublished:
-            events = [event for event in events if event.status == "published"]
-        ordered = sorted(events, key=lambda event: (event.created_at, event.id))
-        if since_id is None:
-            return ordered
-        return [event for event in ordered if (event.created_at, event.id) > self._cursor(ordered, since_id)]
-
-    @staticmethod
-    def _cursor(events: list[OutboxEvent], event_id: str) -> tuple[datetime, str]:
-        for event in events:
-            if event.id == event_id:
-                return event.created_at, event.id
-        return datetime.min.replace(tzinfo=utcnow().tzinfo), event_id
+        return sorted(events, key=lambda event: (event.created_at, event.id))

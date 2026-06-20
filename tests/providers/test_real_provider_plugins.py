@@ -313,6 +313,70 @@ def test_videoretalk_submits_async_task_and_stores_polled_video(tmp_path, media_
     assert "POST /api/v1/services/aigc/image2video/video-synthesis/" in requests
 
 
+def test_videoretalk_uses_lipsync_timeout_minutes_as_poll_budget(
+    tmp_path, media_fixture_factory, monkeypatch
+):
+    result_video = media_fixture_factory.video(duration_sec=1.0, filename="videoretalk-result.mp4")
+    poll_count = 0
+    monkeypatch.setattr("packages.ai.providers.dashscope.time.sleep", lambda _seconds: None)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal poll_count
+        if request.url.path == "/api/v1/services/aigc/image2video/video-synthesis/":
+            return httpx.Response(200, json={"output": {"task_id": "vrt-1", "task_status": "PENDING"}})
+        if request.url.path == "/api/v1/tasks/vrt-1":
+            poll_count += 1
+            if poll_count == 1:
+                return httpx.Response(200, json={"output": {"task_id": "vrt-1", "task_status": "RUNNING"}})
+            return httpx.Response(
+                200,
+                json={
+                    "output": {
+                        "task_id": "vrt-1",
+                        "task_status": "SUCCEEDED",
+                        "video_url": "https://files.example/videoretalk-result.mp4",
+                    }
+                },
+            )
+        if str(request.url) == "https://files.example/videoretalk-result.mp4":
+            return httpx.Response(200, content=result_video.read_bytes())
+        return httpx.Response(404, text=str(request.url))
+
+    repository, gateway = _gateway(tmp_path, httpx.MockTransport(handler))
+    secret_ref = gateway.secret_store.put("dashscope-key")  # type: ignore[union-attr]
+    profile = _profile(
+        repository,
+        provider_id="dashscope.videoretalk",
+        capability="lipsync.video",
+        model_id="videoretalk",
+        secret_ref=secret_ref,
+        default_options={
+            "base_url": "https://dashscope.aliyuncs.com/api/v1",
+            "poll_interval": 1,
+            "poll_max_attempts": 1,
+        },
+    )
+
+    invocation, result = gateway.invoke(
+        ProviderCall(
+            case_id="case_demo",
+            provider_profile_id=profile.id,
+            capability_id="lipsync.video",
+            input={
+                "video_url": "https://media.example/portrait.mp4",
+                "audio_url": "https://media.example/speech.wav",
+                "duration_sec": 1.0,
+                "timeout_minutes": 0.05,
+            },
+        )
+    )
+
+    assert invocation.status == ProviderStatus.succeeded
+    assert result is not None
+    assert result.output["poll_attempts"] == 2
+    assert poll_count == 2
+
+
 def test_videoretalk_failed_task_surfaces_content_policy_message(tmp_path):
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.path == "/api/v1/services/aigc/image2video/video-synthesis/":
@@ -859,6 +923,75 @@ def test_runninghub_heygem_records_external_job_and_stores_polled_video(
     assert artifact.media_info.media_type == "video"
     assert "POST /task/openapi/status" in requests
     assert "POST /task/openapi/outputs" in requests
+
+
+def test_runninghub_heygem_uses_lipsync_timeout_minutes_as_poll_budget(
+    tmp_path, media_fixture_factory, monkeypatch
+):
+    result_video = media_fixture_factory.video(duration_sec=1.0, filename="heygem-result.mp4")
+    source_video = media_fixture_factory.video(duration_sec=1.0, filename="portrait.mp4")
+    source_audio = media_fixture_factory.audio(duration_sec=1.0, filename="speech.wav")
+    upload_calls = 0
+    status_calls = 0
+    monkeypatch.setattr("packages.ai.providers.runninghub.time.sleep", lambda _seconds: None)
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal upload_calls, status_calls
+        if request.url.path == "/openapi/v2/media/upload/binary":
+            upload_calls += 1
+            filename = "portrait.mp4" if upload_calls == 1 else "speech.wav"
+            return httpx.Response(200, json={"data": {"fileName": filename}})
+        if request.url.path == "/task/openapi/ai-app/run":
+            return httpx.Response(200, json={"data": {"taskId": "rh-job-1"}})
+        if request.url.path == "/task/openapi/status":
+            status_calls += 1
+            if status_calls == 1:
+                return httpx.Response(200, json={"data": {"status": "running"}})
+            return httpx.Response(200, json={"data": {"status": "success"}})
+        if request.url.path == "/task/openapi/outputs":
+            return httpx.Response(200, json={"data": {"fileUrl": "https://files.example/heygem-result.mp4"}})
+        if str(request.url) == "https://files.example/heygem-result.mp4":
+            return httpx.Response(200, content=result_video.read_bytes())
+        return httpx.Response(404, text=str(request.url))
+
+    repository, gateway = _gateway(tmp_path, httpx.MockTransport(handler))
+    video_stored = store_file(gateway.object_store, source_video, purpose="test-video")  # type: ignore[arg-type]
+    audio_stored = store_file(gateway.object_store, source_audio, purpose="test-audio")  # type: ignore[arg-type]
+    secret_ref = gateway.secret_store.put("runninghub-key")  # type: ignore[union-attr]
+    profile = _profile(
+        repository,
+        provider_id="runninghub.heygem",
+        capability="lipsync.video",
+        model_id="heygem-webapp",
+        secret_ref=secret_ref,
+        default_options={
+            "base_url": "https://www.runninghub.ai",
+            "webapp_id": "webapp-1",
+            "video_node_id": "video-node",
+            "audio_node_id": "audio-node",
+            "poll_interval": 1,
+            "poll_max_attempts": 1,
+        },
+    )
+
+    invocation, result = gateway.invoke(
+        ProviderCall(
+            case_id="case_demo",
+            provider_profile_id=profile.id,
+            capability_id="lipsync.video",
+            input={
+                "portrait_uri": video_stored.ref.uri,
+                "audio_uri": audio_stored.ref.uri,
+                "duration_sec": 1.0,
+                "timeout_minutes": 0.05,
+            },
+        )
+    )
+
+    assert invocation.status == ProviderStatus.succeeded
+    assert result is not None
+    assert result.output["poll_attempts"] == 2
+    assert status_calls == 2
 
 
 def test_runninghub_heygem_discovers_node_mapping_when_not_configured(

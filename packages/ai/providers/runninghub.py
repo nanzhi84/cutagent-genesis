@@ -15,7 +15,14 @@ from packages.ai.gateway.provider_gateway import (
     ProviderRuntimeError,
 )
 from packages.ai.gateway.provider_context import ProviderInvocationContext
-from packages.ai.providers.common import extract_data, first_value, request, require_secret, response_json
+from packages.ai.providers.common import (
+    extract_data,
+    first_value,
+    poll_budget,
+    request,
+    require_secret,
+    response_json,
+)
 from packages.core.contracts import ArtifactKind, ErrorCode
 
 RUNNINGHUB_RETRY_ATTEMPTS = 3
@@ -61,7 +68,14 @@ class RunningHubHeyGemProvider:
         audio_file = self._upload(base_url, api_key, audio_path, "audio", context.profile.timeout_sec, options)
         task_id = self._submit(base_url, api_key, video_file, audio_file, options, context.profile.timeout_sec)
         context.mark_polling(task_id)
-        output_payload, attempts = self._poll(base_url, api_key, task_id, options, context.profile.timeout_sec)
+        output_payload, attempts = self._poll(
+            base_url,
+            api_key,
+            task_id,
+            options,
+            context.profile.timeout_sec,
+            timeout_minutes=call.input.get("timeout_minutes"),
+        )
         result_url = self._find_first_video_url(output_payload)
         if not result_url:
             raise ProviderRuntimeError(ErrorCode.provider_remote_failed, "RunningHub output missing video URL.")
@@ -228,9 +242,14 @@ class RunningHubHeyGemProvider:
         task_id: str,
         options: dict[str, Any],
         timeout_sec: int,
+        timeout_minutes: Any = None,
     ) -> tuple[dict[str, Any], int]:
-        interval = float(options["poll_interval"] if options.get("poll_interval") is not None else 2)
-        max_attempts = int(options["poll_max_attempts"] if options.get("poll_max_attempts") is not None else 120)
+        interval, max_attempts = poll_budget(
+            options,
+            default_interval=2,
+            default_max_attempts=120,
+            timeout_minutes=timeout_minutes,
+        )
         for attempt in range(1, max_attempts + 1):
             status_payload = self._post_task(base_url, api_key, "/task/openapi/status", task_id, timeout_sec, options)
             status = self._normalize_status(extract_data(status_payload))

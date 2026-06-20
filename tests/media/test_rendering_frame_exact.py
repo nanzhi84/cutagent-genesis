@@ -71,6 +71,47 @@ def test_render_video_timeline_uses_frame_boundaries_for_broll_overlay(monkeypat
     assert re.search(r"trim=start=\d+(?:\.\d+)?", filter_complex) is None
 
 
+def test_render_video_timeline_pads_broll_overlay_to_timeline_window(monkeypatch, tmp_path):
+    captured: dict[str, list[str]] = {}
+
+    def capture_run(self, args):
+        captured["args"] = args
+
+    monkeypatch.setattr(rendering_timeline.FfmpegRunner, "run", capture_run)
+    artifact = _video_artifact("asset_a", tmp_path / "asset_a.mp4", duration_sec=124.854)
+
+    render_video_timeline(
+        main_path=tmp_path / "main.mp4",
+        output_path=tmp_path / "rendered.mp4",
+        broll_segments=[
+            {
+                "asset_id": "asset_a",
+                "source_start": 20.387,
+                "source_end": 23.548,
+                "source_start_frame": 612,
+                "source_end_frame": 706,
+                "start_sec": 55.959,
+                "end_sec": 59.12,
+                "timeline_start_frame": 1679,
+                "timeline_end_frame": 1774,
+            }
+        ],
+        total_frames=2161,
+        width=1080,
+        height=1920,
+        fps=30,
+        source_artifact_for_asset=lambda _asset_id: artifact,
+        artifact_path=lambda source_artifact: Path(source_artifact.local_path),
+    )
+
+    args = captured["args"]
+    filter_complex = args[args.index("-filter_complex") + 1]
+
+    assert "trim=start_frame=612:end_frame=706" in filter_complex
+    assert "tpad=stop_mode=clone:stop=95,trim=start_frame=0:end_frame=95" in filter_complex
+    assert "enable='gte(n\\,1679)*lt(n\\,1774)'" in filter_complex
+
+
 def test_transcode_video_segment_uses_output_frame_trim_without_input_seek(monkeypatch, tmp_path):
     signature = inspect.signature(transcode_video_segment)
     assert "source_start_frame" in signature.parameters

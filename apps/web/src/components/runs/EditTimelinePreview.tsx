@@ -20,7 +20,7 @@ function formatClock(seconds: number): string {
   return `${Math.floor(total / 60)}:${(total % 60).toString().padStart(2, "0")}`;
 }
 
-/** 合并 plan.portrait（数字人镜头）+ plan.broll（B-roll 插入）为一条带时间戳的剪辑时间线。 */
+/** 合并 plan.portrait（数字人镜头）+ plan.timeline（最终 B-roll 轨道）为一条带时间戳的剪辑时间线。 */
 export function buildEditClips(detail?: RunDetailResponse): EditClip[] {
   const payloads = (detail as (RunDetailResponse & { artifact_payloads?: Record<string, unknown> }) | undefined)?.artifact_payloads;
   const payloadFor = (kind: string) => {
@@ -30,11 +30,14 @@ export function buildEditClips(detail?: RunDetailResponse): EditClip[] {
   const clips: EditClip[] = [];
 
   const portrait = payloadFor("plan.portrait");
+  const timeline = payloadFor("plan.timeline");
+  const fps = readNumber(timeline?.fps) ?? readNumber(portrait?.fps) ?? 30;
   for (const [index, value] of (Array.isArray(portrait?.segments) ? portrait.segments : []).entries()) {
     const row = asRecord(value);
     const assetId = readString(row?.asset_id);
-    const start = readNumber(row?.start_sec);
-    const end = readNumber(row?.end_sec);
+    const times = readSegmentTimes(row, fps, "start_sec", "end_sec");
+    const start = times?.start ?? null;
+    const end = times?.end ?? null;
     if (!assetId || start === null || end === null || end <= start) continue;
     clips.push({
       id: readString(row?.segment_id) ?? `portrait-${assetId}-${index}`,
@@ -49,23 +52,49 @@ export function buildEditClips(detail?: RunDetailResponse): EditClip[] {
   }
 
   const broll = payloadFor("plan.broll");
-  for (const [index, value] of (Array.isArray(broll?.overlays) ? broll.overlays : []).entries()) {
-    const row = asRecord(value);
-    const assetId = readString(row?.asset_id);
-    const start = readNumber(row?.timeline_start);
-    const end = readNumber(row?.timeline_end);
-    if (!assetId || start === null || end === null || end <= start) continue;
-    clips.push({
-      id: readString(row?.overlay_id) ?? `broll-${assetId}-${index}`,
-      kind: "broll",
-      playerRole: "cover",
-      start,
-      end,
-      assetId,
-      label: readString(row?.scene_name) ?? readString(row?.reason) ?? "B-roll 片段",
-      confidence: readNumber(row?.confidence) ?? undefined,
-      keywords: readStringList(row?.matched_keywords),
-    });
+  const brollMetadata = brollMetadataBySegmentId(broll);
+  const finalBrollTracks = (Array.isArray(timeline?.tracks) ? timeline.tracks : [])
+    .map(asRecord)
+    .filter((track): track is Record<string, unknown> => track?.track_id === "broll");
+
+  if (finalBrollTracks.length > 0) {
+    for (const [index, track] of finalBrollTracks.entries()) {
+      const segmentId = readString(track.segment_id) ?? `broll_${index + 1}`;
+      const metadata = brollMetadata.get(segmentId);
+      const assetId = readString(metadata?.asset_id) ?? readString(track.asset_id);
+      const times = readSegmentTimes(track, fps, "start_sec", "end_sec");
+      if (!assetId || !times || times.end <= times.start) continue;
+      clips.push({
+        id: segmentId,
+        kind: "broll",
+        playerRole: "cover",
+        start: times.start,
+        end: times.end,
+        assetId,
+        label: brollLabel(metadata),
+        confidence: readNumber(metadata?.confidence) ?? undefined,
+        keywords: readStringList(metadata?.matched_keywords),
+      });
+    }
+  } else {
+    for (const [index, value] of (Array.isArray(broll?.overlays) ? broll.overlays : []).entries()) {
+      const row = asRecord(value);
+      const assetId = readString(row?.asset_id);
+      const start = readNumber(row?.timeline_start);
+      const end = readNumber(row?.timeline_end);
+      if (!assetId || start === null || end === null || end <= start) continue;
+      clips.push({
+        id: readString(row?.overlay_id) ?? `broll-${assetId}-${index}`,
+        kind: "broll",
+        playerRole: "cover",
+        start,
+        end,
+        assetId,
+        label: brollLabel(row),
+        confidence: readNumber(row?.confidence) ?? undefined,
+        keywords: readStringList(row?.matched_keywords),
+      });
+    }
   }
 
   return clips.sort((a, b) => a.start - b.start || a.end - b.end);
@@ -168,4 +197,43 @@ function readString(value: unknown): string | null {
 
 function readStringList(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0) : [];
+}
+
+function readSegmentTimes(
+  row: Record<string, unknown> | null,
+  fps: number,
+  startSecondsKey: string,
+  endSecondsKey: string,
+): { start: number; end: number } | null {
+  const startFrame = readNumber(row?.timeline_start_frame);
+  const endFrame = readNumber(row?.timeline_end_frame);
+  if (startFrame !== null && endFrame !== null && fps > 0) {
+    return { start: startFrame / fps, end: endFrame / fps };
+  }
+
+  const start = readNumber(row?.[startSecondsKey]);
+  const end = readNumber(row?.[endSecondsKey]);
+  return start !== null && end !== null ? { start, end } : null;
+}
+
+function brollMetadataBySegmentId(broll: Record<string, unknown> | null): Map<string, Record<string, unknown>> {
+  const metadata = new Map<string, Record<string, unknown>>();
+  const add = (value: unknown, index: number) => {
+    const row = asRecord(value);
+    if (!row) return;
+    const id = readString(row.overlay_id) ?? readString(row.segment_id) ?? `broll_${index + 1}`;
+    metadata.set(id, row);
+  };
+
+  if (Array.isArray(broll?.segments)) {
+    broll.segments.forEach(add);
+  }
+  if (Array.isArray(broll?.overlays)) {
+    broll.overlays.forEach(add);
+  }
+  return metadata;
+}
+
+function brollLabel(row: Record<string, unknown> | null | undefined): string {
+  return readString(row?.scene_name) ?? readString(row?.reason) ?? "B-roll 片段";
 }

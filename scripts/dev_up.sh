@@ -32,6 +32,7 @@ API_PORT="${CUTAGENT_API_PORT:-8000}"
 WEB_PORT="${CUTAGENT_WEB_PORT:-8001}"
 RUN_DIR="$ROOT/.data/dev"
 INFRA_SERVICES=(postgres redis minio temporal temporal-ui)
+DASHSCOPE_NO_PROXY_HOSTS=(dashscope.aliyuncs.com)
 TUNNEL_ENABLE="${CUTAGENT_TUNNEL_ENABLE:-auto}"
 TUNNEL_HOST="${CUTAGENT_TUNNEL_HOST:-shuying-tunnel}"
 TUNNEL_REMOTE_HOST="${CUTAGENT_TUNNEL_REMOTE_HOST:-127.0.0.1}"
@@ -177,7 +178,32 @@ load_env() {
   [[ -x "$PY" ]] || die "python venv not found: $PY  (set CUTAGENT_VENV or create .venv)"
   set -a; # shellcheck disable=SC1090
   source "$ENV_FILE"; set +a
+  ensure_provider_no_proxy
   export PYTHONPATH="$ROOT"
+}
+
+append_csv_once() {
+  local var="$1"
+  local value="$2"
+  local current="${!var:-}"
+  if [[ -z "$current" ]]; then
+    printf -v "$var" '%s' "$value"
+    export "$var"
+    return 0
+  fi
+  case ",$current," in
+    *",$value,"*) ;;
+    *) printf -v "$var" '%s,%s' "$current" "$value" ;;
+  esac
+  export "$var"
+}
+
+ensure_provider_no_proxy() {
+  local host
+  for host in "${DASHSCOPE_NO_PROXY_HOSTS[@]}"; do
+    append_csv_once NO_PROXY "$host"
+    append_csv_once no_proxy "$host"
+  done
 }
 
 # ── commands ───────────────────────────────────────────────────────────────
@@ -278,11 +304,18 @@ cmd_logs() {
   tail -n 60 -f "$f"
 }
 
+cmd_print_proxy_env() {
+  load_env
+  printf 'NO_PROXY=%s\n' "${NO_PROXY:-}"
+  printf 'no_proxy=%s\n' "${no_proxy:-}"
+}
+
 case "${1:-up}" in
   up)      cmd_up ;;
   down)    shift || true; cmd_down "${1:-}" ;;
   restart) cmd_down; cmd_up ;;
   status)  cmd_status ;;
   logs)    shift || true; cmd_logs "${1:-api}" ;;
+  __print_proxy_env) cmd_print_proxy_env ;;
   *)       die "usage: $0 [up|down [--infra]|restart|status|logs [api|worker|web]]" ;;
 esac

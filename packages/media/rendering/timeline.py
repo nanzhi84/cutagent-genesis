@@ -437,7 +437,7 @@ def render_video_timeline(
         "-i",
         str(main_path),
     ]
-    overlay_inputs: list[tuple[dict, Path, int, int]] = []
+    overlay_inputs: list[tuple[dict, Path, int, int, int, int]] = []
     for segment in broll_segments:
         source_artifact = source_artifact_for_asset(segment.get("asset_id"))
         source_path = artifact_path(source_artifact)
@@ -445,6 +445,8 @@ def render_video_timeline(
         source_duration = float(source_info.duration_sec or 0)
         source_start = float(segment.get("source_start", 0) or 0)
         source_end = float(segment.get("source_end", 0) or 0)
+        timeline_start = float(segment.get("start_sec", segment.get("timeline_start", 0)) or 0)
+        timeline_end = float(segment.get("end_sec", segment.get("timeline_end", 0)) or 0)
         source_start_frame = (
             int(segment["source_start_frame"])
             if segment.get("source_start_frame") is not None
@@ -455,23 +457,6 @@ def render_video_timeline(
             if segment.get("source_end_frame") is not None
             else _to_frame(source_end, fps)
         )
-        source_duration_frames = _to_frame(source_duration, fps)
-        if source_start_frame < 0 or source_end_frame <= source_start_frame or source_end_frame > source_duration_frames:
-            raise NodeExecutionError(ErrorCode.render_invalid_timeline, "B-roll source window is out of bounds.")
-        overlay_inputs.append((segment, source_path, source_start_frame, source_end_frame))
-        args.extend(["-i", str(source_path)])
-
-    filters = [
-        (
-            f"[0:v]fps={fps},scale={width}:{height}:force_original_aspect_ratio=increase,"
-            f"crop={width}:{height},trim=start_frame=0:end_frame={total_frames},"
-            "setpts=PTS-STARTPTS,setsar=1[base0]"
-        )
-    ]
-    previous_label = "base0"
-    for index, (segment, _, source_start_frame, source_end_frame) in enumerate(overlay_inputs, start=1):
-        timeline_start = float(segment.get("start_sec", segment.get("timeline_start", 0)) or 0)
-        timeline_end = float(segment.get("end_sec", segment.get("timeline_end", 0)) or 0)
         timeline_start_frame = (
             int(segment["timeline_start_frame"])
             if segment.get("timeline_start_frame") is not None
@@ -482,8 +467,40 @@ def render_video_timeline(
             if segment.get("timeline_end_frame") is not None
             else _to_frame(timeline_end, fps)
         )
+        source_duration_frames = _to_frame(source_duration, fps)
+        if source_start_frame < 0 or source_end_frame <= source_start_frame or source_end_frame > source_duration_frames:
+            raise NodeExecutionError(ErrorCode.render_invalid_timeline, "B-roll source window is out of bounds.")
         if not (0 <= timeline_start_frame < timeline_end_frame <= total_frames):
             raise NodeExecutionError(ErrorCode.render_invalid_timeline, "B-roll timeline window is out of bounds.")
+        overlay_inputs.append(
+            (
+                segment,
+                source_path,
+                source_start_frame,
+                source_end_frame,
+                timeline_start_frame,
+                timeline_end_frame,
+            )
+        )
+        args.extend(["-i", str(source_path)])
+
+    filters = [
+        (
+            f"[0:v]fps={fps},scale={width}:{height}:force_original_aspect_ratio=increase,"
+            f"crop={width}:{height},trim=start_frame=0:end_frame={total_frames},"
+            "setpts=PTS-STARTPTS,setsar=1[base0]"
+        )
+    ]
+    previous_label = "base0"
+    for index, (
+        segment,
+        _,
+        source_start_frame,
+        source_end_frame,
+        timeline_start_frame,
+        timeline_end_frame,
+    ) in enumerate(overlay_inputs, start=1):
+        timeline_window_frames = timeline_end_frame - timeline_start_frame
         overlay_label = f"ov{index}"
         next_label = f"base{index}"
         filters.append(
@@ -493,6 +510,8 @@ def render_video_timeline(
                 "setpts=PTS-STARTPTS,"
                 f"scale={width}:{height}:force_original_aspect_ratio=increase,"
                 f"crop={width}:{height},setsar=1,"
+                f"tpad=stop_mode=clone:stop={timeline_window_frames},"
+                f"trim=start_frame=0:end_frame={timeline_window_frames},"
                 f"setpts=PTS-STARTPTS+{timeline_start_frame}/{fps}/TB[{overlay_label}]"
             )
         )

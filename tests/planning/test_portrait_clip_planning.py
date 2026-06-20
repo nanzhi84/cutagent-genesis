@@ -32,6 +32,7 @@ def _clip(
     *,
     role=UsageRole.main,
     lip_sync=True,
+    voiceover_only=False,
     face_count_max=1,
     keywords=("内容",),
     semantics: dict | None = None,
@@ -45,7 +46,11 @@ def _clip(
         end=end,
         duration=end - start,
         semantics=ClipSemanticsV4(**semantic_payload),
-        usage=ClipUsageV4(role=role, recommended_for_lip_sync=lip_sync),
+        usage=ClipUsageV4(
+            role=role,
+            recommended_for_lip_sync=lip_sync,
+            voiceover_only=voiceover_only,
+        ),
         retrieval=ClipRetrievalV4(
             summary=" ".join(keywords),
             keywords=list(keywords),
@@ -78,6 +83,8 @@ def test_clip_is_lip_sync_usable_gates():
     assert not clip_is_lip_sync_usable(_clip("tiny", 0.0, 0.4))
     # avoid role
     assert not clip_is_lip_sync_usable(_clip("avoid", 0.0, 5.0, role=UsageRole.avoid))
+    # voiceover-only portrait clips must not enter the lip-sync A-roll pool
+    assert not clip_is_lip_sync_usable(_clip("voiceonly", 0.0, 5.0, voiceover_only=True))
     # face_count_max None (CV unavailable) is fail-open -> still usable
     assert clip_is_lip_sync_usable(_clip("nofcm", 2.0, 9.0, face_count_max=None))
 

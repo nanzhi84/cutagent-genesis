@@ -326,6 +326,38 @@ def test_style_planning_carries_selected_bgm_segment_into_style_plan(tmp_path, m
     assert payload["bgm"]["avoid_script"] == ["沉浸睡眠"]
 
 
+def test_style_planning_rejects_legacy_whole_track_bgm_candidate(tmp_path, monkeypatch):
+    object_store = LocalObjectStore(tmp_path / "objects")
+    monkeypatch.setattr("packages.core.storage.object_store._OBJECT_STORE", object_store)
+    adapter = _adapter(object_store)
+    ctx = _ctx(adapter, _request(), "StylePlanning")
+    ctx.state.artifacts[ArtifactKind.plan_material_pack] = _artifact(
+        ArtifactKind.plan_material_pack,
+        {
+            "bgm_candidates": [
+                {
+                    "asset_id": "asset_legacy_bgm",
+                    "score": 70.0,
+                    "reason": "available bgm",
+                    "metadata": {
+                        "base_score": 70.0,
+                        "recency_penalty": 0.0,
+                    },
+                }
+            ],
+            "font_candidates": [],
+        },
+    )
+
+    output = nodes.style_planning.run(ctx)
+    payload = next(a.payload for a in output.artifacts if a.kind == ArtifactKind.plan_style)
+
+    assert output.status == NodeStatus.degraded
+    assert payload["bgm_asset_id"] is None
+    assert payload["bgm"]["asset_id"] is None
+    assert payload["bgm"]["segment_id"] is None
+
+
 def test_style_planning_chooses_bgm_clip_by_script_fit_over_raw_rank(tmp_path, monkeypatch):
     object_store = LocalObjectStore(tmp_path / "objects")
     monkeypatch.setattr("packages.core.storage.object_store._OBJECT_STORE", object_store)

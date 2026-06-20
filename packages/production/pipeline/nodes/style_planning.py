@@ -18,10 +18,13 @@ def run(ctx: NodeContext) -> NodeOutput:
     state = ctx.state
     node_run = ctx.node_run
     material = state.require(ArtifactKind.plan_material_pack).payload or {}
-    bgm_candidates = [
+    raw_bgm_candidates = [
         item
         for item in material.get("bgm_candidates", [])
         if isinstance(item, dict) and item.get("asset_id")
+    ]
+    bgm_candidates = [
+        item for item in raw_bgm_candidates if _is_segmented_bgm_candidate(item)
     ]
     font_candidates = [
         item.get("asset_id") for item in material.get("font_candidates", []) if item.get("asset_id")
@@ -123,6 +126,22 @@ def _select_bgm_candidate(
     ]
     ranked.sort(key=lambda item: (item[0], item[1]), reverse=True)
     return ranked[0][2]
+
+
+def _is_segmented_bgm_candidate(candidate: dict) -> bool:
+    metadata = candidate.get("metadata") if isinstance(candidate.get("metadata"), dict) else {}
+    if not _str_or_none(metadata.get("clip_id")):
+        return False
+    source_start = _float_or_none(metadata.get("source_start"))
+    source_end = _float_or_none(metadata.get("source_end"))
+    duration = _float_or_none(metadata.get("duration"))
+    return (
+        source_start is not None
+        and source_end is not None
+        and duration is not None
+        and source_end > source_start
+        and duration > 0
+    )
 
 
 def _bgm_script_choice_score(candidate: dict, *, script: str) -> float:

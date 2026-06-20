@@ -31,7 +31,6 @@ from packages.core.storage.secret_store import LocalSecretStore
 from packages.core.workflow import NodeExecutionError
 from packages.media.assets import store_file
 from packages.production.pipeline._node_context import NodeContext
-from packages.production.pipeline.degradation_policies import LIPSYNC_FAILOVER_POLICY
 from packages.production.pipeline.digital_human import LocalRuntimeAdapter, RunState
 
 
@@ -90,7 +89,14 @@ def _media_info(kind: str) -> MediaInfo:
     return MediaInfo(media_type=kind, codec="h264" if kind == "video" else "mp3", format="mp4", duration_sec=2.0)
 
 
-def _lipsync_state(repository, object_store, factory, *, profile_id: str) -> RunState:
+def _lipsync_state(
+    repository,
+    object_store,
+    factory,
+    *,
+    profile_id: str,
+    timeout_minutes: int = 30,
+) -> RunState:
     portrait_file = factory.video(duration_sec=2.0, filename="portrait.mp4")
     audio_file = factory.audio(duration_sec=2.0, filename="speech.wav")
     portrait_stored = store_file(object_store, portrait_file, purpose="portrait")
@@ -117,7 +123,11 @@ def _lipsync_state(repository, object_store, factory, *, profile_id: str) -> Run
         case_id="case_demo",
         script="第一句。第二句。",
         voice={"voice_id": "voice_sandbox"},
-        lipsync={"enabled": True, "provider_profile_id": profile_id},
+        lipsync={
+            "enabled": True,
+            "provider_profile_id": profile_id,
+            "timeout_minutes": timeout_minutes,
+        },
     )
     return RunState(
         request=request,
@@ -147,6 +157,16 @@ class _StoringLipSyncProvider:
             output={"video_artifact_id": artifact.id, "video_uri": artifact.uri, "report": "pass"},
             video_seconds=float(call.input.get("duration_sec") or 0),
         )
+
+
+class _CapturingLipSyncProvider(_StoringLipSyncProvider):
+    def __init__(self, provider_id: str, video_file) -> None:
+        super().__init__(provider_id, video_file)
+        self.inputs: list[dict] = []
+
+    def invoke_with_context(self, call: ProviderCall, context) -> ProviderResult:
+        self.inputs.append(call.input)
+        return super().invoke_with_context(call, context)
 
 
 class _FailingLipSyncProvider:
@@ -254,7 +274,7 @@ def test_real_tts_subtitle_becomes_primary_narration_source(tmp_path, media_fixt
     assert narration["units"][1]["end"] == 2.0
 
 
-def test_real_heygem_failure_falls_back_to_videoretalk(tmp_path, media_fixture_factory, monkeypatch):
+def test_real_heygem_failure_does_not_fall_back_to_videoretalk(tmp_path, media_fixture_factory, monkeypatch):
     adapter, gateway, secret_store, object_store = _adapter(tmp_path)
     monkeypatch.setattr(
         "packages.production.pipeline.digital_human.get_object_store", lambda: object_store
@@ -278,21 +298,46 @@ def test_real_heygem_failure_falls_back_to_videoretalk(tmp_path, media_fixture_f
     ctx = NodeContext(adapter=adapter, run=_run(), node_run=_node_run(), state=state)
     from packages.production.pipeline import nodes
 
-    output = nodes.lipsync.run(ctx)
+    with pytest.raises(NodeExecutionError) as exc:
+        nodes.lipsync.run(ctx)
 
-    report = next(a for a in output.artifacts if a.kind == ArtifactKind.lipsync_report).payload
-    video = next(a for a in output.artifacts if a.kind == ArtifactKind.video_lipsync)
-    assert report["fallback_from"] == "heygem.real"
-    assert report["fallback_to"] == "videoretalk.real"
-    assert report["fallback_reason"] == "boom"
-    assert report["provider_profile_id"] == "videoretalk.real"
-    assert report["skipped"] is False
-    assert video.media_info and video.media_info.media_type == "video"
-    assert videoretalk.calls == ["run_1:nr_lipsync:lipsync:videoretalk.real"]
-    assert output.degradations[0].policy_id == LIPSYNC_FAILOVER_POLICY.id
+    assert exc.value.error.code == ErrorCode.provider_remote_failed
+    assert exc.value.error.message == "boom"
+    assert videoretalk.calls == []
 
 
-def test_real_videoretalk_falls_back_to_heygem_only_on_content_policy(tmp_path, media_fixture_factory, monkeypatch):
+def test_real_lipsync_call_carries_request_timeout_minutes(tmp_path, media_fixture_factory, monkeypatch):
+    adapter, gateway, secret_store, object_store = _adapter(tmp_path)
+    monkeypatch.setattr(
+        "packages.production.pipeline.digital_human.get_object_store", lambda: object_store
+    )
+    secret_ref = secret_store.put("rh-key")
+    heygem = _CapturingLipSyncProvider(
+        "runninghub.heygem", media_fixture_factory.video(duration_sec=2.0, filename="heygem.mp4")
+    )
+    gateway.register(heygem)
+    adapter.repository.provider_profiles["heygem.real"] = _real_lipsync_profile(
+        "runninghub.heygem", "heygem.real", secret_ref
+    )
+
+    state = _lipsync_state(
+        adapter.repository,
+        object_store,
+        media_fixture_factory,
+        profile_id="heygem.real",
+        timeout_minutes=45,
+    )
+    ctx = NodeContext(adapter=adapter, run=_run(), node_run=_node_run(), state=state)
+    from packages.production.pipeline import nodes
+
+    nodes.lipsync.run(ctx)
+
+    assert heygem.inputs[0]["timeout_minutes"] == 45
+
+
+def test_real_videoretalk_content_policy_failure_does_not_fall_back_to_heygem(
+    tmp_path, media_fixture_factory, monkeypatch
+):
     adapter, gateway, secret_store, object_store = _adapter(tmp_path)
     monkeypatch.setattr(
         "packages.production.pipeline.digital_human.get_object_store", lambda: object_store
@@ -321,12 +366,12 @@ def test_real_videoretalk_falls_back_to_heygem_only_on_content_policy(tmp_path, 
     ctx = NodeContext(adapter=adapter, run=_run(), node_run=_node_run(), state=state)
     from packages.production.pipeline import nodes
 
-    output = nodes.lipsync.run(ctx)
-    report = next(a for a in output.artifacts if a.kind == ArtifactKind.lipsync_report).payload
-    assert report["fallback_from"] == "videoretalk.real"
-    assert report["fallback_to"] == "heygem.real"
-    assert heygem.calls == ["run_1:nr_lipsync:lipsync:heygem.real"]
-    assert output.degradations[0].policy_id == LIPSYNC_FAILOVER_POLICY.id
+    with pytest.raises(NodeExecutionError) as exc:
+        nodes.lipsync.run(ctx)
+
+    assert exc.value.error.code == ErrorCode.provider_remote_failed
+    assert "inappropriate content" in exc.value.error.message.lower()
+    assert heygem.calls == []
 
 
 def test_real_videoretalk_non_policy_failure_does_not_fall_back(tmp_path, media_fixture_factory, monkeypatch):

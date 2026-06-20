@@ -12,7 +12,14 @@ from packages.ai.gateway.provider_gateway import (
     ProviderRuntimeError,
 )
 from packages.ai.gateway.provider_context import ProviderInvocationContext
-from packages.ai.providers.common import first_value, request, require_secret, response_json, response_json_value
+from packages.ai.providers.common import (
+    first_value,
+    poll_budget,
+    request,
+    require_secret,
+    response_json,
+    response_json_value,
+)
 from packages.core.contracts import ErrorCode
 
 
@@ -352,9 +359,14 @@ def poll_dashscope_task(
     task_id: str,
     options: dict[str, Any],
     timeout_sec: int,
+    timeout_minutes: Any = None,
 ) -> tuple[dict[str, Any], int]:
-    interval = float(options["poll_interval"] if options.get("poll_interval") is not None else 2)
-    max_attempts = int(options["poll_max_attempts"] if options.get("poll_max_attempts") is not None else 120)
+    interval, max_attempts = poll_budget(
+        options,
+        default_interval=2,
+        default_max_attempts=120,
+        timeout_minutes=timeout_minutes,
+    )
     for attempt in range(1, max_attempts + 1):
         response = request(
             client,

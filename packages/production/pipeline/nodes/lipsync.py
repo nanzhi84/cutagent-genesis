@@ -49,7 +49,12 @@ def run(ctx: NodeContext) -> NodeOutput:
                 node_run_id=node_run.id,
                 provider_profile_id=profile_id,
                 capability_id="lipsync.video",
-                input={"portrait_uri": portrait.uri or "", "audio_uri": audio.uri or "", "duration_sec": duration},
+                input={
+                    "portrait_uri": portrait.uri or "",
+                    "audio_uri": audio.uri or "",
+                    "duration_sec": duration,
+                    "timeout_minutes": state.request.lipsync.timeout_minutes,
+                },
                 idempotency_key=f"{run.id}:{node_run.id}:lipsync:{profile_id}",
             )
         )

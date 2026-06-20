@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from decimal import Decimal
 from typing import Any
 
@@ -21,6 +22,30 @@ def require_secret(context: ProviderInvocationContext) -> str:
 def option(context: ProviderInvocationContext, name: str, default: Any = None) -> Any:
     return context.profile.default_options.get(name, default)
 
+
+def poll_budget(
+    options: dict[str, Any],
+    *,
+    default_interval: float,
+    default_max_attempts: int,
+    timeout_minutes: Any = None,
+) -> tuple[float, int]:
+    interval = float(options["poll_interval"] if options.get("poll_interval") is not None else default_interval)
+    max_attempts = int(
+        options["poll_max_attempts"] if options.get("poll_max_attempts") is not None else default_max_attempts
+    )
+    requested_minutes = _float_or_none(timeout_minutes)
+    if requested_minutes is None or requested_minutes <= 0 or interval <= 0:
+        return interval, max_attempts
+    requested_attempts = max(1, math.ceil((requested_minutes * 60.0) / interval))
+    return interval, max(max_attempts, requested_attempts)
+
+
+def _float_or_none(value: Any) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def money_cny(amount: Decimal | int | str) -> Money:

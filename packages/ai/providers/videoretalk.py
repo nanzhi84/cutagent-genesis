@@ -75,6 +75,7 @@ class DashScopeVideoReTalkProvider:
             task_id=task_id,
             options=options,
             timeout_sec=context.profile.timeout_sec,
+            timeout_minutes=call.input.get("timeout_minutes"),
         )
         result_url = self._result_video_url(task_payload)
         if not result_url:

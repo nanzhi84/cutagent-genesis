@@ -662,8 +662,9 @@ function SegmentCard({
           </>
         )}
         {quality.lip_sync_safe ? <Signal tone="good" label="适合对口型" /> : null}
-        {quality.voiceover_cover_ok ? <Signal tone="good" label="适合盖旁白" /> : null}
-        {quality.voiceover_only ? <Signal tone="warn" label="仅盖旁白" /> : null}
+        {isPortrait && quality.voiceover_only ? <Signal tone="warn" label="不适合数字人口型" /> : null}
+        {!isPortrait && quality.voiceover_cover_ok ? <Signal tone="good" label="适合做 B-roll" /> : null}
+        {!isPortrait && quality.voiceover_only ? <Signal tone="warn" label="只做 B-roll，勿对口型" /> : null}
       </div>
     </button>
   );
@@ -1189,12 +1190,14 @@ function StructuredAnnotationForm({
                   options={[["", "未标注"], ["true", "适合对口型"], ["false", "不适合"]]}
                   onChange={(v) => updateQuality(index, { lip_sync_safe: parseBoolSelect(v) ?? undefined })}
                 />
-                <SelectField
-                  label="盖旁白"
-                  value={boolSelect(segment.quality?.voiceover_cover_ok)}
-                  options={[["", "未标注"], ["true", "适合盖旁白"], ["false", "不适合"]]}
-                  onChange={(v) => updateQuality(index, { voiceover_cover_ok: parseBoolSelect(v) ?? undefined })}
-                />
+                {!isPortrait ? (
+                  <SelectField
+                    label="B-roll 覆盖"
+                    value={boolSelect(segment.quality?.voiceover_cover_ok)}
+                    options={[["", "未标注"], ["true", "适合做 B-roll"], ["false", "不适合"]]}
+                    onChange={(v) => updateQuality(index, { voiceover_cover_ok: parseBoolSelect(v) ?? undefined })}
+                  />
+                ) : null}
               </div>
 
               {isPortrait ? (

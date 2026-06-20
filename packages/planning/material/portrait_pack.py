@@ -82,6 +82,8 @@ def clip_is_lip_sync_usable(clip) -> bool:
     usage = clip.usage
     if usage.role.value == "avoid":
         return False
+    if usage.voiceover_only:
+        return False
     fcm = clip.semantics.face_count_max
     if fcm is not None and fcm > 1:
         return False

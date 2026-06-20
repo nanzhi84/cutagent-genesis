@@ -2896,7 +2896,7 @@ export interface components {
          * @description Musical section type for one BGM clip.
          * @enum {string}
          */
-        BgmSectionType: "intro" | "verse" | "chorus" | "drop" | "bridge" | "outro" | "loop" | "build" | "general";
+        BgmSectionType: "intro" | "stable_bed" | "verse" | "chorus" | "drop" | "bridge" | "outro" | "loop" | "build" | "general";
         /**
          * BgmSegmentRole
          * @description BGM full-track segment role.

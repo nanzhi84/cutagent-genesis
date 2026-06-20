@@ -60,12 +60,44 @@ def test_segment_audio_track_keeps_repeated_loop_as_single_full_track_segment():
         "energy": pytest.approx(0.335, abs=0.001),
         "drop_anchor": None,
         "role_hint": "hook",
-        "section_type": "loop",
+        "section_type": "stable_bed",
         "section_label": "A",
         "repeat_group": "A",
         "loopable": True,
         "energy_profile": "stable",
     }
+
+
+def test_segment_audio_track_treats_dense_onsets_as_rhythm_not_section_boundaries():
+    duration = 142.0
+    times = [float(i) for i in range(143)]
+    phrase = [0.076, 0.09, 0.089, 0.103, 0.115, 0.131, 0.144, 0.163]
+    energy = [phrase[(i // 18) % len(phrase)] for i in range(143)]
+    beats = [round(i * 0.455, 3) for i in range(1, 312)]
+    dense_onsets = [round(i * 0.13, 3) for i in range(1, 1077)]
+
+    segments = bgm.segment_audio_track(duration, energy, times, beats, dense_onsets)
+
+    assert len(segments) <= 3
+    assert all(segment["duration"] >= 24.0 for segment in segments)
+    assert not any(segment["section_type"] == "drop" for segment in segments)
+    assert not any(segment["drop_anchor"] is not None for segment in segments)
+    assert segments[0]["start"] == 0.0
+    assert segments[-1]["end"] == 142.0
+
+
+def test_rhythm_markers_preserve_dense_onsets_for_cut_points():
+    beats = [0.5, 1.0, 1.5]
+    drops = [0.13, 0.26, 0.39]
+
+    markers = bgm.rhythm_markers(beats=beats, drops=drops)
+
+    assert markers[:3] == [
+        {"time": 0.13, "kind": "accent", "strength": 0.5},
+        {"time": 0.26, "kind": "accent", "strength": 0.5},
+        {"time": 0.39, "kind": "accent", "strength": 0.5},
+    ]
+    assert {"time": 1.0, "kind": "beat", "strength": 0.35} in markers
 
 
 def test_segment_audio_track_splits_on_structural_changes_not_fixed_windows():
@@ -103,7 +135,7 @@ def test_segment_audio_track_short_track_is_single_segment():
     assert segments[0]["end"] == 42.0
     assert segments[0]["duration"] == 42.0
     assert segments[0]["role_hint"] == "hook"
-    assert segments[0]["section_type"] == "loop"
+    assert segments[0]["section_type"] == "stable_bed"
     assert segments[0]["loopable"] is True
 
 

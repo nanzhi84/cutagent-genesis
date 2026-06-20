@@ -16,6 +16,7 @@ from packages.core.storage.bootstrap import (
 )
 from packages.core.observability import configure_logging
 from packages.core.storage.secret_store import LocalSecretStore
+from packages.core.storage.sqlalchemy_secrets import SqlAlchemySecretStore
 from packages.core.workflow import load_workflow_runtime_settings
 from packages.core.workflow.temporal_adapter import (
     TemporalActivityContext,
@@ -35,7 +36,12 @@ async def async_main() -> None:
     settings = load_workflow_runtime_settings()
     session_factory = get_sqlalchemy_session_factory_if_enabled()
     runtime_repository = Repository()
-    secret_store = LocalSecretStore()
+    local_secret_store = LocalSecretStore()
+    secret_store = (
+        SqlAlchemySecretStore(session_factory, fallback=local_secret_store)
+        if session_factory is not None
+        else local_secret_store
+    )
     provider_reader = (
         SqlAlchemyProviderRuntimeRepository(session_factory) if session_factory is not None else None
     )

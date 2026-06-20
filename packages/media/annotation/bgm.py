@@ -166,6 +166,7 @@ def _extract_librosa_features(path: Path) -> dict[str, Any] | None:
         "energy": round(energy, 4),
         "beats": beats,
         "drops": [round(d, 3) for d in drops],
+        "rhythm_markers": rhythm_markers(beats=beats, drops=drops),
         "segments": segments,
     }
     if bpm is not None:
@@ -207,6 +208,27 @@ def detect_drops(energy: list[float], times: list[float], *, z: float = 1.2) -> 
     return drops
 
 
+def rhythm_markers(*, beats: list[float], drops: list[float]) -> list[dict[str, float | str]]:
+    """Timeline markers for beat/cut-point alignment, not music-section boundaries."""
+    markers: list[dict[str, float | str]] = []
+    for value in drops:
+        try:
+            time = float(value)
+        except (TypeError, ValueError):
+            continue
+        if time >= 0:
+            markers.append({"time": round(time, 3), "kind": "accent", "strength": 0.5})
+    for value in beats:
+        try:
+            time = float(value)
+        except (TypeError, ValueError):
+            continue
+        if time >= 0:
+            markers.append({"time": round(time, 3), "kind": "beat", "strength": 0.35})
+    markers.sort(key=lambda item: (float(item["time"]), str(item["kind"])))
+    return markers
+
+
 def segment_audio_track(
     duration: float,
     energy: list[float],
@@ -214,7 +236,7 @@ def segment_audio_track(
     beats: list[float],
     drops: list[float],
     *,
-    min_len: float = 10.0,
+    min_len: float = 24.0,
 ) -> list[dict]:
     """Split the full BGM track into contiguous, beat-snapped segments."""
     if duration <= 0:
@@ -243,38 +265,41 @@ def segment_audio_track(
     if not segments:
         return []
 
-    flat_track = len(segments) == 1 and _is_stable_loop(energy)
+    flat_track = len(segments) == 1
     high_energy_threshold = _upper_quartile(raw_energies)
     for index, segment in enumerate(segments):
         is_first = index == 0
         is_last = index == len(segments) - 1
         prev_energy = raw_energies[index - 1] if index > 0 else None
         next_energy = raw_energies[index + 1] if index + 1 < len(raw_energies) else None
+        energy_profile = _energy_profile(raw_energies[index], prev_energy, next_energy)
+        has_structural_drop = (
+            segment["drop_anchor"] is not None
+            and energy_profile in {"rising", "drop", "peak"}
+        )
         if flat_track:
             role = "hook"
-            section_type = "loop"
+            section_type = "stable_bed"
             energy_profile = "stable"
         elif is_first:
             role = "hook"
             section_type = "intro"
-            energy_profile = _energy_profile(raw_energies[index], None, next_energy)
         elif is_last and float(segment["energy"]) < high_energy_threshold:
             role = "outro"
             section_type = "outro"
-            energy_profile = _energy_profile(raw_energies[index], prev_energy, None)
-        elif segment["drop_anchor"] is not None or float(segment["energy"]) >= high_energy_threshold:
+        elif has_structural_drop or float(segment["energy"]) >= high_energy_threshold:
             role = "climax"
-            section_type = "drop" if segment["drop_anchor"] is not None else "chorus"
-            energy_profile = _energy_profile(raw_energies[index], prev_energy, next_energy)
+            section_type = "drop" if has_structural_drop else "chorus"
         else:
             role = "general"
             section_type = "verse"
-            energy_profile = _energy_profile(raw_energies[index], prev_energy, next_energy)
+        if section_type != "drop":
+            segment["drop_anchor"] = None
         segment["role_hint"] = role
         segment["section_type"] = section_type
         segment["section_label"] = _section_label(index)
         segment["repeat_group"] = "A" if flat_track else segment["section_label"]
-        segment["loopable"] = bool(flat_track or section_type in {"loop", "verse", "chorus", "drop"})
+        segment["loopable"] = bool(flat_track or section_type in {"stable_bed", "loop", "verse", "chorus", "drop"})
         segment["energy_profile"] = energy_profile
     return segments
 
@@ -291,9 +316,6 @@ def _structural_boundaries(
     boundaries = [0.0]
     for candidate in _energy_change_points(duration, energy, times, min_len=min_len):
         boundaries.append(snap_to_beats(candidate, beats))
-    for drop in drops:
-        if min_len <= float(drop) <= duration - min_len:
-            boundaries.append(snap_to_beats(float(drop), beats))
     boundaries.append(round(duration, 3))
     boundaries = sorted({round(b, 3) for b in boundaries})
     boundaries = _merge_short_segments(boundaries, min_len=min_len)
@@ -708,7 +730,7 @@ def _build_segment_prompt(
         "required_schema": {
             "mood": "一个简短情绪词",
             "role": "hook|climax|outro|general",
-            "section_type": "intro|verse|chorus|drop|bridge|outro|loop|build|general",
+            "section_type": "intro|stable_bed|verse|chorus|drop|bridge|outro|loop|build|general",
             "energy_profile": "stable|rising|falling|drop|peak",
             "script_fit": ["2-6 个该片段适配的短视频脚本类型"],
             "avoid_script": ["0-4 个该片段不适配的短视频脚本类型"],
@@ -885,6 +907,7 @@ def _bgm_quality_report(
         "librosa_available": bool(features.get("librosa_available")),
         "beats": features.get("beats") or [],
         "drops": features.get("drops") or [],
+        "rhythm_markers": features.get("rhythm_markers") or [],
     }
     if segments is not None:
         coverage_sec = round(sum(max(0.0, s.end - s.start) for s in segments), 3)

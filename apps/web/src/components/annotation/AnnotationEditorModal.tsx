@@ -12,7 +12,7 @@ import {
   ShieldAlert,
   Trash2,
 } from "lucide-react";
-import { useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { useCallback, useEffect, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, isApiError, type AnnotationEditorVm, type MediaAssetRecord } from "../../api/client";
 import { formatDuration, shortId } from "../../lib/format";
@@ -38,7 +38,7 @@ import {
   type BgmSegment,
 } from "../../utils/annotationV4";
 import { Modal } from "../ui/Modal";
-import { VideoPlayer, type VideoPlayerQualityEvent, type VideoPlayerSegment } from "../ui/VideoPlayer";
+import { VideoPlayer, type VideoPlayerQualityEvent, type VideoPlayerSeekRequest, type VideoPlayerSegment } from "../ui/VideoPlayer";
 import { useToast } from "../ui/Toast";
 import { ErrorState, LoadingState } from "../State";
 
@@ -107,6 +107,7 @@ const ROLE_LABELS: Record<string, string> = {
 const BGM_ROLE_LABELS: Record<string, string> = { hook: "开场钩子", climax: "高潮", outro: "收尾", general: "通用铺底" };
 const BGM_SECTION_LABELS: Record<string, string> = {
   intro: "前奏",
+  stable_bed: "稳定铺底",
   verse: "主歌",
   chorus: "副歌",
   drop: "高潮/Drop",
@@ -167,6 +168,7 @@ export function AnnotationEditorModal({ assetId, caseId, onClose }: AnnotationEd
   const [editing, setEditing] = useState(false);
   const [rerunPreview, setRerunPreview] = useState(false);
   const [activeSegmentId, setActiveSegmentId] = useState<string | null>(null);
+  const [seekRequest, setSeekRequest] = useState<VideoPlayerSeekRequest | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewPlayable, setPreviewPlayable] = useState<boolean | undefined>(undefined);
@@ -239,11 +241,28 @@ export function AnnotationEditorModal({ assetId, caseId, onClose }: AnnotationEd
     setEditing(false);
     setRerunPreview(false);
     setActiveSegmentId(null);
+    setSeekRequest(null);
   }, [editor]);
 
   const displaySegments = editing ? form.segments : readSegments;
   const displayEvents = editing ? form.qualityEvents : readEvents;
   const displayBgmSegments = editing ? bgmForm : bgmSegments;
+
+  const seekToBgmSegment = useCallback((segment: BgmSegment) => {
+    setActiveSegmentId(segment.segment_id || null);
+    setSeekRequest((current) => ({
+      time: Math.max(0, segment.start),
+      key: (current?.key ?? 0) + 1,
+    }));
+  }, []);
+
+  const seekToVisualSegment = useCallback((segment: AnnotationTimelineSegment) => {
+    setActiveSegmentId(segment.segment_id || null);
+    setSeekRequest((current) => ({
+      time: Math.max(0, segment.start),
+      key: (current?.key ?? 0) + 1,
+    }));
+  }, []);
 
   const invalidDuration = useMemo(
     () => readInvalidSegments(projection).reduce((sum, item) => sum + Math.max(0, item.end_sec - item.start_sec), 0),
@@ -415,6 +434,8 @@ export function AnnotationEditorModal({ assetId, caseId, onClose }: AnnotationEd
                     evidenceFrames={evidenceFrames}
                     durationHint={totalDuration > 0 ? totalDuration : undefined}
                     activeSegmentId={activeSegmentId}
+                    seekRequest={seekRequest}
+                    segmentBarsInteractive={false}
                     onSegmentClick={(segment) => segment.id && setActiveSegmentId(segment.id)}
                     onTimeUpdate={(time) => {
                       const active = isBgm ? displayBgmSegments : displaySegments;
@@ -476,7 +497,13 @@ export function AnnotationEditorModal({ assetId, caseId, onClose }: AnnotationEd
                     onSaved={() => setEditing(false)}
                   />
                 ) : (
-                  <BgmStructurePanel bgmReport={bgmReport} segments={displayBgmSegments} totalDuration={totalDuration > 0 ? totalDuration : undefined} />
+                  <BgmStructurePanel
+                    bgmReport={bgmReport}
+                    segments={displayBgmSegments}
+                    totalDuration={totalDuration > 0 ? totalDuration : undefined}
+                    activeSegmentId={activeSegmentId}
+                    onSelectSegment={seekToBgmSegment}
+                  />
                 )
               ) : editing ? (
                 <StructuredAnnotationForm
@@ -494,7 +521,7 @@ export function AnnotationEditorModal({ assetId, caseId, onClose }: AnnotationEd
                   events={readEvents}
                   isPortrait={isPortrait}
                   activeSegmentId={activeSegmentId}
-                  onSelectSegment={setActiveSegmentId}
+                  onSelectSegment={seekToVisualSegment}
                 />
               )}
             </div>
@@ -516,7 +543,7 @@ function ReadonlyStructurePanel({
   events: AnnotationQualityEvent[];
   isPortrait: boolean;
   activeSegmentId: string | null;
-  onSelectSegment: (id: string | null) => void;
+  onSelectSegment: (segment: AnnotationTimelineSegment) => void;
 }) {
   return (
     <div className="grid gap-4">
@@ -537,7 +564,7 @@ function ReadonlyStructurePanel({
                 index={index}
                 isPortrait={isPortrait}
                 active={Boolean(activeSegmentId) && segment.segment_id === activeSegmentId}
-                onSelect={() => onSelectSegment(segment.segment_id || null)}
+                onSelect={() => onSelectSegment(segment)}
               />
             ))}
           </div>
@@ -662,10 +689,14 @@ function BgmStructurePanel({
   bgmReport,
   segments,
   totalDuration,
+  activeSegmentId,
+  onSelectSegment,
 }: {
   bgmReport: Record<string, unknown>;
   segments: BgmSegment[];
   totalDuration?: number;
+  activeSegmentId?: string | null;
+  onSelectSegment?: (segment: BgmSegment) => void;
 }) {
   const summaryItems = [
     ["bpm", "BPM"],
@@ -712,13 +743,21 @@ function BgmStructurePanel({
           <p className="rounded-2xl border border-border/80 bg-white/65 p-4 text-sm text-text-secondary">暂无音乐段落。</p>
         ) : (
           <div className="grid gap-3">
-            <BgmSegmentTimeline segments={segments} totalDuration={totalDuration} />
+            <BgmSegmentTimeline segments={segments} totalDuration={totalDuration} activeSegmentId={activeSegmentId} onSelectSegment={onSelectSegment} />
             {segments.map((item, index) => {
               const roleColor = BGM_ROLE_COLORS[item.role];
               const sectionLabel = translateToken(item.section_type, BGM_SECTION_LABELS, "通用段");
               const energyLabel = translateToken(item.energy_profile, BGM_ENERGY_LABELS, "稳定");
+              const active = Boolean(activeSegmentId) && item.segment_id === activeSegmentId;
               return (
-                <div key={`bgm-segment-card-${item.start}-${item.end}-${index}`} className="grid gap-3 rounded-2xl border border-border/80 bg-white/70 p-4">
+                <button
+                  key={`bgm-segment-card-${item.start}-${item.end}-${index}`}
+                  type="button"
+                  onClick={() => onSelectSegment?.(item)}
+                  className={`grid gap-3 rounded-2xl border bg-white/70 p-4 text-left transition-all ${
+                    active ? "border-accent/45 shadow-glow" : "border-border/80 hover:border-accent/25"
+                  }`}
+                >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full px-2.5 py-1 text-xs font-semibold" style={{ backgroundColor: roleColor.softBg, color: roleColor.text }}>
                       {formatWindow(item.start, item.end)}
@@ -754,7 +793,7 @@ function BgmStructurePanel({
                     </div>
                   ) : null}
                   {item.reason ? <p className="text-sm leading-6 text-text-secondary">{item.reason}</p> : null}
-                </div>
+                </button>
               );
             })}
           </div>
@@ -764,7 +803,17 @@ function BgmStructurePanel({
   );
 }
 
-function BgmSegmentTimeline({ segments, totalDuration }: { segments: BgmSegment[]; totalDuration?: number }) {
+function BgmSegmentTimeline({
+  segments,
+  totalDuration,
+  activeSegmentId,
+  onSelectSegment,
+}: {
+  segments: BgmSegment[];
+  totalDuration?: number;
+  activeSegmentId?: string | null;
+  onSelectSegment?: (segment: BgmSegment) => void;
+}) {
   const duration = Math.max(totalDuration || 0, ...segments.map((segment) => segment.end), 0);
   if (duration <= 0) return null;
   return (
@@ -774,10 +823,15 @@ function BgmSegmentTimeline({ segments, totalDuration }: { segments: BgmSegment[
           const roleColor = BGM_ROLE_COLORS[segment.role];
           const left = Math.max(0, Math.min(100, (segment.start / duration) * 100));
           const width = Math.max(0.35, Math.min(100 - left, ((segment.end - segment.start) / duration) * 100));
+          const active = Boolean(activeSegmentId) && segment.segment_id === activeSegmentId;
           return (
-            <div
+            <button
               key={`bgm-timeline-${segment.segment_id ?? index}`}
-              className="absolute top-1 h-10 overflow-hidden border-r border-white/80 px-2 py-1 text-[11px] font-semibold leading-4"
+              type="button"
+              onClick={() => onSelectSegment?.(segment)}
+              className={`absolute top-1 h-10 overflow-hidden border-r border-white/80 px-2 py-1 text-left text-[11px] font-semibold leading-4 transition-all ${
+                active ? "ring-2 ring-accent" : "hover:ring-1 hover:ring-accent/40"
+              }`}
               style={{
                 left: `${left}%`,
                 width: `${width}%`,
@@ -788,7 +842,7 @@ function BgmSegmentTimeline({ segments, totalDuration }: { segments: BgmSegment[
             >
               <span className="block truncate">{segment.section_label || translateToken(segment.section_type, BGM_SECTION_LABELS, "通用段")}</span>
               <span className="block truncate font-normal">{formatWindow(segment.start, segment.end)}</span>
-            </div>
+            </button>
           );
         })}
       </div>

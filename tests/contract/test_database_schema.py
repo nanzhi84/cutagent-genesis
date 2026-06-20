@@ -77,7 +77,7 @@ def test_contract_columns_for_core_boundaries_exist():
     assert {"email", "password_hash", "role", "status"} <= set(tables["users"].columns.keys())
     assert "code_hash" in tables["registration_codes"].columns.keys()
     assert "secret_ref" in tables["secrets"].columns.keys()
-    assert "encrypted_value" not in tables["secrets"].columns.keys()
+    assert "encrypted_value" in tables["secrets"].columns.keys()
     assert {"payload_schema", "schema_version", "payload"} <= set(
         tables["artifacts"].columns.keys()
     )

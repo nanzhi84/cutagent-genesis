@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import base64
+import os
 from pathlib import Path
 from typing import Protocol
 from uuid import uuid4
+
+from cryptography.fernet import Fernet, InvalidToken
 
 from packages.core.config import build_settings
 
@@ -28,6 +31,48 @@ def open_local_dev_secret_envelope(value: str) -> str:
     if not value.startswith(prefix):
         raise ValueError("Unsupported local secret envelope.")
     return base64.urlsafe_b64decode(value[len(prefix) :].encode("ascii")).decode("utf-8")
+
+
+class SecretCipher:
+    envelope_prefix = "fernet:v1:"
+
+    def __init__(self, key: bytes) -> None:
+        self._fernet = Fernet(key)
+
+    @classmethod
+    def from_store(cls, secret_store: SecretStore) -> "SecretCipher":
+        configured = os.getenv("CUTAGENT_SECRET_ENCRYPTION_KEY")
+        if configured:
+            return cls(_coerce_fernet_key(configured))
+        root = Path(getattr(secret_store, "root", build_settings().secret_store.dir))
+        key_path = root / ".db_encryption_key"
+        key_path.parent.mkdir(parents=True, exist_ok=True)
+        if key_path.exists():
+            key = key_path.read_text(encoding="utf-8").strip().encode("ascii")
+        else:
+            key = Fernet.generate_key()
+            key_path.write_text(key.decode("ascii"), encoding="utf-8")
+            key_path.chmod(0o600)
+        return cls(key)
+
+    def encrypt(self, plaintext: str) -> str:
+        token = self._fernet.encrypt(plaintext.encode("utf-8")).decode("ascii")
+        return f"{self.envelope_prefix}{token}"
+
+    def decrypt(self, envelope: str) -> str | None:
+        if not envelope.startswith(self.envelope_prefix):
+            return None
+        token = envelope[len(self.envelope_prefix) :].encode("ascii")
+        try:
+            return self._fernet.decrypt(token).decode("utf-8")
+        except (InvalidToken, UnicodeDecodeError):
+            return None
+
+
+def _coerce_fernet_key(value: str) -> bytes:
+    key = value.strip().encode("ascii")
+    Fernet(key)
+    return key
 
 
 class LocalSecretStore:

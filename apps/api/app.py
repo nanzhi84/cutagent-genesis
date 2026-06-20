@@ -52,7 +52,7 @@ from packages.core.storage.bootstrap import (
 )
 from packages.core.storage.secret_store import LocalSecretStore
 from packages.core.storage.sqlalchemy_idempotency import SqlAlchemyIdempotencyRepository
-from packages.core.storage.sqlalchemy_secrets import SqlAlchemySecretRepository
+from packages.core.storage.sqlalchemy_secrets import SqlAlchemySecretRepository, SqlAlchemySecretStore
 from packages.core.storage.sqlalchemy_uploads import SqlAlchemyUploadRepository
 from packages.core.workflow import NodeExecutionError, load_workflow_runtime_settings
 from packages.creative.cases import (
@@ -142,7 +142,8 @@ def configure_app_state(app: FastAPI, *, session_factory=None) -> None:
             hub=app.state.event_hub,
         )
     app.state.object_store = get_object_store()
-    app.state.secret_store = LocalSecretStore()
+    local_secret_store = LocalSecretStore()
+    app.state.secret_store = local_secret_store
     if session_factory is None:
         app.state.sqlalchemy_case_repository = None
         app.state.sqlalchemy_case_learning_repository = None
@@ -162,6 +163,7 @@ def configure_app_state(app: FastAPI, *, session_factory=None) -> None:
         prompt_reader = None
         budget_guard = None
     else:
+        app.state.secret_store = SqlAlchemySecretStore(session_factory, fallback=local_secret_store)
         app.state.sqlalchemy_case_repository = SqlAlchemyCaseRepository(session_factory)
         app.state.sqlalchemy_case_learning_repository = SqlAlchemyCaseLearningRepository(session_factory)
         app.state.sqlalchemy_case_rubric_repository = SqlAlchemyCaseRubricRepository(session_factory)

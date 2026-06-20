@@ -9064,6 +9064,7 @@
         "type": "string",
         "enum": [
           "intro",
+          "stable_bed",
           "verse",
           "chorus",
           "drop",

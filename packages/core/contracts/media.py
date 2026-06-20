@@ -577,6 +577,7 @@ class BgmSectionType(str, Enum):
     """Musical section type for one BGM clip."""
 
     intro = "intro"
+    stable_bed = "stable_bed"
     verse = "verse"
     chorus = "chorus"
     drop = "drop"

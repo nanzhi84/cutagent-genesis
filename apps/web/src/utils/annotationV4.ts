@@ -445,11 +445,11 @@ export function readDuration(canonical?: unknown): number {
 }
 
 export type BgmSegmentRole = "hook" | "climax" | "outro" | "general";
-export type BgmSectionType = "intro" | "verse" | "chorus" | "drop" | "bridge" | "outro" | "loop" | "build" | "general";
+export type BgmSectionType = "intro" | "stable_bed" | "verse" | "chorus" | "drop" | "bridge" | "outro" | "loop" | "build" | "general";
 export type BgmEnergyProfile = "stable" | "rising" | "falling" | "drop" | "peak";
 
 export const BGM_ROLES: BgmSegmentRole[] = ["hook", "climax", "outro", "general"];
-export const BGM_SECTION_TYPES: BgmSectionType[] = ["intro", "verse", "chorus", "drop", "bridge", "outro", "loop", "build", "general"];
+export const BGM_SECTION_TYPES: BgmSectionType[] = ["intro", "stable_bed", "verse", "chorus", "drop", "bridge", "outro", "loop", "build", "general"];
 export const BGM_ENERGY_PROFILES: BgmEnergyProfile[] = ["stable", "rising", "falling", "drop", "peak"];
 
 export interface BgmSegment {

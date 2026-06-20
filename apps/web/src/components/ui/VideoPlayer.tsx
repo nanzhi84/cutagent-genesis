@@ -27,6 +27,11 @@ export interface VideoPlayerQualityEvent {
   risk_tier?: string;
 }
 
+export interface VideoPlayerSeekRequest {
+  time: number;
+  key: number;
+}
+
 interface VideoPlayerEvidenceFrame {
   /** Timestamp (seconds) of the sampled evidence frame. */
   time: number;
@@ -48,6 +53,10 @@ export interface VideoPlayerProps {
   durationHint?: number;
   /** Currently highlighted segment id (controlled selection); the player also auto-highlights the playhead segment. */
   activeSegmentId?: string | null;
+  /** Imperative seek request from an external timeline/list item. */
+  seekRequest?: VideoPlayerSeekRequest | null;
+  /** Disable segment bar click handling when bars are visual overlays above a scrubber. */
+  segmentBarsInteractive?: boolean;
   onTimeUpdate?: (time: number) => void;
   onDurationChange?: (duration: number) => void;
   /** Fired on any user-initiated seek (scrubber, segment/marker click). */
@@ -97,6 +106,8 @@ export function VideoPlayer({
   evidenceFrames = [],
   durationHint,
   activeSegmentId = null,
+  seekRequest = null,
+  segmentBarsInteractive = true,
   onTimeUpdate,
   onDurationChange,
   onSeek,
@@ -105,6 +116,7 @@ export function VideoPlayer({
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const lastSeekRequestKeyRef = useRef<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(autoPlay);
   const [currentTime, setCurrentTime] = useState(0);
   const [mediaDuration, setMediaDuration] = useState(0);
@@ -129,6 +141,13 @@ export function VideoPlayer({
     },
     [duration, onSeek],
   );
+
+  useEffect(() => {
+    if (!seekRequest) return;
+    if (lastSeekRequestKeyRef.current === seekRequest.key) return;
+    lastSeekRequestKeyRef.current = seekRequest.key;
+    seekTo(seekRequest.time);
+  }, [seekRequest, seekTo]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -302,20 +321,28 @@ export function VideoPlayer({
                   <button
                     key={seg.id ?? `seg-${i}`}
                     type="button"
-                    className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full transition-all hover:h-3"
+                    className={`absolute top-1/2 h-2 -translate-y-1/2 rounded-full transition-all ${
+                      segmentBarsInteractive ? "hover:h-3" : "pointer-events-none"
+                    }`}
                     title={seg.label || seg.id || `片段 ${i + 1}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      seekTo(seg.start);
-                      onSegmentClick?.(seg);
-                    }}
+                    tabIndex={segmentBarsInteractive ? 0 : -1}
+                    aria-hidden={segmentBarsInteractive ? undefined : true}
+                    onClick={
+                      segmentBarsInteractive
+                        ? (e) => {
+                            e.stopPropagation();
+                            seekTo(seg.start);
+                            onSegmentClick?.(seg);
+                          }
+                        : undefined
+                    }
                     style={{
                       left: `${pct(seg.start)}%`,
                       width: `${Math.max(0.5, pct(seg.end) - pct(seg.start))}%`,
                       backgroundColor: roleColor(seg.role),
                       opacity: isActive ? 1 : 0.7,
                       outline: isActive ? "1px solid rgba(255,255,255,0.85)" : "none",
-                      zIndex: isActive ? 5 : 3,
+                      zIndex: segmentBarsInteractive ? (isActive ? 5 : 3) : 2,
                     }}
                   />
                 );
@@ -390,7 +417,9 @@ export function VideoPlayer({
             onChange={handleScrubberChange}
             onClick={(e) => e.stopPropagation()}
             aria-label="进度"
-            className="pointer-events-none absolute inset-0 z-[1] h-full w-full cursor-pointer opacity-0"
+            className={`absolute inset-0 h-full w-full cursor-pointer opacity-0 ${
+              segmentBarsInteractive ? "pointer-events-none z-[1]" : "z-[4]"
+            }`}
           />
 
           {/* Playhead */}

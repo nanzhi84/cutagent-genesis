@@ -13,7 +13,7 @@ from packages.core.contracts import (
 )
 from packages.core.storage.database import AuditEventRow, SecretRow
 from packages.core.storage.repository import new_id
-from packages.core.storage.secret_store import SecretStore
+from packages.core.storage.secret_store import SecretCipher, SecretStore
 from packages.core.workflow import NodeExecutionError
 
 
@@ -68,6 +68,7 @@ class SqlAlchemySecretRepository:
     def __init__(self, session_factory: sessionmaker[Session], secret_store: SecretStore) -> None:
         self.session_factory = session_factory
         self.secret_store = secret_store
+        self.cipher = SecretCipher.from_store(secret_store)
 
     def list_secrets(self, *, limit: int = 50) -> list[SecretPreview]:
         with self.session_factory() as session:
@@ -84,6 +85,7 @@ class SqlAlchemySecretRepository:
                 environment=payload.environment,
                 name=payload.name,
                 secret_ref=secret_ref,
+                encrypted_value=self.cipher.encrypt(payload.plaintext_secret),
                 status="active",
             )
             session.add(row)
@@ -113,6 +115,7 @@ class SqlAlchemySecretRepository:
                 environment=row.environment,
                 name=row.name,
                 secret_ref=new_secret_ref,
+                encrypted_value=self.cipher.encrypt(payload.plaintext_secret),
                 status="active",
                 rotated_from_secret_id=row.id,
             )
@@ -133,6 +136,7 @@ class SqlAlchemySecretRepository:
             row.status = "disabled"
             row.disabled_at = utcnow()
             row.updated_at = utcnow()
+            row.encrypted_value = None
             self.secret_store.disable(row.secret_ref)
             # Spec §32.9: audit + mutation persist atomically (same transaction).
             _add_secret_audit(session, action="secret.disable", secret=row, actor=actor)
@@ -152,9 +156,53 @@ class SqlAlchemySecretRepository:
             row = session.get(SecretRow, secret_id)
             if row is None or not row.secret_ref:
                 return None
-            value = self.secret_store.get(row.secret_ref)
+            value = self._value_for_row(row)
             if value is None:
                 return None
             _add_secret_audit(session, action="secret.read", secret=row, actor=actor)
             session.commit()
             return value
+
+    def _value_for_row(self, row: SecretRow) -> str | None:
+        if row.encrypted_value:
+            value = self.cipher.decrypt(row.encrypted_value)
+            if value is not None:
+                return value
+        return self.secret_store.get(row.secret_ref)
+
+
+class SqlAlchemySecretStore:
+    """SecretStore facade that reads provider secrets from encrypted DB rows.
+
+    ``put`` and ``disable`` still delegate to the file-backed fallback so direct
+    non-provider callers such as publishing sessions keep their existing behavior.
+    SQL secret governance writes ``encrypted_value`` through
+    :class:`SqlAlchemySecretRepository`.
+    """
+
+    def __init__(self, session_factory: sessionmaker[Session], fallback: SecretStore) -> None:
+        self.session_factory = session_factory
+        self.fallback = fallback
+        self.cipher = SecretCipher.from_store(fallback)
+
+    def put(self, plaintext: str, *, secret_ref: str | None = None) -> str:
+        return self.fallback.put(plaintext, secret_ref=secret_ref)
+
+    def get(self, secret_ref: str) -> str | None:
+        with self.session_factory() as session:
+            statement = (
+                select(SecretRow)
+                .where(SecretRow.secret_ref == secret_ref)
+                .where(SecretRow.status == "active")
+                .order_by(SecretRow.updated_at.desc())
+                .limit(1)
+            )
+            row = session.scalars(statement).first()
+            if row is not None and row.encrypted_value:
+                value = self.cipher.decrypt(row.encrypted_value)
+                if value is not None:
+                    return value
+        return self.fallback.get(secret_ref)
+
+    def disable(self, secret_ref: str) -> None:
+        self.fallback.disable(secret_ref)

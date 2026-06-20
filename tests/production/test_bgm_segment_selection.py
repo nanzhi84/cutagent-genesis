@@ -381,6 +381,61 @@ def test_style_planning_chooses_bgm_clip_by_script_fit_over_raw_rank(tmp_path, m
     assert payload["bgm"]["source_end"] == 126.0
 
 
+def test_style_planning_demotes_short_non_loopable_bgm_for_single_clip_video(
+    tmp_path, monkeypatch
+):
+    object_store = LocalObjectStore(tmp_path / "objects")
+    monkeypatch.setattr("packages.core.storage.object_store._OBJECT_STORE", object_store)
+    adapter = _adapter(object_store)
+    ctx = _ctx(
+        adapter,
+        _request(script="适合稳定铺底的品牌介绍和产品卖点讲解。"),
+        "StylePlanning",
+    )
+    ctx.state.artifacts[ArtifactKind.plan_material_pack] = _artifact(
+        ArtifactKind.plan_material_pack,
+        {
+            "bgm_candidates": [
+                {
+                    "asset_id": "asset_short_non_loop",
+                    "score": 95.0,
+                    "reason": "high score but too short",
+                    "metadata": {
+                        "clip_id": "short_intro",
+                        "source_start": 0.0,
+                        "source_end": 12.0,
+                        "duration": 12.0,
+                        "section_type": "intro",
+                        "loopable": False,
+                        "script_fit": ["品牌介绍", "产品卖点讲解"],
+                    },
+                },
+                {
+                    "asset_id": "asset_macro_bed",
+                    "score": 60.0,
+                    "reason": "usable macro section",
+                    "metadata": {
+                        "clip_id": "stable_main",
+                        "source_start": 0.0,
+                        "source_end": 72.0,
+                        "duration": 72.0,
+                        "section_type": "stable_bed",
+                        "loopable": True,
+                        "script_fit": ["品牌介绍"],
+                    },
+                },
+            ],
+            "font_candidates": [],
+        },
+    )
+
+    output = nodes.style_planning.run(ctx)
+    payload = next(a.payload for a in output.artifacts if a.kind == ArtifactKind.plan_style)
+
+    assert payload["bgm_asset_id"] == "asset_macro_bed"
+    assert payload["bgm"]["segment_id"] == "stable_main"
+
+
 def test_style_planning_respects_requested_bgm_asset_even_when_not_top_scored(
     tmp_path, monkeypatch
 ):

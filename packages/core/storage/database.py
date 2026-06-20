@@ -139,6 +139,7 @@ class SecretRow(TimestampMixin, Base):
     environment: Mapped[str] = mapped_column(String, nullable=False)
     name: Mapped[str] = mapped_column(String, nullable=False)
     secret_ref: Mapped[str] = mapped_column(String, nullable=False)
+    encrypted_value: Mapped[str | None] = mapped_column(Text)
     status: Mapped[str] = mapped_column(String, nullable=False, default="active")
     rotated_from_secret_id: Mapped[str | None] = mapped_column(String)
     rotated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

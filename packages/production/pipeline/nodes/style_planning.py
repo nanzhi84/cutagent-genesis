@@ -139,7 +139,30 @@ def _bgm_script_choice_score(candidate: dict, *, script: str) -> float:
         ],
     )
     negative = _match_count(script, _string_list(metadata.get("avoid_script")))
-    return base + positive * 50.0 - negative * 80.0
+    return base + positive * 50.0 - negative * 80.0 + _single_clip_usability_score(metadata)
+
+
+def _single_clip_usability_score(metadata: dict) -> float:
+    """Prefer macro BGM sections that can carry a whole short video by themselves."""
+    duration = _float_or_none(metadata.get("duration")) or 0.0
+    loopable = _bool_from_metadata(metadata.get("loopable"))
+    section_type = str(metadata.get("section_type") or "")
+    score = 0.0
+    if duration >= 60.0:
+        score += 45.0
+    elif duration >= 36.0:
+        score += 25.0
+    elif duration < 24.0:
+        score -= 70.0
+    if loopable:
+        score += 20.0
+    elif duration < 45.0:
+        score -= 60.0
+    if section_type in {"stable_bed", "loop", "verse", "chorus", "drop"}:
+        score += 12.0
+    if section_type in {"intro", "outro"} and duration < 36.0:
+        score -= 30.0
+    return score
 
 
 def _match_count(script: str, labels: list[str]) -> int:

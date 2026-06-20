@@ -15,6 +15,7 @@ dependencies = [
   "httpx>=0.28",
   "uvicorn[standard]>=0.34",
   "python-multipart>=0.0.20",
+  "cryptography>=43",
   "boto3>=1.35",
   "redis>=5",
   "yt-dlp>=2025.1",

@@ -15,7 +15,7 @@ from packages.core.contracts import (
 )
 from packages.core.storage.database import AuditEventRow, SecretRow
 from packages.core.storage.secret_store import LocalSecretStore
-from packages.core.storage.sqlalchemy_secrets import SqlAlchemySecretRepository
+from packages.core.storage.sqlalchemy_secrets import SqlAlchemySecretRepository, SqlAlchemySecretStore
 
 
 # SQLite can't render Postgres JSONB/ARRAY; map them to JSON for these table-scoped
@@ -133,6 +133,32 @@ def test_db_read_secret_reveals_and_audits_atomically_without_plaintext(tmp_path
     assert plaintext not in repr([(r.action, r.details) for r in _audit_rows(repo)])
 
 
+def test_db_secret_value_is_encrypted_in_row_and_survives_missing_local_file(tmp_path):
+    repo = _sqlite_secret_repo(tmp_path)
+    plaintext = "db-encrypted-secret-ddd"
+
+    created = repo.create_secret(
+        CreateSecretRequest(
+            provider_id="acme", environment="prod", name="key", plaintext_secret=plaintext
+        ),
+        actor="usr_admin",
+    )
+
+    with repo.session_factory() as session:
+        row = session.get(SecretRow, created.id)
+        assert row is not None
+        assert row.encrypted_value
+        assert row.encrypted_value.startswith("fernet:v1:")
+        assert plaintext not in row.encrypted_value
+        secret_ref = row.secret_ref
+
+    repo.secret_store.disable(secret_ref)
+
+    db_store = SqlAlchemySecretStore(repo.session_factory, fallback=repo.secret_store)
+    assert db_store.get(secret_ref) == plaintext
+    assert repo.read_secret(created.id, actor="reader") == plaintext
+
+
 def test_db_read_secret_missing_returns_none_and_skips_audit(tmp_path):
     repo = _sqlite_secret_repo(tmp_path)
     assert repo.read_secret("sec_missing", actor="reader") is None
@@ -189,7 +215,9 @@ def test_sqlalchemy_secret_create_rotate_disable_flow_is_persisted_without_plain
             first_secret_ref = row.secret_ref
             assert first_secret_ref
             assert "first-secret-value" not in first_secret_ref
-            assert not hasattr(row, "encrypted_value")
+            assert row.encrypted_value
+            assert row.encrypted_value.startswith("fernet:v1:")
+            assert "first-secret-value" not in row.encrypted_value
 
         rotated = client.post(
             f"/api/secrets/{secret['id']}/rotate",
@@ -228,6 +256,7 @@ def test_sqlalchemy_secret_create_rotate_disable_flow_is_persisted_without_plain
         assert new_row.rotated_from_secret_id == secret["id"]
         assert new_row.secret_ref != first_secret_ref
         assert "second-secret-value" not in new_row.secret_ref
+        assert new_row.encrypted_value is None
 
     # Spec 11.3 / 32.9: create/rotate/disable each append a secret audit event.
     from sqlalchemy import select

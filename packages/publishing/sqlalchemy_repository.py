@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from sqlalchemy import delete, select
-from sqlalchemy.orm import Session, sessionmaker
 
 from packages.core.contracts import (
     ArtifactRef,

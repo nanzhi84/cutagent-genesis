@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session
 
 from packages.core.contracts import CaseDetail, CaseListItem, CreateCaseRequest, PatchCaseRequest, utcnow
 from packages.core.storage.database import (

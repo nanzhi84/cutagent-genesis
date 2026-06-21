@@ -7,7 +7,7 @@ Platform login/session state is owned by 小V猫 and is never persisted here.
 from __future__ import annotations
 
 from sqlalchemy import delete, select
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session
 
 from packages.core.contracts import CasePublishTarget, Client, PublishAccount
 from packages.core.contracts.base import utcnow

@@ -5,7 +5,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session
 from sqlalchemy.sql.sqltypes import Numeric
 
 from packages.core.contracts import (

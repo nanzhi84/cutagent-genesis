@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from sqlalchemy import or_, select
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session
 
 from packages.core.contracts import (
     ApprovePromptVersionRequest,
@@ -145,9 +145,7 @@ class SqlAlchemyPromptRuntimeRepository(BaseRepository):
             return prompt_template_row_to_contract(template)
 
 
-class SqlAlchemyPromptRepository:
-    def __init__(self, session_factory: sessionmaker[Session]) -> None:
-        self.session_factory = session_factory
+class SqlAlchemyPromptRepository(BaseRepository):
 
     def list_templates(
         self,

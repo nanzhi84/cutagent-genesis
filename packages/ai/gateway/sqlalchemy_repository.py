@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import timedelta
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session
 
 from packages.core.contracts import (
     CreateProviderProfileRequest,

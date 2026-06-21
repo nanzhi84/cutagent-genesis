@@ -16,8 +16,14 @@ def object_store_from_env(*, client_factory: Callable[..., Any] | None = None):
 
     settings = build_settings()
     config = settings.object_store
+    # The durable store must also be able to READ material-bucket refs (when the
+    # tiered store is off, or as a fallback), so fold materials_bucket into its read
+    # set; in tiered mode material refs still route to the materials sub-store.
+    durable_read_buckets = tuple(config.read_buckets)
+    if config.materials_bucket:
+        durable_read_buckets += (config.materials_bucket,)
     durable = _durable_store(
-        config, client_factory=client_factory, read_buckets=tuple(config.read_buckets)
+        config, client_factory=client_factory, read_buckets=durable_read_buckets
     )
     if not config.tiered:
         return durable

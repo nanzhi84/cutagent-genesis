@@ -16,7 +16,16 @@ from packages.core.storage.object_store import (
 # OUTPUT and stays in the per-environment durable bucket. Default-to-output is the
 # safe fallback for any unrecognised purpose.
 _MATERIAL_PURPOSES = frozenset(
-    {"portrait", "broll", "video", "voice_reference", "bgm", "font", "cover_template"}
+    {
+        "portrait",
+        "broll",
+        "video",
+        "voice_reference",
+        "bgm",
+        "font",
+        "cover_template",
+        "thumbnails",  # thumbnails of source assets travel with the material
+    }
 )
 
 

@@ -6,7 +6,8 @@ independently.
 
 Copies, for every prod media_asset missing locally:
   - its source artifact row  (case_id NULL'd to decouple from prod cases)
-  - the media_asset row       (annotation_status forced to 'pending', case_id NULL)
+  - the media_asset row       (annotation_status forced to 'pending', case_id NULL;
+                               source_artifact_id NULL'd if the artifact is absent)
 SKIPS: annotations, material.annotation artifacts, selection ledger/reservations.
 Idempotent (ON CONFLICT (id) DO NOTHING). Dry-run by default; --apply to write.
 
@@ -26,10 +27,9 @@ def log(m: str) -> None:
     print(m, flush=True)
 
 
-def norm(dsn: str) -> str:
+def normalize_dsn(dsn: str) -> str:
     return dsn.replace("postgresql+psycopg://", "postgresql://").replace(
-        "postgresql+psycopg2://", "postgresql://"
-    )
+        "postgresql+psycopg2://", "postgresql://")
 
 
 def columns(cur, table: str) -> list[str]:
@@ -38,19 +38,18 @@ def columns(cur, table: str) -> list[str]:
         "WHERE table_schema='public' AND table_name=%s ORDER BY ordinal_position",
         (table,),
     )
-    return [r[0] if not isinstance(r, dict) else r["column_name"] for r in cur.fetchall()]
+    return [r["column_name"] for r in cur.fetchall()]
 
 
-def insert_row(cur, table: str, cols: list[str], row: dict, overrides: dict) -> None:
-    vals = []
-    for c in cols:
-        vals.append(overrides[c] if c in overrides else row.get(c))
-    placeholders = ", ".join(["%s"] * len(cols))
+def insert_row(cur, table: str, cols: list[str], row: dict, overrides: dict) -> bool:
+    vals = [overrides[c] if c in overrides else row.get(c) for c in cols]
     collist = ", ".join(f'"{c}"' for c in cols)
+    placeholders = ", ".join(["%s"] * len(cols))
     cur.execute(
         f'INSERT INTO "{table}" ({collist}) VALUES ({placeholders}) ON CONFLICT (id) DO NOTHING',
         vals,
     )
+    return cur.rowcount > 0
 
 
 def main() -> int:
@@ -61,16 +60,20 @@ def main() -> int:
     ap.add_argument("--apply", action="store_true")
     args = ap.parse_args()
 
-    prod = psycopg.connect(norm(args.prod_dsn), row_factory=dict_row)
-    local = psycopg.connect(norm(args.local_dsn), row_factory=dict_row)
+    prod = psycopg.connect(normalize_dsn(args.prod_dsn), row_factory=dict_row)
+    local = psycopg.connect(normalize_dsn(args.local_dsn), row_factory=dict_row)
     pc, lc = prod.cursor(), local.cursor()
+    log(f"[{'APPLY' if args.apply else 'DRY-RUN'}] prod={args.prod_dsn.split('@')[-1]} "
+        f"local={normalize_dsn(args.local_dsn).split('@')[-1]}")
 
     lc.execute("SELECT id FROM media_assets")
-    local_ids = {r["id"] for r in lc.fetchall()}
+    local_asset_ids = {r["id"] for r in lc.fetchall()}
+    lc.execute("SELECT id FROM artifacts")
+    local_art_ids = {r["id"] for r in lc.fetchall()}
     pc.execute("SELECT id, source_artifact_id FROM media_assets")
     prod_assets = pc.fetchall()
-    new = [a for a in prod_assets if a["id"] not in local_ids]
-    log(f"prod media_assets={len(prod_assets)} local={len(local_ids)} new-to-sync={len(new)}")
+    new = [a for a in prod_assets if a["id"] not in local_asset_ids]
+    log(f"prod media_assets={len(prod_assets)} local={len(local_asset_ids)} new-to-sync={len(new)}")
     if not new:
         log("nothing to sync."); return 0
 
@@ -78,21 +81,28 @@ def main() -> int:
     art_cols = columns(lc, "artifacts")
     synced_assets = synced_arts = 0
     for a in new:
-        # 1) source artifact (must exist before the asset FK)
         sa_id = a["source_artifact_id"]
-        if sa_id:
+        artifact_available = False
+        # 1) source artifact must exist locally before the asset FK references it
+        if sa_id and sa_id in local_art_ids:
+            artifact_available = True
+        elif sa_id:
             pc.execute("SELECT * FROM artifacts WHERE id=%s", (sa_id,))
             art = pc.fetchone()
             if art:
-                if args.apply:
-                    insert_row(lc, "artifacts", art_cols, art, {"case_id": None})
-                synced_arts += 1
-        # 2) the media_asset row (decoupled + unannotated)
+                if args.apply and insert_row(lc, "artifacts", art_cols, art, {"case_id": None}):
+                    synced_arts += 1
+                local_art_ids.add(sa_id)
+                artifact_available = True
+        # 2) the media_asset row (decoupled + unannotated). If its source artifact
+        #    can't be materialized, NULL the FK so the insert can't violate it.
         pc.execute("SELECT * FROM media_assets WHERE id=%s", (a["id"],))
         ma = pc.fetchone()
+        overrides = {"case_id": None, "annotation_status": "pending"}
+        if not artifact_available:
+            overrides["source_artifact_id"] = None
         if args.apply:
-            insert_row(lc, "media_assets", ma_cols, ma,
-                       {"case_id": None, "annotation_status": "pending"})
+            insert_row(lc, "media_assets", ma_cols, ma, overrides)
         synced_assets += 1
 
     if args.apply:

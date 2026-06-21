@@ -330,20 +330,6 @@ class BalanceSettings(BaseModel):
     request_timeout_seconds: int = 10
 
 
-class ProviderSettings(BaseModel):
-    """Provider-routing policy (``settings.providers.*``)."""
-
-    model_config = ConfigDict(frozen=True)
-
-    # CUTAGENT_ALLOW_SANDBOX_FALLBACK: "1" permits silently routing to the seeded
-    # sandbox providers (sandbox.tts.default / sandbox.llm.default) when no real
-    # provider is armed. OFF by default — the running app uses real providers only
-    # and fails loudly when none is configured, never silently degrading to sandbox
-    # output. The test suite opts in (conftest) so its golden/fallback fixtures keep
-    # exercising the sandbox path.
-    allow_sandbox_fallback: bool = False
-
-
 class LearningSettings(BaseModel):
     """Case-rubric self-evolution knobs (``settings.learning.*``, §5/§6).
 
@@ -390,7 +376,6 @@ class Settings(BaseModel):
     upload: UploadSettings = Field(default_factory=UploadSettings)
     api: ApiSettings = Field(default_factory=ApiSettings)
     balance: BalanceSettings = Field(default_factory=BalanceSettings)
-    providers: ProviderSettings = Field(default_factory=ProviderSettings)
     learning: LearningSettings = Field(default_factory=LearningSettings)
     # Optional shared coordination backend (cross-process limiter / fanout /
     # ephemeral token store). When unset, those layers stay per-process. See
@@ -554,9 +539,6 @@ def build_settings() -> Settings:
                 "CUTAGENT_BALANCE_REQUEST_TIMEOUT_SECONDS", 10
             ),
         ),
-        providers=ProviderSettings(
-            allow_sandbox_fallback=os.getenv("CUTAGENT_ALLOW_SANDBOX_FALLBACK") == "1",
-        ),
         learning=LearningSettings(
             retro_window_days=_env_int("CUTAGENT_LEARNING_RETRO_WINDOW_DAYS", 3),
             reward_draft_adopted=_env_float("CUTAGENT_LEARNING_REWARD_DRAFT_ADOPTED", 0.2),
@@ -585,6 +567,7 @@ def sandbox_fallback_allowed() -> bool:
     Reads ``CUTAGENT_ALLOW_SANDBOX_FALLBACK`` at call time (same semantics as the
     other infra knobs). OFF by default: the running app must route to real
     providers and raise when none is armed, never silently producing sandbox
-    output. Mirrors ``build_settings().providers.allow_sandbox_fallback`` without
-    building the full snapshot, so the provider-resolution hot paths stay cheap."""
+    output. The test suite opts in via conftest so its golden/fallback fixtures
+    keep exercising the sandbox path. Read straight from the environment so the
+    provider-resolution hot paths stay cheap (no full settings snapshot built)."""
     return os.getenv("CUTAGENT_ALLOW_SANDBOX_FALLBACK") == "1"

@@ -124,6 +124,10 @@ export const editorHandoffApi = {
       `/api/finished-videos/${enc(videoId)}/jianying-draft`,
       { method: "POST", body: payload, idempotencyKey: createIdempotencyKey("jianying_draft") },
     ),
+  latestJianyingDraft: (videoId: string) =>
+    fetchJson<JsonResponse<operations["latest_jianying_draft_api_finished_videos__id__jianying_draft_latest_get"]>>(
+      `/api/finished-videos/${enc(videoId)}/jianying-draft/latest`,
+    ),
 };
 
 export const providerObservabilityApi = {

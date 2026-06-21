@@ -108,7 +108,13 @@ from packages.media.video.ffmpeg import FfmpegCommandError, probe_media
 from packages.production.editor_handoff import EditorHandoffAsset, EditorHandoffBuilder, EditorHandoffInput
 from packages.production.finished_video_numbering import next_finished_video_number
 from packages.production.pipeline.node_sequence import expected_node_count
-from packages.production.jianying_draft import JianyingDraftBuilder, JianyingDraftInput
+from packages.production.jianying_draft import (
+    JianyingDraftBuilder,
+    JianyingDraftInput,
+    build_audio_segments_from_sources,
+    build_text_segments_from_narration,
+    build_video_segments_from_plans,
+)
 from packages.production.sqlalchemy_mappers import (
     artifact_ref_from_row,
     artifact_row_to_contract,
@@ -933,12 +939,18 @@ class SqlAlchemyProductionRepository:
             finished = session.get(FinishedVideoRow, finished_video_id)
             if finished is None:
                 raise NodeExecutionError(ErrorCode.artifact_missing, "Finished video is missing.")
+            timeline_plan = self._timeline_plan_payload(session, finished_video_id)
+            portrait_plan = self._latest_run_artifact_payload(session, finished.run_id, ArtifactKind.plan_portrait)
+            broll_plan = self._latest_run_artifact_payload(session, finished.run_id, ArtifactKind.plan_broll)
+            style_plan = self._latest_run_artifact_payload(session, finished.run_id, ArtifactKind.plan_style)
+            audio_path = self._latest_run_artifact_path(session, finished.run_id, ArtifactKind.audio_tts)
+            narration_units = self._narration_units(session, finished.run_id)
             jianying = JianyingDraftBuilder(self.object_store).build(
                 JianyingDraftInput(
                     finished_video_id=finished_video_id,
                     title=finished.title,
                     video_path=self._artifact_path(session, ArtifactRef.model_validate(finished.video_artifact)),
-                    audio_path=self._latest_run_artifact_path(session, finished.run_id, ArtifactKind.audio_tts),
+                    audio_path=audio_path,
                     subtitle_path=(
                         self._artifact_path(session, ArtifactRef.model_validate(finished.subtitle_artifact))
                         if finished.subtitle_artifact
@@ -946,13 +958,27 @@ class SqlAlchemyProductionRepository:
                     ),
                     duration_sec=finished.duration_sec,
                     template_id=payload.template_id,
-                    timeline_plan=self._timeline_plan_payload(session, finished_video_id),
-                    narration_units=self._narration_units(session, finished.run_id),
+                    timeline_plan=timeline_plan,
+                    narration_units=narration_units,
+                    video_segments=build_video_segments_from_plans(
+                        timeline_plan,
+                        portrait_plan,
+                        broll_plan,
+                        resolve_source_path=lambda asset_id: self._media_asset_source_path(session, asset_id),
+                    ),
+                    audio_segments=build_audio_segments_from_sources(
+                        audio_path,
+                        finished.duration_sec,
+                        style_plan,
+                        resolve_source_path=lambda asset_id: self._media_asset_source_path(session, asset_id),
+                    ),
+                    text_segments=build_text_segments_from_narration(narration_units),
                 )
             )
             artifact = ArtifactRow(
                 id=new_id("art"),
                 case_id=finished.case_id,
+                run_id=finished.run_id,
                 kind=ArtifactKind.jianying_draft.value,
                 uri=jianying.package_uri,
                 sha256=jianying.sha256,
@@ -963,9 +989,42 @@ class SqlAlchemyProductionRepository:
             session.add(artifact)
             session.commit()
             session.refresh(artifact)
+            download = self.object_store.signed_url(jianying.package_uri)
             return JianyingDraftPackageArtifact(
                 package_artifact=artifact_ref_from_row(artifact),
                 draft_manifest=jianying.manifest,
+                download_url=download.url,
+                download_expires_at=download.expires_at,
+            )
+
+    def latest_jianying_draft(self, finished_video_id: str) -> JianyingDraftPackageArtifact | None:
+        with self.session_factory() as session:
+            artifacts = session.scalars(
+                select(ArtifactRow)
+                .where(
+                    ArtifactRow.kind == ArtifactKind.jianying_draft.value,
+                    ArtifactRow.payload.contains({"finished_video_id": finished_video_id}),
+                )
+                .order_by(ArtifactRow.created_at.desc())
+            ).all()
+            artifact = next(
+                (
+                    candidate
+                    for candidate in artifacts
+                    if candidate.uri
+                    and isinstance(candidate.payload, dict)
+                    and candidate.payload.get("portable_resources") is True
+                ),
+                None,
+            )
+            if artifact is None or not artifact.uri or not isinstance(artifact.payload, dict):
+                return None
+            download = self.object_store.signed_url(artifact.uri)
+            return JianyingDraftPackageArtifact(
+                package_artifact=artifact_ref_from_row(artifact),
+                draft_manifest=artifact.payload,
+                download_url=download.url,
+                download_expires_at=download.expires_at,
             )
 
     def _artifact_path(self, session: Session, artifact_ref: ArtifactRef) -> Path:
@@ -987,6 +1046,26 @@ class SqlAlchemyProductionRepository:
         )
         if artifact is None:
             return None
+        return self._artifact_path(session, artifact_ref_from_row(artifact))
+
+    def _latest_run_artifact_payload(self, session: Session, run_id: str | None, kind: ArtifactKind) -> dict | None:
+        if run_id is None:
+            return None
+        artifact = session.scalar(
+            select(ArtifactRow)
+            .where(ArtifactRow.run_id == run_id, ArtifactRow.kind == kind.value)
+            .order_by(ArtifactRow.created_at.desc())
+        )
+        payload = artifact.payload if artifact is not None and isinstance(artifact.payload, dict) else None
+        return payload
+
+    def _media_asset_source_path(self, session: Session, asset_id: str) -> Path:
+        asset = session.get(MediaAssetRow, asset_id)
+        if asset is None or not asset.source_artifact_id:
+            raise NodeExecutionError(ErrorCode.artifact_missing, f"Media asset source is missing: {asset_id}")
+        artifact = session.get(ArtifactRow, asset.source_artifact_id)
+        if artifact is None or not artifact.uri:
+            raise NodeExecutionError(ErrorCode.artifact_missing, f"Media asset source artifact is missing: {asset_id}")
         return self._artifact_path(session, artifact_ref_from_row(artifact))
 
     def _timeline_plan_payload(self, session: Session, finished_video_id: str) -> dict | None:

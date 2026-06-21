@@ -1690,6 +1690,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/finished-videos/{id}/jianying-draft/latest": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Latest Jianying Draft */
+        get: operations["latest_jianying_draft_api_finished_videos__id__jianying_draft_latest_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/artifacts/{artifact_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Artifact Download */
+        get: operations["artifact_download_api_artifacts__artifact_id__download_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/finished-videos/{id}/editor-handoff": {
         parameters: {
             query?: never;
@@ -4702,6 +4736,10 @@ export interface components {
             draft_manifest: {
                 [key: string]: components["schemas"]["JsonValue"];
             };
+            /** Download Url */
+            download_url?: string | null;
+            /** Download Expires At */
+            download_expires_at?: string | null;
         };
         /** Job */
         Job: {
@@ -4767,6 +4805,12 @@ export interface components {
          */
         JobType: "digital_human_video" | "publish_batch" | "annotation_batch";
         JsonValue: unknown;
+        /** LatestJianyingDraftPackageResponse */
+        LatestJianyingDraftPackageResponse: {
+            package?: components["schemas"]["JianyingDraftPackageArtifact"] | null;
+            /** Request Id */
+            request_id: string;
+        };
         /** LipSyncOptions */
         LipSyncOptions: {
             /**
@@ -12415,6 +12459,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SignedUrlResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    latest_jianying_draft_api_finished_videos__id__jianying_draft_latest_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LatestJianyingDraftPackageResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    artifact_download_api_artifacts__artifact_id__download_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                artifact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

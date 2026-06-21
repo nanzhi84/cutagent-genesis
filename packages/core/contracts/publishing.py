@@ -82,6 +82,13 @@ class CreateJianyingDraftRequest(ContractModel):
 class JianyingDraftPackageArtifact(ContractModel):
     package_artifact: ArtifactRef
     draft_manifest: dict[str, JsonValue]
+    download_url: str | None = None
+    download_expires_at: datetime | None = None
+
+
+class LatestJianyingDraftPackageResponse(ContractModel):
+    package: JianyingDraftPackageArtifact | None = None
+    request_id: str
 
 
 class CreatePublishPackageRequest(ContractModel):

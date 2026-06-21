@@ -97,7 +97,7 @@ export function RunDetailModal({
                   {videoPreview.isLoading ? "加载成片预览…" : "成片暂不可预览"}
                 </div>
               )}
-              <div className="mx-auto flex w-full max-w-[320px] items-center justify-between gap-2">
+              <div className="mx-auto flex w-full max-w-[320px] flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-2">
                   {lipsyncProviderLabel(finishedVideo.lipsync_provider_id, finishedVideo.lipsync_fallback_used) ? (
                     <span
@@ -108,12 +108,7 @@ export function RunDetailModal({
                     </span>
                   ) : null}
                 </div>
-                {videoUrl ? (
-                  <a className="btn-secondary text-sm no-underline" href={videoUrl} target="_blank" rel="noopener noreferrer">
-                    <Download className="h-4 w-4" />
-                    <span>下载 / 全屏</span>
-                  </a>
-                ) : null}
+                <EditorHandoffActions finishedVideoId={finishedVideo?.id} videoDownloadUrl={videoUrl} compact />
               </div>
               {finishedVideo.lipsync_fallback_used && finishedVideo.lipsync_fallback_reason ? (
                 <p className="mx-auto w-full max-w-[320px] rounded-xl border border-status-warning/20 bg-status-warning/10 px-3 py-2 text-xs text-status-warning">
@@ -141,11 +136,11 @@ export function RunDetailModal({
 
           <EditTimelinePreview clips={editClips} activeClipId={activeClipId} onSelect={setActiveClipId} />
 
-          {/* 高级（开发者）：原始节点时间线 + 产物清单 + 交接包 */}
+          {/* 高级（开发者）：原始节点时间线 + 产物清单 */}
           <details className="overflow-hidden rounded-2xl border border-border/70">
             <summary className="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm font-semibold text-text-primary transition-colors hover:bg-surface-hover">
               <ChevronDown className="h-4 w-4 text-accent" />
-              高级（开发者）：节点时间线 · 产物清单 · 交接包
+              高级（开发者）：节点时间线 · 产物清单
             </summary>
             <div className="grid gap-5 border-t border-border/70 p-4">
               {detail?.config?.workflow_template_id ? (
@@ -202,11 +197,6 @@ export function RunDetailModal({
                     );
                   })}
                 </div>
-              </section>
-
-              <section className="grid gap-3">
-                <h5 className="text-sm font-semibold text-text-secondary">剪映草稿 / 交接包</h5>
-                <EditorHandoffActions finishedVideoId={finishedVideo?.id} />
               </section>
             </div>
           </details>

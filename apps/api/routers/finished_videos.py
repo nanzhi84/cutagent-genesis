@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Response
 
 from apps.api.dependencies import require_role
 from apps.api.services import finished_videos as service
@@ -37,6 +37,19 @@ def finished_video_preview(request: Request, id: str) -> c.SignedUrlResponse:
 def finished_video_download(request: Request, id: str) -> c.SignedUrlResponse:
 
     return service.finished_video_download(request, id)
+
+
+@router.get(
+    "/api/finished-videos/{id}/jianying-draft/latest",
+    response_model=c.LatestJianyingDraftPackageResponse,
+)
+def latest_jianying_draft(request: Request, id: str) -> c.LatestJianyingDraftPackageResponse:
+    return service.latest_jianying_draft(id, request)
+
+
+@router.get("/api/artifacts/{artifact_id}/download", response_model=None)
+def artifact_download(request: Request, artifact_id: str) -> Response:
+    return service.artifact_download(request, artifact_id)
 
 
 @router.delete("/api/finished-videos/{id}", response_model=c.OkResponse)

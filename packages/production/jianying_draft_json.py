@@ -177,10 +177,10 @@ def ensure_supporting_files(draft_dir: Path) -> None:
 
 def draft_meta(root: Path, draft_dir: Path, draft_name: str, draft_id: str, duration_us: int, size: int, created_us: int) -> dict[str, Any]:
     return {
-        "draft_fold_path": str(draft_dir),
+        "draft_fold_path": draft_name,
         "draft_id": draft_id,
         "draft_name": draft_name,
-        "draft_root_path": str(root),
+        "draft_root_path": ".",
         "draft_cover": "",
         "draft_new_version": "",
         "draft_timeline_materials_size_": size,
@@ -200,14 +200,14 @@ def root_meta(root: Path, draft_dir: Path, draft_name: str, draft_id: str, durat
                 "draft_cloud_tutorial_info": "",
                 "draft_cloud_videocut_purchase_info": "",
                 "draft_cover": "",
-                "draft_fold_path": str(draft_dir),
+                "draft_fold_path": draft_name,
                 "draft_id": draft_id,
                 "draft_is_ai_shorts": False,
                 "draft_is_invisible": False,
-                "draft_json_file": str(draft_dir / "draft_content.json"),
+                "draft_json_file": f"{draft_name}/draft_content.json",
                 "draft_name": draft_name,
                 "draft_new_version": "",
-                "draft_root_path": str(root),
+                "draft_root_path": ".",
                 "draft_timeline_materials_size": size,
                 "draft_type": "",
                 "tm_draft_cloud_completed": "",
@@ -219,7 +219,7 @@ def root_meta(root: Path, draft_dir: Path, draft_name: str, draft_id: str, durat
             }
         ],
         "draft_ids": 1,
-        "root_path": str(root),
+        "root_path": ".",
     }
 
 

@@ -9,11 +9,170 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from packages.core.storage.object_store import ObjectStore
 from packages.media.video.ffmpeg import probe_media
 from . import jianying_draft_json as jy_json
+
+
+_PORTABLE_PACKAGE_SCHEMA_VERSION = "jianying_draft_portable_v2"
+_INVALID_RESOURCE_NAME_CHARS = re.compile(r'[<>:"\\|?*\x00-\x1f]')
+_WINDOWS_RESERVED_NAMES = {
+    "CON",
+    "PRN",
+    "AUX",
+    "NUL",
+    *(f"COM{index}" for index in range(1, 10)),
+    *(f"LPT{index}" for index in range(1, 10)),
+}
+
+
+@dataclass(frozen=True)
+class JianyingVideoSegment:
+    track_name: str
+    source_path: Path
+    timeline_start_frame: int
+    timeline_end_frame: int
+    source_start_frame: int
+    source_end_frame: int
+    asset_id: str | None = None
+    clip_id: str | None = None
+    volume: float = 0.0
+
+
+@dataclass(frozen=True)
+class JianyingAudioSegment:
+    track_name: str
+    source_path: Path
+    start_us: int
+    duration_us: int
+    source_start_us: int = 0
+    source_duration_us: int | None = None
+    volume: float = 1.0
+
+
+@dataclass(frozen=True)
+class JianyingTextSegment:
+    track_name: str
+    text: str
+    start_us: int
+    duration_us: int
+    transform_y: float = -0.8
+
+
+def build_video_segments_from_plans(
+    timeline_plan: dict[str, Any] | None,
+    portrait_plan: dict[str, Any] | None,
+    broll_plan: dict[str, Any] | None,
+    resolve_source_path: Callable[[str], str | Path],
+) -> list[JianyingVideoSegment]:
+    timeline = timeline_plan or {}
+    fps = int(timeline.get("fps") or (portrait_plan or {}).get("fps") or 30)
+    portrait_by_id = _segments_by_timeline_id(portrait_plan, "portrait")
+    broll_by_id = _segments_by_timeline_id(broll_plan, "broll")
+    segments: list[JianyingVideoSegment] = []
+    for raw in timeline.get("tracks") or []:
+        if not isinstance(raw, dict):
+            continue
+        track_id = str(raw.get("track_id") or "").lower()
+        segment_id = str(raw.get("segment_id") or "")
+        if track_id == "portrait":
+            source = portrait_by_id.get(segment_id)
+            track_name = "主视频"
+        elif track_id == "broll":
+            source = broll_by_id.get(segment_id)
+            track_name = "B-roll覆盖"
+        else:
+            continue
+        if not isinstance(source, dict):
+            continue
+        asset_id = _str_or_none(source.get("asset_id"))
+        if not asset_id:
+            continue
+        timeline_start_frame = _frame_from_payload(raw, "timeline_start_frame", "start_sec", fps)
+        timeline_end_frame = _frame_from_payload(raw, "timeline_end_frame", "end_sec", fps)
+        source_start_frame = _frame_from_payload(
+            raw, "source_start_frame", "source_start_sec", fps, source, "source_start"
+        )
+        source_end_frame = _frame_from_payload(
+            raw, "source_end_frame", "source_end_sec", fps, source, "source_end"
+        )
+        if timeline_end_frame <= timeline_start_frame or source_end_frame <= source_start_frame:
+            continue
+        segments.append(
+            JianyingVideoSegment(
+                track_name=track_name,
+                source_path=Path(resolve_source_path(asset_id)),
+                timeline_start_frame=timeline_start_frame,
+                timeline_end_frame=timeline_end_frame,
+                source_start_frame=source_start_frame,
+                source_end_frame=source_end_frame,
+                asset_id=asset_id,
+                clip_id=_str_or_none(source.get("clip_id")),
+            )
+        )
+    return segments
+
+
+def build_audio_segments_from_sources(
+    audio_path: Path | None,
+    duration_sec: float,
+    style_plan: dict[str, Any] | None,
+    resolve_source_path: Callable[[str], str | Path],
+) -> list[JianyingAudioSegment]:
+    duration_us = max(1, _sec_to_us(duration_sec))
+    segments: list[JianyingAudioSegment] = []
+    if audio_path is not None:
+        segments.append(
+            JianyingAudioSegment(
+                track_name="旁白", source_path=audio_path, start_us=0, duration_us=duration_us
+            )
+        )
+    style = style_plan or {}
+    bgm_plan = style.get("bgm") if isinstance(style.get("bgm"), dict) else {}
+    bgm_asset_id = _str_or_none(style.get("bgm_asset_id") or bgm_plan.get("asset_id"))
+    if bgm_plan and bgm_plan.get("enabled", True) and bgm_asset_id:
+        source_start_us = _sec_to_us(bgm_plan.get("source_start") or 0)
+        source_end = bgm_plan.get("source_end")
+        source_duration_us = None
+        if source_end is not None:
+            source_duration_us = max(1, _sec_to_us(float(source_end)) - source_start_us)
+        elif bgm_plan.get("duration") is not None:
+            source_duration_us = max(1, _sec_to_us(bgm_plan.get("duration")))
+        segments.append(
+            JianyingAudioSegment(
+                track_name="BGM",
+                source_path=Path(resolve_source_path(bgm_asset_id)),
+                start_us=0,
+                duration_us=duration_us,
+                source_start_us=source_start_us,
+                source_duration_us=source_duration_us,
+                volume=float(bgm_plan.get("volume") or 0.25),
+            )
+        )
+    return segments
+
+
+def build_text_segments_from_narration(
+    narration_units: list[dict[str, Any]],
+) -> list[JianyingTextSegment]:
+    segments: list[JianyingTextSegment] = []
+    for unit in narration_units:
+        if not isinstance(unit, dict):
+            continue
+        text = str(unit.get("text") or unit.get("content") or "").strip()
+        if not text:
+            continue
+        start_us = _sec_to_us(unit.get("start") or unit.get("start_sec") or 0)
+        end_us = _sec_to_us(unit.get("end") or unit.get("end_sec") or 0)
+        if end_us > start_us:
+            segments.append(
+                JianyingTextSegment(
+                    track_name="字幕", text=text, start_us=start_us, duration_us=end_us - start_us
+                )
+            )
+    return segments
 
 
 @dataclass(frozen=True)
@@ -27,6 +186,9 @@ class JianyingDraftInput:
     template_id: str | None = None
     timeline_plan: dict[str, Any] | None = None
     narration_units: list[dict[str, Any]] = field(default_factory=list)
+    video_segments: list[JianyingVideoSegment] = field(default_factory=list)
+    audio_segments: list[JianyingAudioSegment] = field(default_factory=list)
+    text_segments: list[JianyingTextSegment] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -56,9 +218,18 @@ class JianyingDraftBuilder:
 
             warnings: list[str] = []
             used_names: set[str] = set()
-            video_path = _stage_media_file(source.video_path, draft_dir / "Resources" / "video", used_names, warnings)
+            staged_videos: dict[Path, str] = {}
+            staged_audios: dict[Path, str] = {}
+            video_dir = draft_dir / "Resources" / "video"
+            audio_dir = draft_dir / "Resources" / "audio"
+            probe_video_path = (
+                source.video_segments[0].source_path if source.video_segments else source.video_path
+            )
+            video_path = _stage_once(
+                probe_video_path, video_dir, used_names, warnings, staged_videos
+            )
             audio_path = (
-                _stage_media_file(source.audio_path, draft_dir / "Resources" / "audio", used_names, warnings)
+                _stage_once(source.audio_path, audio_dir, used_names, warnings, staged_audios)
                 if source.audio_path
                 else None
             )
@@ -77,36 +248,109 @@ class JianyingDraftBuilder:
             tracks: list[dict[str, Any]] = []
             speeds: list[dict[str, Any]] = []
 
-            video_material = _video_material(video_path, duration_us, width, height)
-            materials["videos"].append(video_material)
-            main_segments = _main_video_segments(source, video_material["id"], duration_us)
-            tracks.append(_track("video", "video", 0, main_segments))
-            for segment in main_segments:
-                speeds.append(_speed_material(segment["extra_material_refs"][0], segment["speed"]))
+            if source.video_segments:
+                video_track_segments, video_materials = _explicit_video_tracks(
+                    source, draft_dir, video_dir, used_names, warnings, staged_videos
+                )
+                materials["videos"].extend(video_materials)
+                for render_index, (track_name, segments) in enumerate(video_track_segments.items()):
+                    tracks.append(_track("video", track_name, render_index, segments))
+                    for segment in segments:
+                        speeds.append(
+                            _speed_material(segment["extra_material_refs"][0], segment["speed"])
+                        )
+                main_segments = [
+                    segment
+                    for track_name, segments in video_track_segments.items()
+                    if not _is_broll_track(track_name)
+                    for segment in segments
+                ]
+                broll_segments = [
+                    segment
+                    for track_name, segments in video_track_segments.items()
+                    if _is_broll_track(track_name)
+                    for segment in segments
+                ]
+            else:
+                video_material = _video_material(
+                    _portable_resource_path(video_path, draft_dir), duration_us, width, height
+                )
+                materials["videos"].append(video_material)
+                main_segments = _main_video_segments(source, video_material["id"], duration_us)
+                tracks.append(_track("video", "video", 0, main_segments))
+                for segment in main_segments:
+                    speeds.append(
+                        _speed_material(segment["extra_material_refs"][0], segment["speed"])
+                    )
 
-            broll_segments = _broll_segments(source, video_material["id"])
-            if broll_segments:
-                tracks.append(_track("video", "broll", 1, broll_segments))
-                for segment in broll_segments:
-                    speeds.append(_speed_material(segment["extra_material_refs"][0], segment["speed"]))
+                broll_segments = _broll_segments(source, video_material["id"])
+                if broll_segments:
+                    tracks.append(_track("video", "broll", 1, broll_segments))
+                    for segment in broll_segments:
+                        speeds.append(
+                            _speed_material(segment["extra_material_refs"][0], segment["speed"])
+                        )
 
-            if audio_path and audio_info:
-                audio_duration_us = max(1, _sec_to_us(audio_info.duration_sec or source.duration_sec))
-                audio_material = _audio_material(audio_path, audio_duration_us)
+            if source.audio_segments:
+                audio_track_segments, audio_materials = _explicit_audio_tracks(
+                    source.audio_segments, draft_dir, audio_dir, used_names, warnings, staged_audios
+                )
+                materials["audios"].extend(audio_materials)
+                for render_index, (track_name, segments) in enumerate(audio_track_segments.items()):
+                    tracks.append(_track("audio", track_name, render_index, segments))
+                    for segment in segments:
+                        speeds.append(
+                            _speed_material(segment["extra_material_refs"][0], segment["speed"])
+                        )
+            elif audio_path and audio_info:
+                audio_duration_us = max(
+                    1, _sec_to_us(audio_info.duration_sec or source.duration_sec)
+                )
+                audio_material = _audio_material(
+                    _portable_resource_path(audio_path, draft_dir), audio_duration_us
+                )
                 materials["audios"].append(audio_material)
-                audio_segment = _media_segment(audio_material["id"], 0, audio_duration_us, 0, audio_duration_us, volume=1.0)
+                audio_segment = _media_segment(
+                    audio_material["id"], 0, audio_duration_us, 0, audio_duration_us, volume=1.0
+                )
                 tracks.append(_track("audio", "audio", 0, [audio_segment]))
-                speeds.append(_speed_material(audio_segment["extra_material_refs"][0], audio_segment["speed"]))
+                speeds.append(
+                    _speed_material(audio_segment["extra_material_refs"][0], audio_segment["speed"])
+                )
 
-            subtitle_entries = jy_json.subtitle_entries(source.subtitle_path, source.narration_units)
             subtitle_segments: list[dict[str, Any]] = []
-            for entry in subtitle_entries:
-                material_id = uuid.uuid4().hex
-                duration = max(1, int(entry["end_us"] - entry["start_us"]))
-                materials["texts"].append(_text_material(material_id, entry["text"]))
-                subtitle_segments.append(_text_segment(material_id, int(entry["start_us"]), duration))
-            if subtitle_segments:
-                tracks.append(_track("text", "subtitle", 15200, subtitle_segments))
+            huazi_segments: list[dict[str, Any]] = []
+            if source.text_segments:
+                text_tracks: dict[str, list[dict[str, Any]]] = {}
+                for text_segment in source.text_segments:
+                    material_id = uuid.uuid4().hex
+                    materials["texts"].append(_text_material(material_id, text_segment.text))
+                    segment = _text_segment(
+                        material_id,
+                        text_segment.start_us,
+                        max(1, text_segment.duration_us),
+                        transform_y=text_segment.transform_y,
+                    )
+                    text_tracks.setdefault(text_segment.track_name, []).append(segment)
+                    if _is_huazi_track(text_segment.track_name):
+                        huazi_segments.append(segment)
+                    else:
+                        subtitle_segments.append(segment)
+                for index, (track_name, segments) in enumerate(text_tracks.items()):
+                    tracks.append(_track("text", track_name, 15200 + index, segments))
+            else:
+                subtitle_entries = jy_json.subtitle_entries(
+                    source.subtitle_path, source.narration_units
+                )
+                for entry in subtitle_entries:
+                    material_id = uuid.uuid4().hex
+                    duration = max(1, int(entry["end_us"] - entry["start_us"]))
+                    materials["texts"].append(_text_material(material_id, entry["text"]))
+                    subtitle_segments.append(
+                        _text_segment(material_id, int(entry["start_us"]), duration)
+                    )
+                if subtitle_segments:
+                    tracks.append(_track("text", "subtitle", 15200, subtitle_segments))
 
             materials["speeds"] = speeds
             content = jy_json.draft_content(
@@ -117,18 +361,27 @@ class JianyingDraftBuilder:
                 duration_us=duration_us,
                 created_us=created_us,
                 materials=materials,
-                tracks=sorted(tracks, key=lambda item: item["segments"][0].get("render_index", 0) if item["segments"] else 0),
+                tracks=sorted(
+                    tracks,
+                    key=lambda item: (
+                        item["segments"][0].get("render_index", 0) if item["segments"] else 0
+                    ),
+                ),
             )
             jy_json.dump_json(draft_dir / "draft_content.json", content)
             jy_json.ensure_supporting_files(draft_dir)
             folder_size = jy_json.folder_size_bytes(draft_dir)
             jy_json.dump_json(
                 draft_dir / "draft_meta_info.json",
-                jy_json.draft_meta(root, draft_dir, draft_name, draft_id, duration_us, folder_size, created_us),
+                jy_json.draft_meta(
+                    root, draft_dir, draft_name, draft_id, duration_us, folder_size, created_us
+                ),
             )
             jy_json.dump_json(
                 root / "root_meta_info.json",
-                jy_json.root_meta(root, draft_dir, draft_name, draft_id, duration_us, folder_size, created_us),
+                jy_json.root_meta(
+                    root, draft_dir, draft_name, draft_id, duration_us, folder_size, created_us
+                ),
             )
 
             zip_path = Path(directory) / f"{draft_name}.zip"
@@ -139,29 +392,42 @@ class JianyingDraftBuilder:
             )
             tracks_summary = {
                 "main_video": len(main_segments),
-                "voice_audio": 1 if audio_path else 0,
+                "voice_audio": _voice_audio_count(source, audio_path),
                 "subtitle_segments": len(subtitle_segments),
                 "broll_segments": len(broll_segments),
                 "overlay_tracks": 0,
                 "cover_tracks": 0,
-                "huazi_segments": 0,
+                "huazi_segments": len(huazi_segments),
             }
+            bgm_audio = _bgm_audio_count(source.audio_segments)
+            if bgm_audio:
+                tracks_summary["bgm_audio"] = bgm_audio
             manifest = {
                 "finished_video_id": source.finished_video_id,
                 "template_id": source.template_id or "default",
                 "draft_name": draft_name,
                 "draft_id": draft_id,
+                "package_schema_version": _PORTABLE_PACKAGE_SCHEMA_VERSION,
+                "portable_resources": True,
                 "duration_us": duration_us,
                 "tracks_summary": tracks_summary,
                 "package_uri": stored.ref.uri,
                 "assets": {
-                    "video": [Path(video_path).name],
-                    "audio": [Path(audio_path).name] if audio_path else [],
+                    "video": _material_names(materials["videos"], "material_name"),
+                    "audio": _material_names(materials["audios"], "name"),
                     "subtitle": Path(source.subtitle_path).name if source.subtitle_path else None,
                 },
                 "warnings": warnings,
             }
-            return JianyingDraftBuild(stored.ref.uri, stored.sha256, stored.size_bytes, draft_name, draft_id, tracks_summary, manifest)
+            return JianyingDraftBuild(
+                stored.ref.uri,
+                stored.sha256,
+                stored.size_bytes,
+                draft_name,
+                draft_id,
+                tracks_summary,
+                manifest,
+            )
 
 
 def _safe_draft_name(title: str, task_id: str) -> str:
@@ -184,21 +450,58 @@ def _frame_to_us(frame: int, fps: int) -> int:
     return int(float(frame) / float(fps or 30) * 1_000_000)
 
 
-def _stage_media_file(source_path: Path, target_dir: Path, used_names: set[str], warnings: list[str]) -> str:
+def _stage_media_file(
+    source_path: Path, target_dir: Path, used_names: set[str], warnings: list[str]
+) -> str:
     source = Path(source_path).expanduser().resolve()
     if not source.exists():
         raise FileNotFoundError(f"素材不存在: {source}")
     target_dir.mkdir(parents=True, exist_ok=True)
-    target = target_dir / _unique_name(source.name, used_names)
+    target = target_dir / _unique_name(_safe_resource_name(source.name), used_names)
     try:
         os.link(source, target)
     except OSError:
         try:
             shutil.copy2(source, target)
         except OSError as exc:
-            warnings.append(f"素材复制失败，回退原路径: {source} ({exc})")
-            return str(source)
+            raise OSError(f"素材复制失败: {source} -> {target}") from exc
     return str(target)
+
+
+def _stage_once(
+    source_path: Path,
+    target_dir: Path,
+    used_names: set[str],
+    warnings: list[str],
+    staged: dict[Path, str],
+) -> str:
+    source = Path(source_path).expanduser().resolve()
+    existing = staged.get(source)
+    if existing:
+        return existing
+    staged_path = _stage_media_file(source, target_dir, used_names, warnings)
+    staged[source] = staged_path
+    return staged_path
+
+
+def _portable_resource_path(path: str | Path, draft_dir: Path) -> str:
+    return Path(path).resolve().relative_to(draft_dir.resolve()).as_posix()
+
+
+def _safe_resource_name(original_name: str) -> str:
+    name = _INVALID_RESOURCE_NAME_CHARS.sub("_", Path(original_name).name)
+    name = name.strip(" .")
+    if not name or name in {".", ".."}:
+        name = "material"
+    path = Path(name)
+    stem = path.stem.strip(" .") or "material"
+    suffix = path.suffix.strip(" .")
+    if stem.upper() in _WINDOWS_RESERVED_NAMES:
+        stem = f"{stem}_"
+    if suffix:
+        suffix = _INVALID_RESOURCE_NAME_CHARS.sub("_", suffix)
+        return f"{stem}.{suffix.lstrip('.')}"
+    return stem
 
 
 def _unique_name(original_name: str, used_names: set[str]) -> str:
@@ -213,7 +516,140 @@ def _unique_name(original_name: str, used_names: set[str]) -> str:
     return candidate
 
 
-def _main_video_segments(source: JianyingDraftInput, material_id: str, duration_us: int) -> list[dict[str, Any]]:
+def _segments_by_timeline_id(plan: dict[str, Any] | None, prefix: str) -> dict[str, dict[str, Any]]:
+    payload = plan or {}
+    result: dict[str, dict[str, Any]] = {}
+    for index, segment in enumerate(payload.get("segments") or []):
+        if not isinstance(segment, dict):
+            continue
+        segment_id = (
+            _str_or_none(segment.get("segment_id"))
+            or _str_or_none(segment.get("overlay_id"))
+            or f"{prefix}_{index + 1}"
+        )
+        result[segment_id] = segment
+    return result
+
+
+def _frame_from_payload(
+    payload: dict[str, Any],
+    frame_key: str,
+    seconds_key: str,
+    fps: int,
+    fallback: dict[str, Any] | None = None,
+    fallback_seconds_key: str | None = None,
+) -> int:
+    value = payload.get(frame_key)
+    if value is not None:
+        return int(value)
+    value = payload.get(seconds_key)
+    if value is not None:
+        return int(round(float(value) * fps))
+    if fallback is not None and fallback_seconds_key:
+        value = fallback.get(fallback_seconds_key)
+        if value is not None:
+            return int(round(float(value) * fps))
+    return 0
+
+
+def _str_or_none(value: Any) -> str | None:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def _explicit_video_tracks(
+    source: JianyingDraftInput,
+    draft_dir: Path,
+    video_dir: Path,
+    used_names: set[str],
+    warnings: list[str],
+    staged_videos: dict[Path, str],
+) -> tuple[dict[str, list[dict[str, Any]]], list[dict[str, Any]]]:
+    fps = int((source.timeline_plan or {}).get("fps") or 30)
+    tracks: dict[str, list[dict[str, Any]]] = {}
+    materials: list[dict[str, Any]] = []
+    material_by_path: dict[Path, str] = {}
+    for segment in source.video_segments:
+        start = _frame_to_us(segment.timeline_start_frame, fps)
+        end = _frame_to_us(segment.timeline_end_frame, fps)
+        source_start = _frame_to_us(segment.source_start_frame, fps)
+        source_end = _frame_to_us(segment.source_end_frame, fps)
+        if end <= start or source_end <= source_start:
+            continue
+        source_path = Path(segment.source_path).expanduser().resolve()
+        material_id = material_by_path.get(source_path)
+        if material_id is None:
+            staged_path = _stage_once(source_path, video_dir, used_names, warnings, staged_videos)
+            info = probe_media(staged_path)
+            material = _video_material(
+                _portable_resource_path(staged_path, draft_dir),
+                max(_sec_to_us(info.duration_sec or 0), source_end, 1),
+                int(info.width or 1080),
+                int(info.height or 1920),
+            )
+            material_id = material["id"]
+            material_by_path[source_path] = material_id
+            materials.append(material)
+        tracks.setdefault(segment.track_name, []).append(
+            _media_segment(
+                material_id,
+                start,
+                end - start,
+                source_start,
+                source_end - source_start,
+                volume=segment.volume,
+            )
+        )
+    return tracks, materials
+
+
+def _explicit_audio_tracks(
+    audio_segments: list[JianyingAudioSegment],
+    draft_dir: Path,
+    audio_dir: Path,
+    used_names: set[str],
+    warnings: list[str],
+    staged_audios: dict[Path, str],
+) -> tuple[dict[str, list[dict[str, Any]]], list[dict[str, Any]]]:
+    tracks: dict[str, list[dict[str, Any]]] = {}
+    materials: list[dict[str, Any]] = []
+    material_by_path: dict[Path, str] = {}
+    for segment in audio_segments:
+        if segment.duration_us <= 0:
+            continue
+        source_duration = max(1, segment.source_duration_us or segment.duration_us)
+        source_path = Path(segment.source_path).expanduser().resolve()
+        material_id = material_by_path.get(source_path)
+        if material_id is None:
+            staged_path = _stage_once(source_path, audio_dir, used_names, warnings, staged_audios)
+            info = probe_media(staged_path)
+            material = _audio_material(
+                _portable_resource_path(staged_path, draft_dir),
+                max(
+                    _sec_to_us(info.duration_sec or 0), segment.source_start_us + source_duration, 1
+                ),
+            )
+            material_id = material["id"]
+            material_by_path[source_path] = material_id
+            materials.append(material)
+        tracks.setdefault(segment.track_name, []).append(
+            _media_segment(
+                material_id,
+                segment.start_us,
+                segment.duration_us,
+                segment.source_start_us,
+                source_duration,
+                volume=segment.volume,
+            )
+        )
+    return tracks, materials
+
+
+def _main_video_segments(
+    source: JianyingDraftInput, material_id: str, duration_us: int
+) -> list[dict[str, Any]]:
     plan = source.timeline_plan or {}
     fps = int(plan.get("fps") or 30)
     segments = []
@@ -223,9 +659,20 @@ def _main_video_segments(source: JianyingDraftInput, material_id: str, duration_
         start = _frame_to_us(int(raw.get("timeline_start_frame") or 0), fps)
         end = _frame_to_us(int(raw.get("timeline_end_frame") or 0), fps)
         source_start = _frame_to_us(int(raw.get("source_start_frame") or 0), fps)
-        source_end = _frame_to_us(int(raw.get("source_end_frame") or raw.get("timeline_end_frame") or 0), fps)
+        source_end = _frame_to_us(
+            int(raw.get("source_end_frame") or raw.get("timeline_end_frame") or 0), fps
+        )
         if end > start:
-            segments.append(_media_segment(material_id, start, end - start, source_start, max(1, source_end - source_start), volume=0.0))
+            segments.append(
+                _media_segment(
+                    material_id,
+                    start,
+                    end - start,
+                    source_start,
+                    max(1, source_end - source_start),
+                    volume=0.0,
+                )
+            )
     return segments or [_media_segment(material_id, 0, duration_us, 0, duration_us, volume=0.0)]
 
 
@@ -239,13 +686,32 @@ def _broll_segments(source: JianyingDraftInput, material_id: str) -> list[dict[s
         start = _frame_to_us(int(raw.get("timeline_start_frame") or 0), fps)
         end = _frame_to_us(int(raw.get("timeline_end_frame") or 0), fps)
         source_start = _frame_to_us(int(raw.get("source_start_frame") or 0), fps)
-        source_end = _frame_to_us(int(raw.get("source_end_frame") or raw.get("timeline_end_frame") or 0), fps)
+        source_end = _frame_to_us(
+            int(raw.get("source_end_frame") or raw.get("timeline_end_frame") or 0), fps
+        )
         if end > start:
-            segments.append(_media_segment(material_id, start, end - start, source_start, max(1, source_end - source_start), volume=0.0))
+            segments.append(
+                _media_segment(
+                    material_id,
+                    start,
+                    end - start,
+                    source_start,
+                    max(1, source_end - source_start),
+                    volume=0.0,
+                )
+            )
     return segments
 
 
-def _media_segment(material_id: str, start: int, duration: int, source_start: int, source_duration: int, *, volume: float) -> dict[str, Any]:
+def _media_segment(
+    material_id: str,
+    start: int,
+    duration: int,
+    source_start: int,
+    source_duration: int,
+    *,
+    volume: float,
+) -> dict[str, Any]:
     speed_id = uuid.uuid4().hex
     payload = _base_segment(material_id, start, duration)
     payload.update(
@@ -262,7 +728,9 @@ def _media_segment(material_id: str, start: int, duration: int, source_start: in
     return payload
 
 
-def _text_segment(material_id: str, start: int, duration: int) -> dict[str, Any]:
+def _text_segment(
+    material_id: str, start: int, duration: int, *, transform_y: float = -0.8
+) -> dict[str, Any]:
     payload = _base_segment(material_id, start, duration)
     payload.update(
         {
@@ -271,11 +739,53 @@ def _text_segment(material_id: str, start: int, duration: int) -> dict[str, Any]
             "volume": 1.0,
             "extra_material_refs": [uuid.uuid4().hex],
             "is_tone_modify": False,
-            "clip": _clip(transform_y=-0.8),
+            "clip": _clip(transform_y=transform_y),
             "uniform_scale": {"on": True, "value": 1.0},
         }
     )
     return payload
+
+
+def _voice_audio_count(source: JianyingDraftInput, audio_path: str | None) -> int:
+    if source.audio_segments:
+        return sum(1 for segment in source.audio_segments if not _is_bgm_track(segment.track_name))
+    return 1 if audio_path else 0
+
+
+def _bgm_audio_count(audio_segments: list[JianyingAudioSegment]) -> int:
+    return sum(1 for segment in audio_segments if _is_bgm_track(segment.track_name))
+
+
+def _is_broll_track(track_name: str) -> bool:
+    normalized = track_name.lower()
+    return (
+        "b-roll" in normalized
+        or "broll" in normalized
+        or "b_roll" in normalized
+        or "覆盖" in track_name
+    )
+
+
+def _is_bgm_track(track_name: str) -> bool:
+    normalized = track_name.lower()
+    return "bgm" in normalized or "background" in normalized or "配乐" in track_name
+
+
+def _is_huazi_track(track_name: str) -> bool:
+    normalized = track_name.lower()
+    return "huazi" in normalized or "花字" in track_name
+
+
+def _material_names(materials: list[dict[str, Any]], key: str) -> list[str]:
+    names: list[str] = []
+    seen: set[str] = set()
+    for material in materials:
+        raw = str(material.get(key) or material.get("path") or "")
+        name = Path(raw).name
+        if name and name not in seen:
+            names.append(name)
+            seen.add(name)
+    return names
 
 
 def _base_segment(material_id: str, start: int, duration: int) -> dict[str, Any]:
@@ -347,4 +857,10 @@ def _text_material(material_id: str, text: str) -> dict[str, Any]:
 
 
 def _clip(transform_y: float = 0.0) -> dict[str, Any]:
-    return {"alpha": 1.0, "flip": {"horizontal": False, "vertical": False}, "rotation": 0.0, "scale": {"x": 1.0, "y": 1.0}, "transform": {"x": 0.0, "y": transform_y}}
+    return {
+        "alpha": 1.0,
+        "flip": {"horizontal": False, "vertical": False},
+        "rotation": 0.0,
+        "scale": {"x": 1.0, "y": 1.0},
+        "transform": {"x": 0.0, "y": transform_y},
+    }

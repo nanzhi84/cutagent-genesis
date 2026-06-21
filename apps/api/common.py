@@ -121,6 +121,66 @@ def page(items, limit: int = 50):
     return c.PageResponse(items=values, total_hint=len(values), request_id=request_id())
 
 
+def visible_owner_filter(user: c.AuthUser) -> str | None:
+    """Creator-based isolation (spec §3): the ``owner_user_id`` value a list query
+    must filter by. ``admin`` -> ``None`` (no filter, sees all); everyone else ->
+    their own user id (only their own resources)."""
+    if user.role == c.UserRole.admin:
+        return None
+    return user.id
+
+
+def assert_owner_or_404(user: c.AuthUser, owner_user_id: str | None) -> None:
+    """Authorize a detail/preview/download access by resource owner (spec §3).
+
+    admin is always allowed. Otherwise the caller must own the resource
+    (``owner_user_id == user.id``). Anything else — including an unowned
+    (``owner_user_id is None``) resource — raises a 404 so resource existence is
+    never leaked to a non-owner."""
+    if user.role == c.UserRole.admin:
+        return
+    if owner_user_id is not None and owner_user_id == user.id:
+        return
+    raise NodeExecutionError(c.ErrorCode.artifact_missing, "Resource is not available.")
+
+
+def job_owner(request: Request, job_id: str) -> str | None:
+    """Owner of a job = ``job.created_by``. ``None`` when the job is unknown OR
+    unowned — both correctly hide the resource from a non-owner via
+    :func:`assert_owner_or_404` (a genuinely missing resource is 404'd by the
+    detail handler regardless)."""
+    prod = production_repository(request)
+    if prod is not None:
+        return prod.job_owner_user_id(job_id)
+    job = repository(request).jobs.get(job_id)
+    return job.created_by if job is not None else None
+
+
+def run_owner(request: Request, run_id: str) -> str | None:
+    """Owner of a run = its job's ``created_by`` (the run's ``requested_by`` mirrors
+    it). ``None`` when the run is unknown or unowned."""
+    prod = production_repository(request)
+    if prod is not None:
+        return prod.run_owner_user_id(run_id)
+    run = repository(request).runs.get(run_id)
+    if run is None:
+        return None
+    if run.requested_by:
+        return run.requested_by
+    job = repository(request).jobs.get(run.job_id)
+    return job.created_by if job is not None else None
+
+
+def finished_video_owner(request: Request, video_id: str) -> str | None:
+    """Owner of a finished video = its denormalized ``owner_user_id``. ``None`` when
+    the finished video is unknown or unowned."""
+    prod = production_repository(request)
+    if prod is not None:
+        return prod.finished_video_owner_user_id(video_id)
+    finished = repository(request).finished_videos.get(video_id)
+    return finished.owner_user_id if finished is not None else None
+
+
 def get_case(request: Request, case_id: str) -> c.CaseDetail:
     repo = case_repository(request)
     if repo is not None:

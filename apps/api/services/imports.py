@@ -12,6 +12,7 @@ from apps.api.common import (
     repository,
     request_id,
 )
+from apps.api.dependencies import current_user
 from packages.core import contracts as c
 from packages.core.storage.repository import new_id
 from packages.media.assets import local_object_path
@@ -23,6 +24,10 @@ def import_batch(payload: c.CreateImportBatchRequest, request: Request) -> c.Imp
         if report is not None:
             return report
     rows = payload.rows or []
+    # Creator-based isolation (spec §3.5): imported resources are owned by the
+    # importing user so they show up in that user's isolated views. The sole caller
+    # (routers/imports.py) is operator-gated, so the session is always authenticated.
+    importer_owner_id = current_user(request).id
     results = []
     created = 0
     skipped = 0
@@ -47,7 +52,7 @@ def import_batch(payload: c.CreateImportBatchRequest, request: Request) -> c.Imp
                 case = c.CaseDetail(
                     id=internal_id,
                     name=str(row.get("name", "Imported case")),
-                    owner_user_id="usr_admin",
+                    owner_user_id=str(row.get("owner_user_id") or importer_owner_id),
                     description=str(row.get("description", "")),
                 )
                 repository(request).cases[case.id] = case
@@ -120,6 +125,7 @@ def import_batch(payload: c.CreateImportBatchRequest, request: Request) -> c.Imp
                 finished = c.FinishedVideo(
                     id=internal_id,
                     case_id=str(row.get("case_id", "case_demo")),
+                    owner_user_id=str(row.get("owner_user_id") or importer_owner_id),
                     title=str(row.get("title", "Imported finished video")),
                     video_number=str(row.get("video_number")) if row.get("video_number") else None,
                     video_artifact=repository(request).artifact_ref(artifact.id),

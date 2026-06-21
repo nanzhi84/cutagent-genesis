@@ -174,6 +174,11 @@ from .jobs import (
     OutputOptions,
     StrictnessOptions,
     DigitalHumanVideoRequest,
+    BatchItemOverrides,
+    BatchItem,
+    BatchDigitalHumanVideoRequest,
+    BatchItemResult,
+    BatchGenerationResponse,
     PublishBatchRequest,
     AnnotationBatchRequest,
     JobRequest,
@@ -200,6 +205,9 @@ from .jobs import (
     RunDebugReportArtifact,
     RunReportResponse,
     RunArtifactsResponse,
+)
+from .preferences import (
+    UserGenerationDefaults,
 )
 from .publishing import (
     FinishedVideo,
@@ -401,6 +409,11 @@ __all__ = [
     "OutputOptions",
     "StrictnessOptions",
     "DigitalHumanVideoRequest",
+    "BatchItemOverrides",
+    "BatchItem",
+    "BatchDigitalHumanVideoRequest",
+    "BatchItemResult",
+    "BatchGenerationResponse",
     "PublishBatchRequest",
     "AnnotationBatchRequest",
     "JobRequest",
@@ -421,6 +434,7 @@ __all__ = [
     "CreateRegistrationCodeRequest",
     "UpdateRegistrationCodeRequest",
     "UpdateMeRequest",
+    "UserGenerationDefaults",
     "PrepareUploadRequest",
     "UploadSession",
     "CompleteUploadRequest",

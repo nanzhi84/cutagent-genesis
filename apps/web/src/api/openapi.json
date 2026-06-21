@@ -246,6 +246,60 @@
         }
       }
     },
+    "/api/auth/me/generation-defaults": {
+      "get": {
+        "summary": "Get Generation Defaults",
+        "operationId": "get_generation_defaults_api_auth_me_generation_defaults_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserGenerationDefaults"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Put Generation Defaults",
+        "operationId": "put_generation_defaults_api_auth_me_generation_defaults_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserGenerationDefaults"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserGenerationDefaults"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth/users": {
       "get": {
         "summary": "List Users",
@@ -1354,6 +1408,44 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CreateJobResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/jobs/digital-human-video/batch": {
+      "post": {
+        "summary": "Create Digital Human Batch",
+        "operationId": "create_digital_human_batch_api_jobs_digital_human_video_batch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchDigitalHumanVideoRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchGenerationResponse"
                 }
               }
             }
@@ -8812,6 +8904,286 @@
         ],
         "title": "AutoMatchReplaceResult"
       },
+      "BatchDigitalHumanVideoRequest": {
+        "properties": {
+          "schema_version": {
+            "type": "string",
+            "const": "batch_digital_human_video_request.v1",
+            "title": "Schema Version",
+            "default": "batch_digital_human_video_request.v1"
+          },
+          "case_id": {
+            "type": "string",
+            "title": "Case Id"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BatchItem"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Items"
+          },
+          "use_my_defaults": {
+            "type": "boolean",
+            "title": "Use My Defaults",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "case_id",
+          "items"
+        ],
+        "title": "BatchDigitalHumanVideoRequest"
+      },
+      "BatchGenerationResponse": {
+        "properties": {
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/BatchItemResult"
+            },
+            "type": "array",
+            "title": "Results"
+          },
+          "request_id": {
+            "type": "string",
+            "title": "Request Id",
+            "default": "req_local"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "results"
+        ],
+        "title": "BatchGenerationResponse"
+      },
+      "BatchItem": {
+        "properties": {
+          "script": {
+            "type": "string",
+            "title": "Script"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "publish_content": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publish Content"
+          },
+          "script_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Script Version Id"
+          },
+          "overrides": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BatchItemOverrides"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "script"
+        ],
+        "title": "BatchItem",
+        "description": "One script in a batch request. ``overrides`` win over the user's saved\ndefaults, which in turn win over the per-block system defaults."
+      },
+      "BatchItemOverrides": {
+        "properties": {
+          "voice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VoiceOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "portrait": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PortraitOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "broll": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BrollOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lipsync": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LipSyncOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "subtitle": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SubtitleOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "bgm": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BgmOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cover": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CoverOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "output": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OutputOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "strictness": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StrictnessOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "workflow_template_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workflow Template Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "BatchItemOverrides",
+        "description": "Per-item option overrides for batch generation (a subset of\n``DigitalHumanVideoRequest``'s option blocks). Any block left ``None`` falls\nback to the merge chain (my-defaults -> system default)."
+      },
+      "BatchItemResult": {
+        "properties": {
+          "index": {
+            "type": "integer",
+            "title": "Index"
+          },
+          "job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Job Id"
+          },
+          "run_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Run Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "created",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "index",
+          "status"
+        ],
+        "title": "BatchItemResult"
+      },
       "BatchMediaProcessResponse": {
         "properties": {
           "results": {
@@ -12714,6 +13086,17 @@
               }
             ],
             "title": "Run Id"
+          },
+          "owner_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner User Id"
           },
           "title": {
             "type": "string",
@@ -22729,6 +23112,104 @@
         ],
         "title": "UsageWindowV4",
         "description": "V4 recommended clip window."
+      },
+      "UserGenerationDefaults": {
+        "properties": {
+          "voice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/VoiceOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "portrait": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PortraitOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "broll": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BrollOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "lipsync": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LipSyncOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "subtitle": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SubtitleOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "bgm": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BgmOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cover": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CoverOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "output": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OutputOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "strictness": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StrictnessOptions"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "UserGenerationDefaults",
+        "description": "A user's saved generation option preset (all blocks Optional).\n\nWhen a block is ``None`` the caller should fall back to the system default for\nthat block (i.e. the ``DigitalHumanVideoRequest`` field's default_factory)."
       },
       "UserRole": {
         "type": "string",

@@ -69,6 +69,7 @@ def run(ctx: NodeContext) -> NodeOutput:
         id=new_id("fv"),
         case_id=state.request.case_id,
         run_id=run.id,
+        owner_user_id=_resolve_owner_user_id(run, repository),
         title=state.request.title or script.title,
         video_number=_next_video_number(repository, state.request.case_id),
         video_artifact=repository.artifact_ref(video_artifact.id),
@@ -130,6 +131,21 @@ def run(ctx: NodeContext) -> NodeOutput:
         degradations=cover_degradations,
         provider_invocation_ids=cover_invocation_ids,
     )
+
+
+def _resolve_owner_user_id(run, repository) -> str | None:
+    """Resolve the finished video's owner at write time (创建即落 owner, spec §3.5).
+
+    Prefers ``run.requested_by`` (set to ``job.created_by`` at submission); falls back
+    to looking the job up in the repository when the run carries no requester. Returns
+    ``None`` only when neither yields an owner so orphaned产出 stay NULL (admin-only视图).
+    """
+    if run.requested_by:
+        return run.requested_by
+    job = repository.jobs.get(run.job_id)
+    if job is not None:
+        return job.created_by
+    return None
 
 
 def _next_video_number(repository, case_id: str) -> str:

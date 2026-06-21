@@ -141,6 +141,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/me/generation-defaults": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Generation Defaults */
+        get: operations["get_generation_defaults_api_auth_me_generation_defaults_get"];
+        /** Put Generation Defaults */
+        put: operations["put_generation_defaults_api_auth_me_generation_defaults_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/users": {
         parameters: {
             query?: never;
@@ -498,6 +516,23 @@ export interface paths {
         put?: never;
         /** Create Digital Human Job */
         post: operations["create_digital_human_job_api_jobs_digital_human_video_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/jobs/digital-human-video/batch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Digital Human Batch */
+        post: operations["create_digital_human_batch_api_jobs_digital_human_video_batch_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2780,6 +2815,85 @@ export interface components {
             /** Message */
             message?: string | null;
         };
+        /** BatchDigitalHumanVideoRequest */
+        BatchDigitalHumanVideoRequest: {
+            /**
+             * Schema Version
+             * @default batch_digital_human_video_request.v1
+             * @constant
+             */
+            schema_version: "batch_digital_human_video_request.v1";
+            /** Case Id */
+            case_id: string;
+            /** Items */
+            items: components["schemas"]["BatchItem"][];
+            /**
+             * Use My Defaults
+             * @default true
+             */
+            use_my_defaults: boolean;
+        };
+        /** BatchGenerationResponse */
+        BatchGenerationResponse: {
+            /** Results */
+            results: components["schemas"]["BatchItemResult"][];
+            /**
+             * Request Id
+             * @default req_local
+             */
+            request_id: string;
+        };
+        /**
+         * BatchItem
+         * @description One script in a batch request. ``overrides`` win over the user's saved
+         *     defaults, which in turn win over the per-block system defaults.
+         */
+        BatchItem: {
+            /** Script */
+            script: string;
+            /** Title */
+            title?: string | null;
+            /** Publish Content */
+            publish_content?: string | null;
+            /** Script Version Id */
+            script_version_id?: string | null;
+            overrides?: components["schemas"]["BatchItemOverrides"] | null;
+        };
+        /**
+         * BatchItemOverrides
+         * @description Per-item option overrides for batch generation (a subset of
+         *     ``DigitalHumanVideoRequest``'s option blocks). Any block left ``None`` falls
+         *     back to the merge chain (my-defaults -> system default).
+         */
+        BatchItemOverrides: {
+            voice?: components["schemas"]["VoiceOptions"] | null;
+            portrait?: components["schemas"]["PortraitOptions"] | null;
+            broll?: components["schemas"]["BrollOptions"] | null;
+            lipsync?: components["schemas"]["LipSyncOptions"] | null;
+            subtitle?: components["schemas"]["SubtitleOptions"] | null;
+            bgm?: components["schemas"]["BgmOptions"] | null;
+            cover?: components["schemas"]["CoverOptions"] | null;
+            output?: components["schemas"]["OutputOptions"] | null;
+            strictness?: components["schemas"]["StrictnessOptions"] | null;
+            /** Workflow Template Id */
+            workflow_template_id?: string | null;
+        };
+        /** BatchItemResult */
+        BatchItemResult: {
+            /** Index */
+            index: number;
+            /** Job Id */
+            job_id?: string | null;
+            /** Run Id */
+            run_id?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "created" | "failed";
+            /** Error */
+            error?: string | null;
+        };
         /** BatchMediaProcessResponse */
         BatchMediaProcessResponse: {
             /** Results */
@@ -4431,6 +4545,8 @@ export interface components {
             case_id: string;
             /** Run Id */
             run_id?: string | null;
+            /** Owner User Id */
+            owner_user_id?: string | null;
             /** Title */
             title: string;
             /** Video Number */
@@ -8183,6 +8299,24 @@ export interface components {
             confidence: number;
         };
         /**
+         * UserGenerationDefaults
+         * @description A user's saved generation option preset (all blocks Optional).
+         *
+         *     When a block is ``None`` the caller should fall back to the system default for
+         *     that block (i.e. the ``DigitalHumanVideoRequest`` field's default_factory).
+         */
+        UserGenerationDefaults: {
+            voice?: components["schemas"]["VoiceOptions"] | null;
+            portrait?: components["schemas"]["PortraitOptions"] | null;
+            broll?: components["schemas"]["BrollOptions"] | null;
+            lipsync?: components["schemas"]["LipSyncOptions"] | null;
+            subtitle?: components["schemas"]["SubtitleOptions"] | null;
+            bgm?: components["schemas"]["BgmOptions"] | null;
+            cover?: components["schemas"]["CoverOptions"] | null;
+            output?: components["schemas"]["OutputOptions"] | null;
+            strictness?: components["schemas"]["StrictnessOptions"] | null;
+        };
+        /**
          * UserRole
          * @enum {string}
          */
@@ -8718,6 +8852,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OkResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_generation_defaults_api_auth_me_generation_defaults_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserGenerationDefaults"];
+                };
+            };
+        };
+    };
+    put_generation_defaults_api_auth_me_generation_defaults_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserGenerationDefaults"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserGenerationDefaults"];
                 };
             };
             /** @description Validation Error */
@@ -9586,6 +9773,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CreateJobResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_digital_human_batch_api_jobs_digital_human_video_batch_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BatchDigitalHumanVideoRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BatchGenerationResponse"];
                 };
             };
             /** @description Validation Error */

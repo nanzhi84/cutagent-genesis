@@ -16,7 +16,9 @@ def object_store_from_env(*, client_factory: Callable[..., Any] | None = None):
 
     settings = build_settings()
     config = settings.object_store
-    durable = _durable_store(config, client_factory=client_factory)
+    durable = _durable_store(
+        config, client_factory=client_factory, read_buckets=tuple(config.read_buckets)
+    )
     if not config.tiered:
         return durable
     ephemeral = _ephemeral_store(
@@ -24,16 +26,25 @@ def object_store_from_env(*, client_factory: Callable[..., Any] | None = None):
         workflow_runtime=settings.workflow.runtime,
         client_factory=client_factory,
     )
-    return TieredObjectStore(durable=durable, ephemeral=ephemeral)
+    materials = None
+    if config.materials_bucket:
+        materials = _durable_store(
+            config, client_factory=client_factory, bucket=config.materials_bucket
+        )
+    return TieredObjectStore(durable=durable, ephemeral=ephemeral, materials=materials)
 
 
 def _durable_store(
-    config: ObjectStoreSettings, *, client_factory: Callable[..., Any] | None
+    config: ObjectStoreSettings,
+    *,
+    client_factory: Callable[..., Any] | None,
+    bucket: str | None = None,
+    read_buckets: tuple[str, ...] = (),
 ):
     from packages.core.storage.object_store import LocalObjectStore, S3ObjectStore
 
     backend = config.backend
-    bucket = config.bucket
+    bucket = bucket or config.bucket
     if backend == "local":
         return LocalObjectStore(root=Path(config.local_path), bucket=bucket)
     if backend == "s3":
@@ -41,6 +52,7 @@ def _durable_store(
         return S3ObjectStore(
             endpoint_url=s3.endpoint_url,
             bucket=bucket,
+            read_buckets=read_buckets,
             access_key=s3.access_key,
             secret_key=s3.secret_key,
             region_name=s3.region_name,

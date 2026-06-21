@@ -208,12 +208,12 @@ def test_s3_object_store_put_get_exists_signed_url_and_bucket_creation(tmp_path)
     assert fake_client.presign_calls == [
         ("get_object", {"Bucket": "cutagent-demo", "Key": ref.key}, 420)
     ]
-    assert (tmp_path / "cache" / ref.key).read_bytes() == b"s3-bytes"
+    assert (tmp_path / "cache" / ref.bucket / ref.key).read_bytes() == b"s3-bytes"
 
     store.delete(ref.uri)
 
     assert fake_client.delete_calls == [(ref.bucket, ref.key)]
-    assert (tmp_path / "cache" / ref.key).exists() is False
+    assert (tmp_path / "cache" / ref.bucket / ref.key).exists() is False
     assert store.exists(ref) is False
 
 

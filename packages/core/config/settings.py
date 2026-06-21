@@ -166,7 +166,14 @@ class ObjectStoreSettings(BaseModel):
     # durable store alone. Modelled as a bool: True == "1" (the on default).
     tiered: bool = True
     backend: str = "local"  # CUTAGENT_OBJECTSTORE_BACKEND ("local" | "s3")
-    bucket: str = "cutagent-local"  # CUTAGENT_OBJECTSTORE_BUCKET
+    bucket: str = "cutagent-local"  # CUTAGENT_OBJECTSTORE_BUCKET (durable OUTPUT bucket)
+    # Optional dedicated bucket for 'material' purposes (shared source-asset
+    # library). Empty = disabled (materials write to the durable OUTPUT bucket,
+    # i.e. prior single-bucket behaviour). CUTAGENT_OBJECTSTORE_MATERIALS_BUCKET
+    materials_bucket: str = ""
+    # Extra read-only buckets the durable store may READ from (never write).
+    # CUTAGENT_OBJECTSTORE_READ_BUCKETS (comma-separated). Empty = write bucket only.
+    read_buckets: tuple[str, ...] = ()
     local_path: str = ".data/objectstore"  # CUTAGENT_LOCAL_OBJECTSTORE_PATH
     s3: S3TransportSettings = Field(default_factory=S3TransportSettings)
     ephemeral: EphemeralObjectStoreSettings = Field(
@@ -406,6 +413,12 @@ def build_settings() -> Settings:
             tiered=os.getenv("CUTAGENT_OBJECTSTORE_TIERED", "1") != "0",
             backend=_env_str("CUTAGENT_OBJECTSTORE_BACKEND", "local").lower(),
             bucket=_env_str("CUTAGENT_OBJECTSTORE_BUCKET", "cutagent-local"),
+            materials_bucket=_env_str("CUTAGENT_OBJECTSTORE_MATERIALS_BUCKET", ""),
+            read_buckets=tuple(
+                b.strip()
+                for b in _env_str("CUTAGENT_OBJECTSTORE_READ_BUCKETS", "").split(",")
+                if b.strip()
+            ),
             local_path=_env_str("CUTAGENT_LOCAL_OBJECTSTORE_PATH", ".data/objectstore"),
             s3=S3TransportSettings(
                 endpoint_url=_env_str(

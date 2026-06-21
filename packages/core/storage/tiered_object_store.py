@@ -11,14 +11,39 @@ from packages.core.storage.object_store import (
     parse_object_uri,
 )
 
+# 'material' purposes are user-provided SOURCE assets (a shared, reusable library).
+# Everything else (pipeline-generated outputs, derived previews, thumbnails) is an
+# OUTPUT and stays in the per-environment durable bucket. Default-to-output is the
+# safe fallback for any unrecognised purpose.
+_MATERIAL_PURPOSES = frozenset(
+    {"portrait", "broll", "video", "voice_reference", "bgm", "font", "cover_template"}
+)
+
 
 class TieredObjectStore(ObjectStore):
-    def __init__(self, *, durable: ObjectStore, ephemeral: ObjectStore) -> None:
+    def __init__(
+        self,
+        *,
+        durable: ObjectStore,
+        ephemeral: ObjectStore,
+        materials: ObjectStore | None = None,
+    ) -> None:
         self.durable = durable
         self.ephemeral = ephemeral
-        durable_bucket = getattr(durable, "bucket", None)
-        ephemeral_bucket = getattr(ephemeral, "bucket", None)
-        if durable_bucket is not None and durable_bucket == ephemeral_bucket:
+        # Optional third write tier: 'material' purposes (user-provided source
+        # assets) route here so a shared materials bucket can be read by every
+        # environment while pipeline OUTPUTS stay in each env's durable bucket.
+        self.materials = materials
+        named = [
+            b
+            for b in (
+                getattr(durable, "bucket", None),
+                getattr(ephemeral, "bucket", None),
+                getattr(materials, "bucket", None) if materials is not None else None,
+            )
+            if b is not None
+        ]
+        if len(named) != len(set(named)):
             raise ValueError("Tiered object stores must use different bucket names.")
 
     def prepare_upload(
@@ -29,7 +54,12 @@ class TieredObjectStore(ObjectStore):
         content_key: str | None = None,
         tier: str = "durable",
     ) -> ObjectRef:
-        store = self.ephemeral if tier == "ephemeral" else self.durable
+        if tier == "ephemeral":
+            store: ObjectStore = self.ephemeral
+        elif self.materials is not None and purpose in _MATERIAL_PURPOSES:
+            store = self.materials
+        else:
+            store = self.durable
         return store.prepare_upload(filename, purpose, content_key=content_key, tier=tier)
 
     def put_bytes(self, ref: ObjectRef, content: bytes) -> StoredObject:
@@ -70,10 +100,12 @@ class TieredObjectStore(ObjectStore):
         return path_method(ref)
 
     def _store_for_ref(self, ref: ObjectRef) -> ObjectStore:
-        ephemeral_bucket = getattr(self.ephemeral, "bucket", None)
-        durable_bucket = getattr(self.durable, "bucket", None)
-        if ref.bucket == ephemeral_bucket:
+        if ref.bucket == getattr(self.ephemeral, "bucket", None):
             return self.ephemeral
-        if ref.bucket == durable_bucket:
-            return self.durable
-        raise ValueError(f"Object bucket {ref.bucket} is not managed by this tiered store.")
+        if self.materials is not None and ref.bucket == getattr(
+            self.materials, "bucket", None
+        ):
+            return self.materials
+        # Default to the durable store; its own read/write guard accepts its write
+        # bucket plus any configured read-only buckets, and raises otherwise.
+        return self.durable

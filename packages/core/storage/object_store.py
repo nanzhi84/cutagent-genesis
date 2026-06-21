@@ -159,6 +159,7 @@ class S3ObjectStore(ObjectStore):
         *,
         endpoint_url: str,
         bucket: str,
+        read_buckets: tuple[str, ...] = (),
         access_key: str,
         secret_key: str,
         region_name: str = "us-east-1",
@@ -177,6 +178,9 @@ class S3ObjectStore(ObjectStore):
 
         self.endpoint_url = endpoint_url
         self.bucket = bucket
+        # Buckets this store may READ from: the write bucket plus any read-only
+        # source/materials buckets. Writes always target self.bucket only.
+        self._read_buckets = frozenset({bucket, *read_buckets})
         self.cache_root = cache_root or Path(".data/objectstore-cache")
         self.cache_root.mkdir(parents=True, exist_ok=True)
         self._transfer_config = TransferConfig(
@@ -212,7 +216,7 @@ class S3ObjectStore(ObjectStore):
         return ObjectRef(bucket=self.bucket, key=key, uri=f"s3://{self.bucket}/{key}")
 
     def put_bytes(self, ref: ObjectRef, content: bytes) -> StoredObject:
-        self._validate_ref(ref)
+        self._validate_write_ref(ref)
         self._client.upload_fileobj(
             io.BytesIO(content),
             ref.bucket,
@@ -229,7 +233,7 @@ class S3ObjectStore(ObjectStore):
         )
 
     def get_bytes(self, ref: ObjectRef) -> bytes:
-        self._validate_ref(ref)
+        self._validate_read_ref(ref)
         buf = io.BytesIO()
         self._client.download_fileobj(ref.bucket, ref.key, buf, Config=self._transfer_config)
         return buf.getvalue()
@@ -237,7 +241,7 @@ class S3ObjectStore(ObjectStore):
     def upload_file(self, local_path: Path, ref: ObjectRef) -> StoredObject:
         # Streaming, multipart upload by path: boto3's upload_file never reads the
         # whole object into RAM (it streams from disk in multipart chunks).
-        self._validate_ref(ref)
+        self._validate_write_ref(ref)
         source = Path(local_path)
         self._client.upload_file(
             str(source),
@@ -257,7 +261,7 @@ class S3ObjectStore(ObjectStore):
 
     def download_file(self, ref: ObjectRef, local_path: Path) -> Path:
         # Streaming download by path into the on-disk cache; no full BytesIO buffer.
-        self._validate_ref(ref)
+        self._validate_read_ref(ref)
         target = Path(local_path)
         target.parent.mkdir(parents=True, exist_ok=True)
         self._client.download_file(
@@ -269,7 +273,7 @@ class S3ObjectStore(ObjectStore):
         return target
 
     def exists(self, ref: ObjectRef) -> bool:
-        self._validate_ref(ref)
+        self._validate_read_ref(ref)
         try:
             self._client.head_object(Bucket=ref.bucket, Key=ref.key)
         except Exception as exc:
@@ -280,7 +284,7 @@ class S3ObjectStore(ObjectStore):
 
     def signed_url(self, uri: str, *, expires_in: timedelta = timedelta(minutes=15)) -> SignedUrlResponse:
         ref = parse_object_uri(uri)
-        self._validate_ref(ref)
+        self._validate_read_ref(ref)
         url = self._client.generate_presigned_url(
             "get_object",
             Params={"Bucket": ref.bucket, "Key": ref.key},
@@ -290,7 +294,7 @@ class S3ObjectStore(ObjectStore):
 
     def delete(self, uri: str) -> None:
         ref = parse_object_uri(uri)
-        self._validate_ref(ref)
+        self._validate_write_ref(ref)
         self._client.delete_object(Bucket=ref.bucket, Key=ref.key)
         try:
             self._cache_path(ref).unlink()
@@ -298,14 +302,14 @@ class S3ObjectStore(ObjectStore):
             pass
 
     def _path(self, ref: ObjectRef) -> Path:
-        self._validate_ref(ref)
+        self._validate_read_ref(ref)
         path = self._cache_path(ref)
         if not path.exists():
             self.download_file(ref, path)
         return path
 
     def _cache_path(self, ref: ObjectRef) -> Path:
-        return self.cache_root / ref.key
+        return self.cache_root / ref.bucket / ref.key
 
     def _ensure_bucket(self) -> None:
         try:
@@ -315,9 +319,13 @@ class S3ObjectStore(ObjectStore):
                 raise
             self._client.create_bucket(Bucket=self.bucket)
 
-    def _validate_ref(self, ref: ObjectRef) -> None:
+    def _validate_write_ref(self, ref: ObjectRef) -> None:
         if ref.bucket != self.bucket:
-            raise ValueError(f"Object bucket {ref.bucket} is not managed by this store.")
+            raise ValueError(f"Object bucket {ref.bucket} is not writable by this store.")
+
+    def _validate_read_ref(self, ref: ObjectRef) -> None:
+        if ref.bucket not in self._read_buckets:
+            raise ValueError(f"Object bucket {ref.bucket} is not readable by this store.")
 
     @staticmethod
     def _build_client(

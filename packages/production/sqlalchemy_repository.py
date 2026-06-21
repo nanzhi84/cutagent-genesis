@@ -378,6 +378,13 @@ class SqlAlchemyProductionRepository:
                         finished = finished.model_copy(
                             update={"video_number": self._next_finished_video_number(session, finished.case_id)}
                         )
+                    elif existing.video_number and existing.video_number != finished.video_number:
+                        finished = finished.model_copy(update={"video_number": existing.video_number})
+                    elif not existing.video_number:
+                        finished = finished.model_copy(
+                            update={"video_number": self._next_finished_video_number(session, finished.case_id)}
+                        )
+                    repository.finished_videos[finished.id] = finished
                     finished_video_ids.add(finished.id)
                     session.merge(self._finished_video_row(finished))
                     session.flush()

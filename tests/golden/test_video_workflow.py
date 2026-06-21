@@ -483,8 +483,8 @@ def test_spec_20_2_10_editor_handoff_and_jianying_draft_exports_have_package_art
             draft_name = jianying_body["draft_manifest"]["draft_name"]
             content = json.loads(archive.read(f"{draft_name}/draft_content.json").decode("utf-8"))
         tracks = {track["name"]: track for track in content["tracks"]}
-        assert {"video", "audio", "subtitle"} <= set(tracks)
-        assert len(tracks["subtitle"]["segments"]) == jianying_body["draft_manifest"]["tracks_summary"]["subtitle_segments"]
+        assert {"主视频", "旁白", "字幕"} <= set(tracks)
+        assert len(tracks["字幕"]["segments"]) == jianying_body["draft_manifest"]["tracks_summary"]["subtitle_segments"]
 
 
 def test_pipeline_writes_typed_artifact_payloads_with_frame_quantized_timeline():

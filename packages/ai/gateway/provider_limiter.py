@@ -29,7 +29,7 @@ from contextlib import contextmanager
 from typing import Any
 from uuid import uuid4
 
-from packages.core.config.settings import build_settings
+from packages.core.config.settings import build_providers_settings, build_redis_url
 
 DEFAULT_MAX_INFLIGHT = 4
 DEFAULT_MAX_QPS = 4
@@ -72,16 +72,16 @@ def _max_inflight() -> int:
     """Resolve the per-key in-flight cap from typed settings.
 
     Read lazily (not at import time) so tests / deployments can set the env var
-    before the first invocation; ``build_settings()`` re-reads the environment on
-    each call. Invalid or non-positive values fall back to ``DEFAULT_MAX_INFLIGHT``
-    rather than disabling backpressure (see ``settings.providers.max_inflight``).
+    before the first invocation; ``build_providers_settings()`` re-reads the
+    environment on each call. Invalid or non-positive values fall back to
+    ``DEFAULT_MAX_INFLIGHT`` rather than disabling backpressure.
     """
 
-    return build_settings().providers.max_inflight
+    return build_providers_settings().max_inflight
 
 
 def _max_qps() -> int:
-    return build_settings().providers.max_qps
+    return build_providers_settings().max_qps
 
 
 def _redis_client_from_url(redis_url: str) -> Any:
@@ -227,7 +227,7 @@ def _get_default_limiter() -> DistributedRateLimiter:
     with _default_limiter_lock:
         limiter = _default_limiter
         if limiter is None:
-            limiter = DistributedRateLimiter(redis_url=build_settings().redis_url)
+            limiter = DistributedRateLimiter(redis_url=build_redis_url())
             _default_limiter = limiter
         return limiter
 

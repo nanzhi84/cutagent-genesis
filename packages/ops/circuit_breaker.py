@@ -4,7 +4,7 @@ import logging
 
 from sqlalchemy.orm import Session, sessionmaker
 
-from packages.core.config.settings import build_settings
+from packages.core.config.settings import build_providers_settings
 from packages.core.contracts import DegradationNotice, ErrorCode, ProviderError
 from packages.ops.provider_usage_metrics import (
     ProviderProfileHealthMetrics,
@@ -20,7 +20,7 @@ class ProviderCircuitBreaker:
         self.session_factory = session_factory
 
     def evaluate(self, *, call: object, invocation: object) -> ProviderError | None:
-        settings = build_settings().providers
+        settings = build_providers_settings()
         if not settings.circuit_breaker_enabled:
             return None
         provider_profile_id = str(

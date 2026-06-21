@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from packages.core.config import build_settings
+from packages.core.config import build_providers_settings, build_publishing_settings, build_settings
 
 # Every infra env var Settings reads — cleared so we observe the built-in
 # defaults rather than whatever the surrounding process/conftest exported.
@@ -22,6 +22,8 @@ _INFRA_ENV_VARS = (
     "CUTAGENT_OBJECTSTORE_TIERED",
     "CUTAGENT_OBJECTSTORE_BACKEND",
     "CUTAGENT_OBJECTSTORE_BUCKET",
+    "CUTAGENT_OBJECTSTORE_MATERIALS_BUCKET",
+    "CUTAGENT_OBJECTSTORE_READ_BUCKETS",
     "CUTAGENT_LOCAL_OBJECTSTORE_PATH",
     "CUTAGENT_OBJECTSTORE_ENDPOINT",
     "CUTAGENT_OBJECTSTORE_ACCESS_KEY",
@@ -80,6 +82,8 @@ def test_settings_built_in_defaults(clean_env) -> None:
     assert obj.tiered is True
     assert obj.backend == "local"
     assert obj.bucket == "cutagent-local"
+    assert obj.materials_bucket == ""
+    assert obj.read_buckets == ()
     assert obj.local_path == ".data/objectstore"
     assert obj.s3.endpoint_url == "http://127.0.0.1:9000"
     assert obj.s3.access_key == ""
@@ -167,7 +171,7 @@ def test_provider_publishing_settings_read_env_overrides(
     monkeypatch.setenv("CUTAGENT_XIAOVMAO_CDP_HOST", "10.0.0.5")
     monkeypatch.setenv("CUTAGENT_XIAOVMAO_CDP_PORT", "9333")
 
-    prov = build_settings().providers
+    prov = build_providers_settings()
     assert prov.max_inflight == 7
     assert prov.max_qps == 9
     assert prov.circuit_breaker_enabled is True
@@ -176,9 +180,24 @@ def test_provider_publishing_settings_read_env_overrides(
     assert prov.allowed_api_hosts == "proxy.internal"
     assert prov.enforce_host_allowlist is True
 
-    pub = build_settings().publishing
+    pub = build_publishing_settings()
     assert pub.xiaovmao_cdp_host == "10.0.0.5"
     assert pub.xiaovmao_cdp_port == 9333
+
+
+def test_invalid_publishing_port_does_not_break_unrelated_settings(
+    clean_env, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Before the settings refactor, a bad 小V猫 port only failed at the 小V猫
+    # call sites that parsed it with int(os.getenv(...)); provider/object-store
+    # paths must not become coupled to that unrelated env var.
+    monkeypatch.setenv("CUTAGENT_XIAOVMAO_CDP_PORT", "not-an-int")
+
+    assert build_providers_settings().max_inflight == 4
+    assert build_settings().providers.max_qps == 4
+
+    with pytest.raises(ValueError):
+        _ = build_settings().publishing.xiaovmao_cdp_port
 
 
 @pytest.mark.parametrize(

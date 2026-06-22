@@ -17,6 +17,7 @@
 **In：**
 - 新增火山豆包语音 provider（合成 + 声音复刻 + 自动同步已复刻音色）。
 - MiniMax 与火山**并存**（双厂商）。
+- **平台内上传复刻：双厂商都做，走统一上传 UI + 状态机**。MiniMax 现有 `_clone` 端到端代码完整（前端上传参考音频→`/files/upload`→`/voice_clone`→试听），本次是**确认其配置可用**（强依赖 profile 的 `group_id` + active secret）而非重写；火山新增 `mega_tts` 数据面复刻。
 - 音色数据模型加 `vendor`（厂商归属）+ `status`（复刻状态机）两字段。
 - 前端音色库**厂商一级 Tab**（全部 / MiniMax / 火山豆包）+ 分厂商试听。
 - 火山凭据全自动：AK/SK + AppID（一次性配置）→ 自动签发 `x-api-key` + 自动同步复刻音色。
@@ -200,7 +201,8 @@ clone 提交
 | **DemoAudio 过期** | 试听 URL 带 `x-expires` 签名，过期回退实时合成 |
 | **prod 库迁移** | mac mini prod 已到 `0020`，新迁移续号并幂等 ALTER `voice_profiles` |
 | **计费价目** | 火山按字符（约 6.5→4.9 元/万字），配 price_item |
-| **复刻数据面接口** | 平台内复刻（mega_tts 上传/训练）数据面鉴权/字段实现期再实测补全（合成/同步/签发已坐实）|
+| **火山复刻数据面接口** | 火山平台内复刻（mega_tts 上传/训练）数据面字段实现期实测补全（合成/同步/签发已坐实，同源 x-api-key）|
+| **MiniMax 复刻现状** | `_clone` 代码完整但依赖 profile 配 `group_id` + active secret；用户反馈"没有"大概率是未配通，本次确认端到端可用而非重写 |
 
 ## 17. 实测证据附录
 

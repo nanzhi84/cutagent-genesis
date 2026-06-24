@@ -172,12 +172,12 @@ export default function StudioCreatePage() {
         allow_generic_coverage: true,
       },
       subtitle: {
-        enabled: form.subtitleEnabled,
+        enabled: isSeedance ? false : form.subtitleEnabled,
         style_preset: form.subtitleStyle.trim() || "douyin",
         font_size: form.subtitleSize,
       },
       bgm: {
-        enabled: form.bgmEnabled,
+        enabled: isSeedance ? false : form.bgmEnabled,
         volume: form.bgmVolume,
         auto_mix: form.bgmAutoMix,
       },

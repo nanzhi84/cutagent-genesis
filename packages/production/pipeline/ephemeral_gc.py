@@ -32,8 +32,22 @@ def failed_ephemeral_retention_policy() -> str | None:
 
 def gc_ephemeral_artifacts(object_store, state: RunState, *, run_id: str) -> list[str]:
     deleted_uris: list[str] = []
+    protected_uris = {
+        artifact.uri
+        for artifact in state.artifacts.values()
+        if artifact.kind not in EPHEMERAL_ARTIFACT_KINDS and artifact.uri
+    }
     for artifact in state.artifacts.values():
         if artifact.kind not in EPHEMERAL_ARTIFACT_KINDS or not artifact.uri:
+            continue
+        if artifact.uri in protected_uris:
+            logger.info(
+                "Skipping ephemeral artifact %s at %s for run %s because a durable "
+                "artifact references the same object.",
+                artifact.id,
+                artifact.uri,
+                run_id,
+            )
             continue
         try:
             object_store.delete(artifact.uri)

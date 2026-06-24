@@ -4,9 +4,10 @@ Assembles an ad prompt (mirroring the boss's proven format: 指令 + 口播脚�
 人物) from the request script (falling back to the case profile), resolves any
 reference image/video assets to their source artifact URIs, and invokes the
 ``video.generate`` capability with native voiceover audio on but BGM/captions
-explicitly disabled in the prompt. The provider downloads + stores the result, so the real path returns a ``video.rendered``
-artifact id; the sandbox path returns only a fake uri, which this node bridges
-into a uri-only artifact so the downstream export node has something to reference.
+explicitly disabled in the prompt. The provider downloads + stores the result,
+so the real path returns a ``video.rendered`` artifact id; the sandbox path
+returns only a fake uri, which this node bridges into a uri-only artifact so the
+downstream export node has something to reference.
 """
 
 from __future__ import annotations
@@ -24,6 +25,13 @@ _SEEDANCE_RESOLUTION = "720p"
 # Ad prompt template for voiceover-only Seedance ads. Keep the voiceover copy out
 # of braces/quotes: video models can interpret a visibly delimited script as
 # on-screen caption text even when the prompt says not to render captions.
+#
+# NOTE: the prompt is built from the request script only, so changing this template
+# does NOT change the node's ``input_manifest_hash`` (which hashes node_id + request
+# + artifact_refs, not the prompt) and there is no per-node version bump. A run that
+# already produced a ``video.rendered`` here and is later *resumed* will reuse the
+# old clip rather than re-render with a changed prompt. Editing this template only
+# affects fresh runs; in-flight runs must be re-run (not resumed) to pick it up.
 _AD_PROMPT_PREFIX = (
     "请生成一条竖屏生活流短视频广告，生成自然中文旁白音频。"
     "画面里不要主动生成任何文字。"

@@ -331,7 +331,13 @@ def _finished_video_uri(request: Request, finished_video_id: str) -> str | None:
 
 
 def _browser_proxyable_uri(uri: str) -> bool:
-    return uri.startswith(("local://", "s3://"))
+    # Only ``local://`` filesystem objects need the same-origin ``/stream`` proxy:
+    # they have no browser-reachable URL. ``s3://`` (incl. Aliyun OSS) is served via
+    # a presigned HTTPS URL the browser streams directly from the bucket/CDN — that
+    # keeps native HTTP range (scrubbing) and avoids a blocking download-through the
+    # API server. Proxying ``s3://`` here would force the API to pull the whole
+    # object into its cache before responding, so it stays on the signed-URL path.
+    return uri.startswith("local://")
 
 
 def _video_content_type(uri: str) -> str:

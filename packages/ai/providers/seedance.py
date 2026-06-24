@@ -16,14 +16,12 @@
 from __future__ import annotations
 
 import hashlib
-import hmac
 import json
 import tempfile
 import time
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
 
 import httpx
 
@@ -33,6 +31,7 @@ from packages.ai.gateway.provider_gateway import (
     ProviderResult,
     ProviderRuntimeError,
 )
+from packages.ai.providers._volc_sigv4 import signed_headers as volc_signed_headers
 from packages.ai.providers.common import (
     first_value,
     map_http_status,
@@ -327,19 +326,25 @@ class ArkSeedanceProvider:
         )
 
     @staticmethod
+    def _auth_type(context: ProviderInvocationContext) -> str:
+        # Recognised values: "auto" (default; AK/SK auto-detected from the secret),
+        # "api_key"/"bearer" (force a literal Bearer key), "access_key" (force AK/SK
+        # + temporary-key derivation), "signed" (force AK/SK + per-request signing).
+        return str(option(context, "auth_type", "auto") or "auto").strip().lower()
+
+    @staticmethod
     def _use_access_key_auth(secret: str, context: ProviderInvocationContext) -> bool:
-        auth_type = str(option(context, "auth_type", "auto") or "auto").strip().lower()
-        if auth_type in {"api_key", "apikey", "bearer"}:
+        auth_type = ArkSeedanceProvider._auth_type(context)
+        if auth_type in {"api_key", "bearer"}:
             return False
-        if auth_type in {"access_key", "aksk", "ak_sk", "signed", "direct_signed"}:
+        if auth_type in {"access_key", "signed"}:
             return True
         access_key_id, _, secret_access_key = secret.partition(":")
         return bool(access_key_id and secret_access_key)
 
     @staticmethod
     def _use_direct_signed_auth(context: ProviderInvocationContext) -> bool:
-        auth_type = str(option(context, "auth_type", "auto") or "auto").strip().lower()
-        return auth_type in {"signed", "direct_signed"}
+        return ArkSeedanceProvider._auth_type(context) == "signed"
 
     @staticmethod
     def _api_key_resource(context: ProviderInvocationContext) -> tuple[str, str, str | None]:
@@ -427,13 +432,14 @@ class ArkSeedanceProvider:
             )
         url = f"https://{ARK_OPENAPI_HOST}/?Action={action}&Version={ARK_OPENAPI_VERSION}"
         raw_body = json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-        headers = _signed_headers(
+        headers = volc_signed_headers(
             access_key_id=access_key_id,
             secret_access_key=secret_access_key,
             method="POST",
             url=url,
             body=raw_body,
             region=str(option(context, "ark_region", ARK_DEFAULT_REGION) or ARK_DEFAULT_REGION),
+            service=ARK_SERVICE,
         )
         headers["Content-Type"] = "application/json"
         try:
@@ -500,13 +506,14 @@ class ArkSeedanceProvider:
             if json_body is not None
             else b""
         )
-        headers = _signed_headers(
+        headers = volc_signed_headers(
             access_key_id=access_key_id,
             secret_access_key=secret_access_key,
             method=method,
             url=url,
             body=raw_body,
             region=str(option(context, "ark_region", ARK_DEFAULT_REGION) or ARK_DEFAULT_REGION),
+            service=ARK_SERVICE,
         )
         if raw_body:
             headers["Content-Type"] = "application/json"
@@ -611,50 +618,6 @@ class ArkSeedanceProvider:
                 "object store for the real Seedance reference-image path.",
             )
         return signed
-
-
-def _signed_headers(
-    *,
-    access_key_id: str,
-    secret_access_key: str,
-    method: str,
-    url: str,
-    body: bytes,
-    region: str,
-) -> dict[str, str]:
-    parsed = urlparse(url)
-    host = parsed.netloc
-    path = parsed.path or "/"
-    query = parsed.query
-    x_date = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime())
-    short_date = x_date[:8]
-    payload_hash = hashlib.sha256(body).hexdigest()
-    signed_headers = "host;x-content-sha256;x-date"
-    canonical_headers = f"host:{host}\nx-content-sha256:{payload_hash}\nx-date:{x_date}\n"
-    canonical_request = "\n".join(
-        [method.upper(), path, query, canonical_headers, signed_headers, payload_hash]
-    )
-    hashed_request = hashlib.sha256(canonical_request.encode("utf-8")).hexdigest()
-    scope = f"{short_date}/{region}/{ARK_SERVICE}/request"
-    string_to_sign = "\n".join(["HMAC-SHA256", x_date, scope, hashed_request])
-
-    def _h(key: bytes, content: str) -> bytes:
-        return hmac.new(key, content.encode("utf-8"), hashlib.sha256).digest()
-
-    signing_key = _h(
-        _h(_h(_h(secret_access_key.encode("utf-8"), short_date), region), ARK_SERVICE),
-        "request",
-    )
-    signature = hmac.new(signing_key, string_to_sign.encode("utf-8"), hashlib.sha256).hexdigest()
-    return {
-        "Host": host,
-        "X-Date": x_date,
-        "X-Content-Sha256": payload_hash,
-        "Authorization": (
-            f"HMAC-SHA256 Credential={access_key_id}/{scope}, "
-            f"SignedHeaders={signed_headers}, Signature={signature}"
-        ),
-    }
 
 
 def _non_negative_int(value: Any) -> int:

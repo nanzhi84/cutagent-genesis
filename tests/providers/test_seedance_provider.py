@@ -372,6 +372,59 @@ def test_seedance_video_reference_goes_into_content(tmp_path, media_fixture_fact
     ]
 
 
+def test_seedance_access_key_getapikey_http_403_maps_to_auth_failed(tmp_path):
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.host == "ark.cn-beijing.volcengineapi.com":
+            return httpx.Response(403, text="Forbidden")
+        return httpx.Response(404, text=str(request.url))
+
+    repository, gateway = _gateway(tmp_path, httpx.MockTransport(handler))
+    secret_ref = gateway.secret_store.put("AKLTxxx:sk-secret")  # type: ignore[union-attr]
+    profile = _profile(repository, secret_ref, model_id="ep-seedance")
+
+    invocation, result = gateway.invoke(
+        ProviderCall(
+            provider_profile_id=profile.id,
+            capability_id="video.generate",
+            input={"prompt": "x"},
+        )
+    )
+
+    assert result is None
+    assert invocation.status == ProviderStatus.failed
+    assert invocation.error and invocation.error.code == ErrorCode.provider_auth_failed
+
+
+def test_seedance_access_key_invalid_resource_maps_to_unsupported_option(tmp_path):
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.host == "ark.cn-beijing.volcengineapi.com":
+            return httpx.Response(
+                200,
+                json={
+                    "ResponseMetadata": {
+                        "Error": {"Code": "InvalidParameter.ResourceIds", "Message": "bad"}
+                    }
+                },
+            )
+        return httpx.Response(404, text=str(request.url))
+
+    repository, gateway = _gateway(tmp_path, httpx.MockTransport(handler))
+    secret_ref = gateway.secret_store.put("AKLTxxx:sk-secret")  # type: ignore[union-attr]
+    profile = _profile(repository, secret_ref, model_id="ep-seedance")
+
+    invocation, result = gateway.invoke(
+        ProviderCall(
+            provider_profile_id=profile.id,
+            capability_id="video.generate",
+            input={"prompt": "x"},
+        )
+    )
+
+    assert result is None
+    assert invocation.status == ProviderStatus.failed
+    assert invocation.error and invocation.error.code == ErrorCode.provider_unsupported_option
+
+
 def test_seedance_local_reference_fails_loudly(tmp_path):
     def handler(request: httpx.Request) -> httpx.Response:
         # Must never reach submit: presign fails before any network call.

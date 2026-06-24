@@ -239,6 +239,66 @@ def test_finished_video_preview_url_is_browser_playable_stream_route():
     assert media.content == content
 
 
+def _register_finished_video(uri: str, *, title: str) -> str:
+    repo = repository()
+    case_id = "case_demo"
+    run = WorkflowRun(
+        id=new_id("run"),
+        job_id=new_id("job"),
+        case_id=case_id,
+        workflow_template_id="digital_human_v2",
+        workflow_version="v1",
+        status=RunStatus.succeeded,
+    )
+    repo.runs[run.id] = run
+    artifact = repo.create_artifact(
+        kind=ArtifactKind.video_finished,
+        payload_schema="uri-only",
+        payload=None,
+        case_id=case_id,
+        run_id=run.id,
+        uri=uri,
+        media_info=MediaInfo(media_type="video", codec="h264", format="mp4", mime_type="video/mp4"),
+    )
+    finished = FinishedVideo(
+        id=new_id("fv"),
+        case_id=case_id,
+        run_id=run.id,
+        title=title,
+        video_artifact=repo.artifact_ref(artifact.id),
+    )
+    repo.finished_videos[finished.id] = finished
+    return finished.id
+
+
+def test_finished_video_preview_keeps_signed_url_for_s3_durable():
+    # An s3:// durable object (e.g. Aliyun OSS) must NOT be routed through the
+    # same-origin /stream proxy: the browser streams it directly from a presigned
+    # URL (native range support, no blocking download-through the API server).
+    login_admin()
+    s3_uri = "s3://cutagent-prod/finished/oss-finished-video.mp4"
+    finished_id = _register_finished_video(s3_uri, title="OSS finished video")
+
+    preview = client.get(f"/api/finished-videos/{finished_id}/preview-url")
+    assert preview.status_code == 200, preview.text
+    preview_url = preview.json()["url"]
+    assert preview_url != f"/api/finished-videos/{finished_id}/stream"
+    assert preview_url.startswith("s3://")
+
+
+def test_finished_video_stream_missing_bytes_returns_error():
+    # A registered local:// finished video whose bytes are absent must fail
+    # loudly (not 200 an empty/garbage body).
+    login_admin()
+    finished_id = _register_finished_video(
+        "local://cutagent-local/finished/never-materialized.mp4",
+        title="Missing bytes video",
+    )
+
+    stream = client.get(f"/api/finished-videos/{finished_id}/stream")
+    assert stream.status_code >= 400
+
+
 def test_upload_file_rejects_size_mismatch_before_completion():
     login_admin()
     prepared = client.post(

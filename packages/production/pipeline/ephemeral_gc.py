@@ -32,6 +32,11 @@ def failed_ephemeral_retention_policy() -> str | None:
 
 def gc_ephemeral_artifacts(object_store, state: RunState, *, run_id: str) -> list[str]:
     deleted_uris: list[str] = []
+    # Never delete an object a durable artifact still points at (the Seedance chain
+    # registers ``video.rendered`` (ephemeral) and ``video.finished`` (durable) on
+    # the SAME uri). This scan relies on ``state.artifacts`` holding one artifact per
+    # kind: it cannot protect against two artifacts of the SAME kind sharing a uri, so
+    # any future move to multiple-artifacts-per-kind state must revisit this guard.
     protected_uris = {
         artifact.uri
         for artifact in state.artifacts.values()

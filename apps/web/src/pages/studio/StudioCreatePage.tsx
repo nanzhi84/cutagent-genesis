@@ -182,7 +182,10 @@ export default function StudioCreatePage() {
         auto_mix: form.bgmAutoMix,
       },
       cover: {
-        mode: form.coverMode,
+        // Seedance has no AI-cover step; ExportSeedanceVideo always auto-extracts a
+        // frame cover from the clip, so pin the snapshot to "frame" (the real result)
+        // instead of leaking a stale "ai"/"none" mode from a digital-human session.
+        mode: isSeedance ? "frame" : form.coverMode,
       },
       lipsync: {
         // B_roll-only and Seedance never run LipSync; force the block off so the

@@ -236,6 +236,78 @@ Evidence:
 - `apps/web/src/components/Modal.tsx` was a thin wrapper over `components/ui/Modal` that only hard-coded `isOpen`.
 - The current app already uses `components/ui/*` directly in many newer modules.
 
+### Batch 8: Aggressive duplicate implementation and unused export cleanup
+
+Files deleted:
+
+- `apps/web/src/contracts/caseEdit.typecheck.ts`
+- `apps/web/src/contracts/m6aA.typecheck.ts`
+- `apps/web/src/contracts/m6aR3.typecheck.ts`
+- `apps/web/src/contracts/m6aR4.typecheck.ts`
+- `apps/web/src/contracts/m6aR5.typecheck.ts`
+- `apps/web/src/contracts/m6aR6.typecheck.ts`
+- `apps/web/src/contracts/m6eB.typecheck.ts`
+
+Files added:
+
+- `packages/core/storage/import_metadata.py`
+- `packages/core/storage/performance_mappers.py`
+- `packages/media/audio/loudness.py`
+- `packages/production/pipeline/nodes/_timeline_output.py`
+
+Files changed:
+
+- `README.md`
+- `apps/api/services/imports.py`
+- `apps/web/CLAUDE.md`
+- `apps/web/src/api/client.ts`
+- `apps/web/src/api/r6.ts`
+- `apps/web/src/components/library/libraryModel.ts`
+- `apps/web/src/components/modals/CaseModal.tsx`
+- `apps/web/src/components/studio-create/batchModel.ts`
+- `apps/web/src/components/studio-create/studioCreateModel.ts`
+- `apps/web/src/components/ui/Modal.tsx`
+- `apps/web/src/hooks/notificationModel.ts`
+- `apps/web/src/hooks/useTaskNotifications.ts`
+- `apps/web/src/utils/annotationV4.ts`
+- `packages/core/storage/sqlalchemy_uploads.py`
+- `packages/creative/cases/sqlalchemy_rubric.py`
+- `packages/media/annotation/bgm.py`
+- `packages/media/voice_provider_bridge.py`
+- `packages/production/pipeline/_ffmpeg.py`
+- `packages/production/pipeline/digital_human.py`
+- `packages/production/pipeline/nodes/broll_timeline_planning.py`
+- `packages/production/pipeline/nodes/export_finished_video.py`
+- `packages/production/pipeline/nodes/export_seedance_video.py`
+- `packages/production/pipeline/nodes/timeline_planning.py`
+- `packages/production/sqlalchemy_mappers.py`
+- `packages/production/sqlalchemy_repository.py`
+- `tests/creative/test_case_evolution_logic.py`
+- `tests/frontend/test_user_defaults_batch_notify.py`
+- `tests/integration/test_parity_mapper.py`
+
+Changes:
+
+- Deleted seven frontend compile-time contract probe files that are not imported by source, test, package scripts, or CI and are superseded by the normal TypeScript/build gates.
+- Removed unused frontend exports and payload-builder helpers surfaced by `knip --production`, while preserving `defaultForm` as a private implementation detail and updating probe tests to use the public `loadStoredForm()` entry.
+- Shared API request/response helper types between `apps/web/src/api/client.ts` and `apps/web/src/api/r6.ts`.
+- Moved repeated import-metadata parsing into `packages/core/storage/import_metadata.py` and reused it from API imports and SQLAlchemy production persistence.
+- Moved repeated loudness probing into `packages/media/audio/loudness.py` and reused it from BGM annotation and pipeline ffmpeg helpers.
+- Moved repeated performance observation/score row mappers into `packages/core/storage/performance_mappers.py`; production mappers now re-export the canonical helpers for compatibility.
+- Added `artifact_to_row` beside `artifact_row_to_contract` and removed duplicate Artifact contract-to-row mapping in media/provider preview and production snapshot sync.
+- Shared timeline planning `NodeOutput` artifact construction in `packages/production/pipeline/nodes/_timeline_output.py`.
+- Reused export package artifact creation between finished-video and Seedance export nodes.
+- Shared digital-human run-running transition/event/funnel recording in one private method.
+- Shortened README test env instructions by referring to the already documented manual SQLAlchemy/Temporal/MinIO setup.
+
+Evidence:
+
+- `git diff --shortstat` after this batch showed tracked changes of `+166/-1215`; the four new helper files total 333 lines, so the batch still nets roughly 716 fewer lines before documentation updates.
+- `knip --production` identified unused frontend typecheck files/exports; `tsc --noUnusedLocals --noUnusedParameters` and `npm run build` passed after deletion.
+- `jscpd` with a lower source threshold found duplicate Python implementations in import metadata, loudness probing, performance mappers, Artifact row mapping, timeline output construction, export package artifact creation, and digital-human run state transition. After consolidation, the same source scan reported zero Python/TypeScript/TSX runtime-code clones at that threshold, excluding docs, tests, generated files, and migrations.
+- Repository-wide `rg` checks found no remaining callers of the deleted private performance mapper methods or frontend wrapper/typecheck imports.
+- The first full pytest after removing the `defaultForm` export failed two frontend probe tests; tests were corrected to use the public `loadStoredForm()` entry, then the targeted probe tests and full pytest passed.
+
 ## Validation Log
 
 Baseline validation is recorded above. Targeted validation will be appended after each cleanup batch.
@@ -301,6 +373,21 @@ After Batch 7:
 | `rg -n 'components/(Modal|State|Toast|Status)"|\\.\\./(Modal|State|Toast|Status)"|\\./(Modal|State|Toast|Status)"' apps/web/src --glob '*.ts' --glob '*.tsx'` | pass | No old wrapper imports remain; the remaining same-directory `./Modal` hit is canonical `components/ui/ConfirmDialog.tsx` importing `components/ui/Modal.tsx`. |
 | `npx tsc -p tsconfig.json --noEmit --noUnusedLocals --noUnusedParameters` | command error | First run found two missed same-directory `./State` imports in `AppShell.tsx` and `RequireAuth.tsx`; fixed and rerun passed. |
 
+After Batch 8:
+
+| Command | Result | Notes |
+| --- | --- | --- |
+| `uv run --extra dev ruff check .` | pass | Python helper consolidation and repository changes are lint-clean. |
+| `npx --yes jscpd --min-lines 20 --min-tokens 120 ...` | pass | Runtime source scan, excluding docs/tests/generated/migrations, reported zero Python/TypeScript/TSX clones at this lower threshold; only README self-overlap remained. |
+| `env -u ... uv run --extra dev python -m pytest -q tests/creative/test_case_evolution_logic.py tests/integration/test_parity_mapper.py tests/media/annotation/test_bgm.py tests/production/test_bgm_segment_selection.py tests/production/test_broll_timeline_planning.py tests/production/test_broll_only_template.py tests/production/test_seedance_template.py` | pass | `50` targeted tests passed/skipped as expected. |
+| `env -u ... uv run --extra dev python -m pytest -q tests/production/test_digital_human_seed_media.py tests/production/test_digital_human_ephemeral_gc.py tests/workflow/test_broll_only_run.py tests/workflow/test_broll_only_parity.py tests/workflow/test_reuse_plan.py` | pass | `15` runtime/workflow tests passed after digital-human state-transition consolidation. |
+| `cd apps/web && npx --yes knip --production --reporter compact && npx tsc -p tsconfig.json --noEmit --noUnusedLocals --noUnusedParameters && npm run build` | pass | Frontend unused-export, type, and production build gates passed after unused export cleanup. |
+| `env -u ... uv run --extra dev python scripts/export_openapi.py && cd apps/web && npm run generate:api` | command error | Export and generation succeeded; the trailing `git diff` used root-relative paths after `cd apps/web`. Corrected command below passed. |
+| `git diff --exit-code -- apps/web/src/api/openapi.json apps/web/src/api/schema.d.ts` | pass | No generated API/schema drift. |
+| `env -u ... uv run --extra dev python -m pytest -q` | introduced failure, then fixed | First full run failed two frontend probe tests because deleting the `defaultForm` export removed a test-used module entry. Tests were updated to use public `loadStoredForm()`; targeted rerun and final full pytest passed. |
+| `env -u ... uv run --extra dev python -m pytest -q tests/frontend/test_user_defaults_batch_notify.py::test_form_defaults_round_trip_preserves_preference_blocks tests/frontend/test_user_defaults_batch_notify.py::test_seedance_reference_assets_are_optional` | pass | Corrected frontend probe tests passed. |
+| `git diff --check` | pass | No whitespace/error marker issues. |
+
 Final validation:
 
 | Command | Result | Notes |
@@ -308,10 +395,12 @@ Final validation:
 | `uv run --extra dev ruff check .` | pass | Final lint pass. |
 | `git diff --check` | pass | No whitespace/error marker issues. |
 | `env -u ALL_PROXY -u all_proxy -u HTTP_PROXY -u HTTPS_PROXY -u http_proxy -u https_proxy uv run --extra dev python -m pytest -q` | pass | Full default suite passed. |
+| `env -u ALL_PROXY -u all_proxy -u HTTP_PROXY -u HTTPS_PROXY -u http_proxy -u https_proxy uv run --extra dev python -m pytest -q` | pass | Re-run after Batch 8 and the frontend probe correction; full default suite passed again. |
 | `env -u ALL_PROXY -u all_proxy -u HTTP_PROXY -u HTTPS_PROXY -u http_proxy -u https_proxy uv run --extra dev python scripts/export_openapi.py` | pass | OpenAPI export succeeded after clearing local proxy env. |
 | `npm run generate:api` | pass | Generated TypeScript schema. |
 | `git diff --exit-code apps/web/src/api/openapi.json apps/web/src/api/schema.d.ts` | pass | No generated API drift. |
 | `npm run build` | pass | Frontend production build passed. |
+| `cd apps/web && npx --yes knip --production --reporter compact && npx tsc -p tsconfig.json --noEmit --noUnusedLocals --noUnusedParameters && npm run build` | pass | Re-run after Batch 8; no production-unused frontend exports remain. |
 | `scripts/ci_gate.sh` with `PYTHON_BIN=.venv/bin/python` | environment failure | macOS environment lacks GNU `timeout`/`gtimeout`; script failed before tests at line 26. Equivalent subcommands below were run manually. |
 | `CUTAGENT_RUN_DB_TESTS=1 CUTAGENT_STORAGE_BACKEND=sqlalchemy CUTAGENT_DATABASE_URL=postgresql+psycopg://cutagent:cutagent@localhost:55432/cutagent .venv/bin/python scripts/bootstrap_database.py` | pass | Existing local dev DB migrated to 0022 but inserted 0 seed rows; not used for final integration verdict because it was not a clean CI DB. |
 | Same integration command against existing local dev DB | environment failure | Failed on admin login because the existing local DB had non-CI auth state; classified as dirty local data, not a code regression. |
@@ -329,6 +418,8 @@ Final validation:
 - Command error during Batch 6 production-node validation: guessed nonexistent test filename; corrected after `rg --files tests`.
 - Environment failure during Batch 6 production-node validation: local proxy env caused `httpx` SOCKS import failure; unsetting proxy env vars made the same tests pass.
 - Command error during Batch 7 frontend validation: first tsc run found two missed wrapper imports; fixed and rerun passed.
+- Introduced failure during Batch 8 full pytest: removing the `defaultForm` export broke two frontend probe tests. Tests were updated to use public `loadStoredForm()` instead of a production-unused export; targeted and full pytest reruns passed.
+- Command error during Batch 8 OpenAPI validation: generation succeeded but the trailing diff command used root-relative paths after `cd apps/web`; corrected root-level diff passed.
 - Environment failure during final OpenAPI validation: first export inherited local SOCKS proxy env and failed in `httpx`; rerun with proxy vars unset passed.
 - Environment failure during full `scripts/ci_gate.sh`: local macOS lacks `timeout`; manual equivalent subcommands were run and recorded above.
 - Environment failure during DB integration on the existing dev DB: local auth seed state was dirty (`admin@local.cutagent` login 401); clean temporary DB integration passed.
@@ -340,6 +431,8 @@ Final validation:
 - Round 0: Baseline map and entrypoint scan completed.
 - Round 1: completed. Findings accepted and fixed in Batches 1-7.
 - Round 2: completed after Batch 7. Python import graph had no zero-inbound candidates except Alembic migration files; duplicate literal scan showed only three intentionally retained/high-risk tuples; tracked build-artifact scan had no matches; stale keyword/config grep had no target matches; frontend unused-symbol gate passed.
+- Round 3: completed after Batch 8. Old frontend wrapper/typecheck/private-mapper references had no matches, `knip --production` was clean, tracked build-artifact scan had no matches, and low-threshold runtime `jscpd` found zero clones after excluding docs/tests/generated/migrations/README.
+- Round 4: repeated the same post-Batch-8 discovery set. It again found no old references, no frontend production-unused exports, no tracked build artifacts, and zero low-threshold runtime source clones.
 
 ## Adversarial Self Review
 
@@ -350,7 +443,7 @@ Final validation:
 
 ## Final Rescan
 
-- Final rescan completed after full validation. No new high-confidence cleanup candidates found.
+- Final rescan completed after full validation and again after Batch 8. Two consecutive post-Batch-8 discovery rounds found no new high-confidence runtime cleanup candidates.
 
 ## Remaining Risks
 

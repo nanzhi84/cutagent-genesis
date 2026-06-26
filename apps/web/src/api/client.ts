@@ -8,13 +8,13 @@ import {
   isRealVoice,
 } from "./realData";
 
-type JsonRequest<Operation> = Operation extends {
+export type JsonRequest<Operation> = Operation extends {
   requestBody: { content: { "application/json": infer Body } };
 }
   ? Body
   : never;
 
-type JsonResponse<Operation> = Operation extends {
+export type JsonResponse<Operation> = Operation extends {
   responses: {
     200: { content: { "application/json": infer Body } };
   };
@@ -34,7 +34,7 @@ type JsonResponse<Operation> = Operation extends {
       ? Body
       : never;
 
-type QueryParams<Operation> = Operation extends {
+export type QueryParams<Operation> = Operation extends {
   parameters: { query?: infer Query };
 }
   ? Query
@@ -797,7 +797,6 @@ export type CaseDetail = components["schemas"]["CaseDetail"];
 export type CreateCaseRequest = components["schemas"]["CreateCaseRequest"];
 export type PatchCaseRequest = components["schemas"]["PatchCaseRequest"];
 export type PromptTemplateView = components["schemas"]["PromptTemplateView"];
-export type PromptVersionView = components["schemas"]["PromptVersionView"];
 export type PromptBindingView = components["schemas"]["PromptBindingView"];
 export type NodeRun = components["schemas"]["NodeRun"];
 export type RunCard = components["schemas"]["RunCard"];
@@ -813,7 +812,6 @@ export type SignedUrlResponse = components["schemas"]["SignedUrlResponse"];
 export type AnnotationEditorVm = components["schemas"]["AnnotationEditorVm"];
 export type FinishedVideo = components["schemas"]["FinishedVideo"];
 export type PublishAttempt = components["schemas"]["PublishAttempt"];
-export type PublishAttemptDetail = components["schemas"]["PublishAttemptDetail"];
 export type PublishBatch = components["schemas"]["PublishBatchVm"];
 export type PublishBatchItem = components["schemas"]["PublishBatchItemVm"];
 export type PublishPackage = components["schemas"]["PublishPackage"];

@@ -9,14 +9,31 @@ Candidates start as observations. They move to actionable cleanup only after at 
   - `apps/web/src/components/State.tsx`
   - `apps/web/src/components/Status.tsx`
   - `apps/web/src/components/Toast.tsx`
+- Deleted unused frontend compile-time contract probes after `knip --production`, repo-wide reference search, and `tsc`/build validation:
+  - `apps/web/src/contracts/caseEdit.typecheck.ts`
+  - `apps/web/src/contracts/m6aA.typecheck.ts`
+  - `apps/web/src/contracts/m6aR3.typecheck.ts`
+  - `apps/web/src/contracts/m6aR4.typecheck.ts`
+  - `apps/web/src/contracts/m6aR5.typecheck.ts`
+  - `apps/web/src/contracts/m6aR6.typecheck.ts`
+  - `apps/web/src/contracts/m6eB.typecheck.ts`
 
 ## Dead Functions
 
-No accepted candidates yet.
+- Removed unused frontend payload/type helpers from:
+  - `apps/web/src/components/modals/CaseModal.tsx`
+  - `apps/web/src/components/studio-create/batchModel.ts`
+  - `apps/web/src/components/studio-create/studioCreateModel.ts`
+  - `apps/web/src/hooks/notificationModel.ts`
+  - `apps/web/src/hooks/useTaskNotifications.ts`
+  - `apps/web/src/utils/annotationV4.ts`
+- Removed duplicate private performance observation/score row mapper methods from `packages/creative/cases/sqlalchemy_rubric.py` and `packages/production/sqlalchemy_repository.py`.
+- Removed duplicate `_artifact_row` helper from `packages/production/sqlalchemy_repository.py`.
 
 ## Unused Exports
 
-No accepted candidates yet.
+- Removed production-unused frontend exports surfaced by `knip --production`, except where tests were moved to a public entrypoint instead of retaining a production-unused export.
+- Removed duplicate/unused API type exports from `apps/web/src/api/client.ts` and `apps/web/src/api/r6.ts`.
 
 ## Unused Dependencies
 
@@ -27,6 +44,13 @@ No accepted candidates yet.
 - Consolidated the Case reusable-material kind allowlist into `packages/core/contracts/media.py::CASE_MATERIAL_ASSET_KINDS`; API and SQLAlchemy case-count paths now import it instead of carrying duplicate literals.
 - Consolidated planning/material person-centric subject terms into `packages/planning/material/subject_terms.py::PERSON_SUBJECT_TERMS`; b-roll filtering and portrait lip-sync source detection now share one tuple.
 - Removed frontend UI compatibility re-export wrappers and pointed callers at canonical `components/ui/*` modules.
+- Consolidated import-metadata parsing into `packages/core/storage/import_metadata.py`; API import handling, production import persistence, and production mappers now use one implementation.
+- Consolidated loudness JSON extraction/probing into `packages/media/audio/loudness.py`; BGM annotation and ffmpeg pipeline code now use the shared helper.
+- Consolidated performance observation/score row mappers into `packages/core/storage/performance_mappers.py`; production mappers re-export the canonical functions.
+- Added `packages/core/storage/sqlalchemy_uploads.py::artifact_to_row` beside `artifact_row_to_contract` and replaced duplicate Artifact contract-to-row mapping.
+- Consolidated timeline-planning `NodeOutput` artifact construction into `packages/production/pipeline/nodes/_timeline_output.py`.
+- Consolidated finished-video/Seedance publish package artifact creation in `packages/production/pipeline/nodes/export_finished_video.py`.
+- Consolidated digital-human run-running transition/event/funnel recording into one private helper.
 
 ## Duplicate Schemas or Types
 
@@ -49,6 +73,8 @@ No accepted candidates yet.
 - `README.md`: Jobs/Runs row referenced nonexistent `apps/api/routers/cost_estimate.py`; actual router is `apps/api/routers/jobs_runs.py`.
 - `README.md`: `scripts/dev_up.sh up` example claimed web default `5176`; actual script default is `8001`.
 - `README.md`: storage backend list omitted `postgres`, which `packages/core/storage/bootstrap.py` accepts as a SQLAlchemy backend alias.
+- `README.md`: DB/Temporal test env examples repeated the full manual setup block; test section now references the manual SQLAlchemy/Temporal/MinIO env and only adds the opt-in test switches.
+- `apps/web/CLAUDE.md`: referenced stale `src/contracts/*.typecheck.ts` frontend probe files after those probes were removed.
 - `docs/ROADMAP.md`: current milestone discipline assigned Codex worktrees to `.claude/worktrees`; current Codex desktop worktrees use `.codex/worktrees/<id>/<repo>`.
 - `.env.example`: preamble said every variable maps to `Settings`; render/ephemeral debug switches are valid but read directly by their runtime consumers.
 

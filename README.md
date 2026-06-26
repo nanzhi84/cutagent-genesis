@@ -195,21 +195,12 @@ Temporal runtime 下 durable 与 ephemeral 对象存储都应使用共享 MinIO/
 # 默认单测（不需基础设施）
 timeout -k 5 600 python -m pytest -q
 
-# DB 集成测试（opt-in，需 Postgres）
-export CUTAGENT_RUN_DB_TESTS=1 CUTAGENT_STORAGE_BACKEND=sqlalchemy
-export CUTAGENT_DATABASE_URL=postgresql+psycopg://cutagent:cutagent@localhost:55432/cutagent
+# DB 集成测试（opt-in，需 Postgres；复用“方式 B”的 SQLAlchemy env）
+export CUTAGENT_RUN_DB_TESTS=1
 python -m pytest -q tests/integration
 
-# Temporal 测试（opt-in，需 Temporal + 共享 MinIO 对象存储；docker compose 需已起）
-export CUTAGENT_RUN_TEMPORAL_TESTS=1 CUTAGENT_STORAGE_BACKEND=sqlalchemy
-export CUTAGENT_DATABASE_URL=postgresql+psycopg://cutagent:cutagent@localhost:55432/cutagent
-export CUTAGENT_WORKFLOW_RUNTIME=temporal CUTAGENT_TEMPORAL_ADDRESS=localhost:7233
-export CUTAGENT_OBJECTSTORE_BACKEND=s3 CUTAGENT_OBJECTSTORE_ENDPOINT=http://127.0.0.1:9000
-export CUTAGENT_OBJECTSTORE_BUCKET=cutagent-local CUTAGENT_OBJECTSTORE_ACCESS_KEY=minioadmin
-export CUTAGENT_OBJECTSTORE_SECRET_KEY=minioadmin CUTAGENT_OBJECTSTORE_ADDRESSING_STYLE=path
-export CUTAGENT_EPHEMERAL_OBJECTSTORE_BACKEND=s3 CUTAGENT_EPHEMERAL_OBJECTSTORE_ENDPOINT=http://127.0.0.1:9000
-export CUTAGENT_EPHEMERAL_OBJECTSTORE_BUCKET=cutagent-ephemeral CUTAGENT_EPHEMERAL_OBJECTSTORE_ACCESS_KEY=minioadmin
-export CUTAGENT_EPHEMERAL_OBJECTSTORE_SECRET_KEY=minioadmin CUTAGENT_EPHEMERAL_OBJECTSTORE_ADDRESSING_STYLE=path
+# Temporal 测试（opt-in，需 Temporal + 共享 MinIO；复用“方式 B”的 Temporal/S3 env）
+export CUTAGENT_RUN_TEMPORAL_TESTS=1
 python -m pytest -q tests/temporal
 
 # 完整本地验收门禁（镜像 .github/workflows/ci.yml；需 docker compose 已起）

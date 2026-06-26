@@ -1,43 +1,10 @@
 import { createIdempotencyKey, fetchJson } from "./client";
+import type { JsonRequest, JsonResponse, QueryParams } from "./client";
 import type { components, operations } from "./schema";
-
-type JsonRequest<Operation> = Operation extends {
-  requestBody: { content: { "application/json": infer Body } };
-}
-  ? Body
-  : never;
-
-type JsonResponse<Operation> = Operation extends {
-  responses: {
-    200: { content: { "application/json": infer Body } };
-  };
-}
-  ? Body
-  : Operation extends {
-        responses: {
-          201: { content: { "application/json": infer Body } };
-        };
-      }
-    ? Body
-    : Operation extends {
-          responses: {
-            202: { content: { "application/json": infer Body } };
-          };
-        }
-      ? Body
-      : never;
-
-type QueryParams<Operation> = Operation extends {
-  parameters: { query?: infer Query };
-}
-  ? Query
-  : never;
 
 const enc = encodeURIComponent;
 
-export type AgentDraft = components["schemas"]["ScriptDraft"];
 export type ScorePrediction = components["schemas"]["ScorePrediction"];
-export type EditorHandoffResult = components["schemas"]["EditorHandoffPackageArtifact"];
 export type JianyingDraftResult = components["schemas"]["JianyingDraftPackageArtifact"];
 export type ProviderBalanceReport = components["schemas"]["ProviderBalanceReport"];
 export type ProviderBalanceItem = components["schemas"]["ProviderBalanceItem"];

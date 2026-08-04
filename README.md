@@ -4,15 +4,13 @@
 
 它解决的不是「偶尔生成一条看起来不错的视频」，而是更难的经营问题：怎样围绕同一个账号，持续、稳定、可核算地生产内容，并让每轮结果回流到下一轮。
 
-<p align="center">
-  <img
-    src="docs/assets/cutflow-flow.svg"
-    alt="CutFlow 以 Case 为长期边界，由 Temporal 将任务路由到规则数字人主链、Agent 智能剪辑链或 Seedance 信息流生成支链，三条链共享供应商、数据、媒体、运营与发布治理底座"
-    width="100%"
-  />
-</p>
-
-<p align="center"><em>CutFlow 三链路系统架构 · 规则剪辑、Agent 剪辑、Seedance 原生生成与发布数据回流</em></p>
+<img
+  src="docs/assets/cutflow-flow.svg"
+  alt="CutFlow 以 Case 为长期边界，由 Temporal 将任务路由到规则数字人主链、Agent 智能剪辑链或 Seedance 信息流生成支链，三条链共享供应商、数据、媒体、运营与发布治理底座"
+  width="100%"
+/>
+<br>
+<sub>CutFlow 三链路系统架构 · 规则剪辑、Agent 剪辑、Seedance 原生生成与发布数据回流</sub>
 
 ---
 

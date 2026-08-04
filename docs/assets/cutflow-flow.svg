@@ -29,11 +29,11 @@
       .gold-line { fill: none; stroke: #9a732b; stroke-width: 2.2; marker-end: url(#arrow-gold); }
       .purple-line { fill: none; stroke: #6c58a5; stroke-width: 2.2; marker-end: url(#arrow-purple); }
       .branch-line { fill: none; stroke: #aaa397; stroke-width: 2; }
-      .feedback-line { fill: none; stroke: #3158a8; stroke-width: 2.2; stroke-dasharray: 8 8; marker-end: url(#arrow-blue); }
+      .feedback-line { fill: none; stroke: #9dafdc; stroke-width: 1.8; stroke-dasharray: 7 7; marker-end: url(#arrow-blue); }
     </style>
   </defs>
 
-  <rect width="1600" height="900" fill="#faf9f6"/>
+  <rect width="1600" height="900" fill="#ffffff"/>
 
   <text x="62" y="54" class="mono eyebrow">CASE-FIRST VIDEO PRODUCTION ARCHITECTURE</text>
   <text x="62" y="108" class="sans title">CutFlow 三链路视频生产系统</text>
@@ -196,7 +196,7 @@
     <text x="1334" y="816" text-anchor="middle" class="sans infra-copy">效果数据 → Scorecard → 下一轮 Case</text>
   </g>
 
-  <path d="M 1334 823 V 864 H 42 V 300 H 58" class="feedback-line"/>
-  <rect x="608" y="849" width="390" height="24" rx="8" fill="#faf9f6"/>
-  <text x="803" y="866" text-anchor="middle" class="mono" font-size="11.5" fill="#3158a8">PUBLISH → METRICS → SCORECARD → CASE MEMORY</text>
+  <path d="M 1334 823 V 852 H 202 V 300 H 58" class="feedback-line"/>
+  <rect x="608" y="840" width="390" height="24" rx="8" fill="#ffffff"/>
+  <text x="803" y="857" text-anchor="middle" class="mono" font-size="11.5" fill="#3158a8">PUBLISH → METRICS → SCORECARD → CASE MEMORY</text>
 </svg>

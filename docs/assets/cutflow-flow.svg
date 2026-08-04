@@ -1,0 +1,202 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">CutFlow 三链路视频生产系统架构图</title>
+  <desc id="desc">Case 工作台和 Temporal 将任务送入共享入口。两条数字人链共用十八个生产步骤，只在规则决策与 Agent 决策处不同；Seedance 支链复用入口、治理和交付对象，但在中段直接原生生成视频。三条链最终汇入共同产物、运营与发布反馈。</desc>
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3158a8"/>
+    </marker>
+    <marker id="arrow-gold" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9a732b"/>
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6c58a5"/>
+    </marker>
+    <style>
+      .sans { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; }
+      .mono { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
+      .eyebrow { font-size: 15px; letter-spacing: 2.4px; fill: #3158a8; }
+      .title { font-size: 42px; font-weight: 680; fill: #22211e; }
+      .subtitle { font-size: 17px; fill: #6f6b63; }
+      .section-label { font-size: 13px; letter-spacing: 1.3px; }
+      .panel-title { font-size: 23px; font-weight: 680; }
+      .panel-copy { font-size: 14px; }
+      .group-title { font-size: 18px; font-weight: 680; fill: #282622; }
+      .group-copy { font-size: 13px; fill: #615d56; }
+      .group-note { font-size: 11.5px; fill: #6d6961; }
+      .infra-title { font-size: 16px; font-weight: 680; fill: #292722; }
+      .infra-copy { font-size: 12.5px; fill: #67635c; }
+      .blue-line { fill: none; stroke: #3158a8; stroke-width: 2.4; marker-end: url(#arrow-blue); }
+      .gold-line { fill: none; stroke: #9a732b; stroke-width: 2.2; marker-end: url(#arrow-gold); }
+      .purple-line { fill: none; stroke: #6c58a5; stroke-width: 2.2; marker-end: url(#arrow-purple); }
+      .branch-line { fill: none; stroke: #aaa397; stroke-width: 2; }
+      .feedback-line { fill: none; stroke: #3158a8; stroke-width: 2.2; stroke-dasharray: 8 8; marker-end: url(#arrow-blue); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#faf9f6"/>
+
+  <text x="62" y="54" class="mono eyebrow">CASE-FIRST VIDEO PRODUCTION ARCHITECTURE</text>
+  <text x="62" y="108" class="sans title">CutFlow 三链路视频生产系统</text>
+  <text x="62" y="143" class="sans subtitle">一套共享生产骨架，根据交付目标选择规则剪辑、Agent 剪辑或 Seedance 原生生成</text>
+
+  <g transform="translate(1160 64)">
+    <rect x="0" y="0" width="13" height="13" rx="3" fill="#e7edf8" stroke="#8da7dc"/>
+    <text x="22" y="12" class="sans" font-size="12.5" fill="#5f5b54">共同环节</text>
+    <rect x="115" y="0" width="13" height="13" rx="3" fill="#efe5cf" stroke="#c19d57"/>
+    <text x="137" y="12" class="sans" font-size="12.5" fill="#5f5b54">决策差异</text>
+    <rect x="230" y="0" width="13" height="13" rx="3" fill="#ebe7f6" stroke="#9b88c8"/>
+    <text x="252" y="12" class="sans" font-size="12.5" fill="#5f5b54">原生生成</text>
+  </g>
+
+  <g>
+    <rect x="60" y="185" width="285" height="230" rx="24" fill="#303d5f" stroke="#303d5f"/>
+    <text x="84" y="216" class="mono section-label" fill="#bdc9ea">01 / LONG-TERM CASE</text>
+    <text x="84" y="256" class="sans panel-title" fill="#ffffff">CASE 工作台</text>
+    <text x="84" y="291" class="sans panel-copy" fill="#e6eaf3">账号定位 · 品牌与人设 · 受众策略</text>
+    <text x="84" y="322" class="sans panel-copy" fill="#e6eaf3">脚本版本 · 人像 / B-roll / BGM</text>
+    <text x="84" y="353" class="sans panel-copy" fill="#e6eaf3">音色 · 字体 · Prompt 与供应商配置</text>
+    <rect x="84" y="373" width="237" height="27" rx="8" fill="#ffffff" fill-opacity=".12" stroke="#ffffff" stroke-opacity=".24"/>
+    <text x="202" y="391" text-anchor="middle" class="mono" font-size="11.5" fill="#ffffff">scorecard · metrics · case memory</text>
+  </g>
+
+  <path d="M 202 417 V 442" class="blue-line"/>
+
+  <g>
+    <rect x="60" y="445" width="285" height="205" rx="24" fill="#f0eadf" stroke="#b99653" stroke-width="2"/>
+    <text x="84" y="476" class="mono section-label" fill="#8c6825">02 / ORCHESTRATION</text>
+    <text x="84" y="515" class="sans panel-title" fill="#22211e">FastAPI + Temporal</text>
+    <text x="84" y="546" class="sans panel-copy" fill="#5f5b54">Job 准入 → WorkflowRun → Worker</text>
+    <text x="84" y="574" class="sans panel-copy" fill="#5f5b54">持久状态 · 重试 · 取消 · 恢复</text>
+    <rect x="84" y="592" width="237" height="40" rx="10" fill="#9a732b"/>
+    <text x="202" y="610" text-anchor="middle" class="sans" font-size="13" font-weight="650" fill="#ffffff">根据任务类型选择生产链</text>
+    <text x="202" y="626" text-anchor="middle" class="mono" font-size="10.5" fill="#ffffff">TEMPLATE ROUTER</text>
+  </g>
+
+  <path d="M 345 612 H 365 V 265 H 407" class="blue-line"/>
+
+  <g>
+    <rect x="380" y="177" width="1160" height="503" rx="26" fill="#ffffff" stroke="#d6d1c6" stroke-width="2"/>
+    <text x="408" y="208" class="mono section-label" fill="#3158a8">03 / SHARED WORKFLOW SKELETON + THREE ROUTES</text>
+
+    <rect x="408" y="224" width="1104" height="81" rx="16" fill="#e7edf8" stroke="#9dafdc"/>
+    <text x="435" y="253" class="mono" font-size="11.5" fill="#3158a8">ALL TEMPLATES · COMMON</text>
+    <text x="435" y="282" class="sans group-title">共享入口</text>
+    <text x="610" y="255" class="sans" font-size="15" font-weight="650" fill="#282622">请求校验 · Case 上下文 · WorkflowRun 追踪</text>
+    <text x="610" y="281" class="sans group-copy">统一记录输入、供应商调用、幂等状态、节点进度与成本，不因模板不同而丢失审计链路</text>
+
+    <path d="M 620 306 V 610" class="branch-line"/>
+    <path d="M 620 424 H 645" class="blue-line"/>
+    <path d="M 620 605 H 645" class="purple-line"/>
+
+    <rect x="408" y="324" width="902" height="216" rx="18" fill="#f6f8fc" stroke="#c9d5ed"/>
+    <rect x="425" y="343" width="190" height="178" rx="15" fill="#dfe7f7" stroke="#8da7dc"/>
+    <text x="447" y="369" class="mono" font-size="11" fill="#3158a8">DIGITAL HUMAN</text>
+    <text x="447" y="399" class="sans group-title">两条数字人链</text>
+    <text x="447" y="426" class="sans group-copy">规则主链：19 个步骤</text>
+    <text x="447" y="450" class="sans group-copy">Agent 链：20 个步骤</text>
+    <rect x="447" y="470" width="146" height="32" rx="9" fill="#ffffff" stroke="#aebfdf"/>
+    <text x="520" y="490" text-anchor="middle" class="sans" font-size="12.5" font-weight="650" fill="#3158a8">其中 18 个步骤共用</text>
+
+    <g>
+      <rect x="648" y="350" width="202" height="164" rx="14" fill="#ffffff" stroke="#cbd5e7"/>
+      <text x="749" y="382" text-anchor="middle" class="sans group-title">公共前处理</text>
+      <text x="749" y="414" text-anchor="middle" class="sans group-copy">脚本与配音</text>
+      <text x="749" y="439" text-anchor="middle" class="sans group-copy">旁白时间对齐</text>
+      <text x="749" y="464" text-anchor="middle" class="sans group-copy">切镜窗口规划</text>
+      <text x="749" y="489" text-anchor="middle" class="sans group-copy">素材候选召回</text>
+    </g>
+    <path d="M 852 432 H 872" class="blue-line"/>
+
+    <g>
+      <rect x="875" y="344" width="242" height="176" rx="14" fill="#fbf7ef" stroke="#dbc291"/>
+      <text x="996" y="371" text-anchor="middle" class="sans group-title">只有决策方式不同</text>
+      <rect x="892" y="387" width="208" height="48" rx="10" fill="#ffffff" stroke="#b9c8e4"/>
+      <text x="910" y="407" class="sans" font-size="13.5" font-weight="650" fill="#3158a8">规则剪辑</text>
+      <text x="910" y="425" class="sans group-note">按匹配、时长与去重规则选择</text>
+      <rect x="892" y="445" width="208" height="58" rx="10" fill="#efe5cf" stroke="#c19d57"/>
+      <text x="910" y="466" class="sans" font-size="13.5" font-weight="650" fill="#8c6825">Agent 剪辑</text>
+      <text x="910" y="484" class="sans group-note">媒体 Agent 选画面</text>
+      <text x="910" y="498" class="sans group-note">BGM Agent 独立选配乐</text>
+    </g>
+    <path d="M 1119 432 H 1139" class="blue-line"/>
+
+    <g>
+      <rect x="1142" y="350" width="150" height="164" rx="14" fill="#ffffff" stroke="#cbd5e7"/>
+      <text x="1217" y="382" text-anchor="middle" class="sans group-title">公共后处理</text>
+      <text x="1217" y="414" text-anchor="middle" class="sans group-copy">时间线校验</text>
+      <text x="1217" y="439" text-anchor="middle" class="sans group-copy">数字人与口型</text>
+      <text x="1217" y="464" text-anchor="middle" class="sans group-copy">渲染与字幕</text>
+      <text x="1217" y="489" text-anchor="middle" class="sans group-copy">混音与质检</text>
+    </g>
+
+    <rect x="408" y="554" width="902" height="106" rx="18" fill="#f7f5fb" stroke="#c9bfe1"/>
+    <rect x="425" y="569" width="190" height="76" rx="14" fill="#ebe7f6" stroke="#9b88c8"/>
+    <text x="447" y="594" class="mono" font-size="11" fill="#6c58a5">SEEDANCE · 5 STEPS</text>
+    <text x="447" y="623" class="sans group-title">信息流原生生成</text>
+
+    <g>
+      <rect x="648" y="569" width="174" height="76" rx="12" fill="#ffffff" stroke="#d4cde6"/>
+      <text x="735" y="597" text-anchor="middle" class="sans" font-size="14" font-weight="650" fill="#282622">脚本与参考素材</text>
+      <text x="735" y="621" text-anchor="middle" class="sans group-note">纯文本或图片 / 视频参考</text>
+    </g>
+    <path d="M 824 607 H 844" class="purple-line"/>
+    <g>
+      <rect x="847" y="569" width="245" height="76" rx="12" fill="#ebe7f6" stroke="#9b88c8"/>
+      <text x="969" y="596" text-anchor="middle" class="sans" font-size="14" font-weight="650" fill="#4f3d82">15 秒信息流广告原生生成</text>
+      <text x="969" y="620" text-anchor="middle" class="sans group-note">画面 · 自然口播 · 口型一次完成</text>
+    </g>
+    <path d="M 1094 607 H 1114" class="purple-line"/>
+    <g>
+      <rect x="1117" y="569" width="175" height="76" rx="12" fill="#ffffff" stroke="#d4cde6"/>
+      <text x="1204" y="597" text-anchor="middle" class="sans" font-size="14" font-weight="650" fill="#282622">轻量导出</text>
+      <text x="1204" y="621" text-anchor="middle" class="sans group-note">无需本地剪辑与字幕混音</text>
+    </g>
+
+    <g>
+      <rect x="1328" y="324" width="184" height="336" rx="18" fill="#eef2fa" stroke="#9dafdc"/>
+      <text x="1420" y="353" text-anchor="middle" class="mono" font-size="11" fill="#3158a8">ALL ROUTES · COMMON</text>
+      <text x="1420" y="386" text-anchor="middle" class="sans group-title">共同产物与报告</text>
+      <rect x="1350" y="408" width="140" height="42" rx="10" fill="#ffffff" stroke="#cbd5e7"/>
+      <text x="1420" y="434" text-anchor="middle" class="sans group-copy">可预览的成片</text>
+      <rect x="1350" y="460" width="140" height="42" rx="10" fill="#ffffff" stroke="#cbd5e7"/>
+      <text x="1420" y="486" text-anchor="middle" class="sans group-copy">封面与缩略图</text>
+      <rect x="1350" y="512" width="140" height="42" rx="10" fill="#ffffff" stroke="#cbd5e7"/>
+      <text x="1420" y="538" text-anchor="middle" class="sans group-copy">发布包</text>
+      <rect x="1350" y="564" width="140" height="42" rx="10" fill="#ffffff" stroke="#cbd5e7"/>
+      <text x="1420" y="590" text-anchor="middle" class="sans group-copy">运行与成本报告</text>
+      <text x="1420" y="631" text-anchor="middle" class="sans group-note">统一进入成片库与发布中心</text>
+    </g>
+
+    <path d="M 1294 432 H 1325" class="blue-line"/>
+    <path d="M 1294 607 H 1325" class="purple-line"/>
+  </g>
+
+  <g>
+    <rect x="60" y="708" width="1480" height="133" rx="24" fill="#f4f2ec" stroke="#d6d1c6" stroke-width="2"/>
+    <text x="84" y="735" class="mono section-label" fill="#3158a8">04 / SHARED GOVERNANCE &amp; INFRASTRUCTURE</text>
+
+    <rect x="84" y="751" width="330" height="70" rx="13" fill="#ffffff" stroke="#d9d4ca"/>
+    <text x="249" y="778" text-anchor="middle" class="sans infra-title">AI 能力与供应商</text>
+    <text x="249" y="800" text-anchor="middle" class="sans infra-copy">LLM · VLM · TTS · ASR · LipSync · 视频生成</text>
+    <text x="249" y="816" text-anchor="middle" class="sans infra-copy">统一路由、调用记录与失败恢复</text>
+
+    <rect x="440" y="751" width="330" height="70" rx="13" fill="#ffffff" stroke="#d9d4ca"/>
+    <text x="605" y="778" text-anchor="middle" class="sans infra-title">Prompt、版本与密钥治理</text>
+    <text x="605" y="800" text-anchor="middle" class="sans infra-copy">Prompt 发布版本 · 绑定关系 · Provider 配置</text>
+    <text x="605" y="816" text-anchor="middle" class="sans infra-copy">SecretStore 与环境隔离</text>
+
+    <rect x="796" y="751" width="330" height="70" rx="13" fill="#ffffff" stroke="#d9d4ca"/>
+    <text x="961" y="778" text-anchor="middle" class="sans infra-title">数据、产物与媒体内核</text>
+    <text x="961" y="800" text-anchor="middle" class="sans infra-copy">PostgreSQL · Object Store · typed artifacts</text>
+    <text x="961" y="816" text-anchor="middle" class="sans infra-copy">FFmpeg · 文件校验 · 幂等复用</text>
+
+    <rect x="1152" y="751" width="364" height="70" rx="13" fill="#e8edf8" stroke="#9dafdc"/>
+    <text x="1334" y="778" text-anchor="middle" class="sans infra-title">运营、发布与复盘</text>
+    <text x="1334" y="800" text-anchor="middle" class="sans infra-copy">成本 · 成品率 · 预算控制 · 发布中心</text>
+    <text x="1334" y="816" text-anchor="middle" class="sans infra-copy">效果数据 → Scorecard → 下一轮 Case</text>
+  </g>
+
+  <path d="M 1334 823 V 864 H 42 V 300 H 58" class="feedback-line"/>
+  <rect x="608" y="849" width="390" height="24" rx="8" fill="#faf9f6"/>
+  <text x="803" y="866" text-anchor="middle" class="mono" font-size="11.5" fill="#3158a8">PUBLISH → METRICS → SCORECARD → CASE MEMORY</text>
+</svg>

@@ -12,7 +12,6 @@
 <br>
 <sub>CutFlow 三链路系统架构 · 规则剪辑、Agent 剪辑、Seedance 原生生成与发布数据回流</sub>
 
----
 
 ## Case-first：让系统记住一个账号，而不是只记住一次任务
 
@@ -25,7 +24,6 @@
 
 因此，CutFlow 更像一个内容操作系统，而不是一次性生成器。
 
----
 
 ## 三条视频生产流水线
 
@@ -74,7 +72,6 @@
 
 三条链最终形成分层关系：**规则主链负责稳定交付，Agent 链负责在稳定框架里增加语义判断，Seedance 支链负责原生生成和快速试错。**
 
----
 
 ## 多模型能力如何被产品化
 
@@ -88,7 +85,6 @@
 
 这套抽象的目的不是追求「接更多模型」，而是让供应商替换、价格变化和单点故障不再直接污染业务流程。
 
----
 
 ## 为重复交付设计的运营能力
 
@@ -101,7 +97,6 @@ CutFlow 把成本和成品率当作一等产品对象，而不是上线后再补
 - 素材 ledger 会降低近期反复使用素材的权重，减少连续视频里的画面重复
 - 降级、返工和人工审批都写入审计事件，不允许静默吞掉失败
 
----
 
 ## 工程架构
 
@@ -132,7 +127,6 @@ packages/
 
 数据库迁移只在 `packages/core/storage/alembic/versions/`。更细的长期设计见 [docs/README.md](docs/README.md)。
 
----
 
 ## 本地启动
 
@@ -217,7 +211,6 @@ Temporal 模式下，durable / ephemeral 对象存储必须是共享 MinIO 或 S
 
 `CUTAGENT_REDIS_URL` 是可选的跨进程协调层（限流、事件 fanout、stream token），不是查询缓存，也不是业务真源。多副本生产会强制要求 Redis。详见 [docs/architecture/redis-coordination.md](docs/architecture/redis-coordination.md)。
 
----
 
 ## 开发与验证
 
@@ -245,7 +238,6 @@ python -m pytest -q tests/temporal
 
 改 `packages/production` 或节点代码后，记得**重启 worker**，不只是 API。
 
----
 
 ## 文档
 

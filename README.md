@@ -13,7 +13,7 @@
 <sub>CutFlow 三链路系统架构 · 规则剪辑、Agent 剪辑、Seedance 原生生成与发布数据回流</sub>
 
 
-## Case-first：让系统记住一个账号，而不是只记住一次任务
+## 产品设计
 
 传统 AI 视频工具通常从一段 prompt 开始，生成结束后上下文也随之消失。CutFlow 把 **Case** 作为长期产品边界：
 
